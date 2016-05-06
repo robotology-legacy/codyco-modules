@@ -321,11 +321,6 @@ private:
         size_t nrOfSamplesToUseForCalibration;
     } calibrationBuffers;
 
-    /**
-      * Semaphore used by the RPC to wait until the calibration is complete.
-      */
-    yarp::os::Semaphore calibrationSemaphore;
-
     /***
      * RPC Calibration related methods
      */
@@ -446,7 +441,6 @@ private:
       * Generic helper methods
       */
      size_t getNrOfFTSensors();
-     void waitEndOfCalibration();
      void endCalibration();
 
      /**

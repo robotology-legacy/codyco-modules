@@ -26,8 +26,7 @@ WholeBodyDynamicsDevice::WholeBodyDynamicsDevice(): RateThread(10),
                                                     estimationWentWell(false),
                                                     validOffsetAvailable(false),
                                                     imuInterface(0),
-                                                    settingsEditor(settings),
-                                                    calibrationSemaphore(0)
+                                                    settingsEditor(settings)
 {
     // Calibration quantities
     calibrationBuffers.ongoingCalibration = false;
@@ -1345,9 +1344,6 @@ bool WholeBodyDynamicsDevice::calib(const std::string& calib_code, const int32_t
         return false;
     }
 
-    // Wait for the calibration to finish
-    this->waitEndOfCalibration();
-
     return true;
 
 }
@@ -1364,9 +1360,6 @@ bool WholeBodyDynamicsDevice::calibStanding(const std::string& calib_code, const
     {
         return false;
     }
-
-    // Wait for the calibration to finish
-    this->waitEndOfCalibration();
 
     return true;
 
@@ -1385,10 +1378,6 @@ bool WholeBodyDynamicsDevice::calibStandingLeftFoot(const std::string& calib_cod
         return false;
     }
 
-
-    // Wait for the calibration to finish
-    this->waitEndOfCalibration();
-
     return true;
 }
 
@@ -1404,9 +1393,6 @@ bool WholeBodyDynamicsDevice::calibStandingRightFoot(const std::string& calib_co
     {
         return false;
     }
-
-    // Wait for the calibration to finish
-    this->waitEndOfCalibration();
 
     return true;
 
@@ -1520,14 +1506,6 @@ size_t WholeBodyDynamicsDevice::getNrOfFTSensors()
     return this->calibrationBuffers.offset.size();
 }
 
-void WholeBodyDynamicsDevice::waitEndOfCalibration()
-{
-    // The default value for the semaphore is zero, so this will make us wait until the
-    // thread of the device (that is different from the thread handling the RPC) wakes
-    calibrationSemaphore.wait();
-    return;
-}
-
 void WholeBodyDynamicsDevice::endCalibration()
 {
     validOffsetAvailable = true;
@@ -1536,10 +1514,6 @@ void WholeBodyDynamicsDevice::endCalibration()
     {
         calibrationBuffers.calibratingFTsensor[ft] = false;
     }
-
-    // The default value for the semaphore is zero, so this will make us wait until the
-    // thread of the device (that is different from the thread handling the RPC) wakes
-    calibrationSemaphore.post();
 
     yInfo() << "WholeBodyDynamicsDevice: calibration ended.";
 
