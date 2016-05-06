@@ -48,9 +48,6 @@ struct virtualAnalogSensorRemappedAxis
  */
 struct outputWrenchPortInformation
 {
-    outputWrenchPortInformation();
-    ~outputWrenchPortInformation();
-
     std::string port_name;
     std::string link;
     std::string origin_frame;
