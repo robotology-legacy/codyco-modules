@@ -25,6 +25,11 @@
             <param name="r_foot">(r_foot_dh_frame,6,5)</param>
         </group>
 
+        <group name="WBD_OUTPUT_EXTERNAL_WRENCH_PORTS">
+            <param name="/wholeBodyDynamics/left_leg/cartesianEndEffectorWrench:o">(l_foot,l_sole,root_link)</param>
+            <param name="/wholeBodyDynamics/right_leg/cartesianEndEffectorWrench:o">(r_foot,r_sole,root_link)</param>
+        </group>
+
         <action phase="startup" level="15" type="attach">
             <paramlist name="networks">
                 <!-- motorcontrol and virtual torque sensors -->

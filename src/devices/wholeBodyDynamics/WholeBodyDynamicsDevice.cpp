@@ -87,6 +87,28 @@ bool WholeBodyDynamicsDevice::closeRPCPort()
     return true;
 }
 
+bool WholeBodyDynamicsDevice::closeSkinContactListsPorts()
+{
+    this->portContactsInput.close();
+    this->portContactsOutput.close();
+}
+
+bool WholeBodyDynamicsDevice::closeExternalWrenchesPorts()
+{
+    for(unsigned int i = 0; i < outputWrenchPorts.size(); i++ )
+    {
+        if( outputWrenchPorts[i].output_port )
+        {
+            outputWrenchPorts[i].output_port->close();
+            delete outputWrenchPorts[i].output_port;
+            outputWrenchPorts[i].output_port = 0;
+        }
+    }
+    return true;
+}
+
+
+
 void addVectorOfStringToProperty(yarp::os::Property& prop, std::string key, std::vector<std::string> & list)
 {
     prop.addGroup(key);
@@ -306,6 +328,112 @@ bool WholeBodyDynamicsDevice::openSkinContactListPorts(os::Searchable& config)
     return ok;
 }
 
+bool WholeBodyDynamicsDevice::openExternalWrenchesPorts(os::Searchable& config)
+{
+    // Read ports info from config
+    // Load output external wrenches ports informations
+    yarp::os::Bottle & output_wrench_bot = config.findGroup("WBD_OUTPUT_EXTERNAL_WRENCH_PORTS");
+    if( output_wrench_bot.isNull() )
+    {
+        // The WBD_OUTPUT_EXTERNAL_WRENCH_PORTS is optional
+        return true;
+    }
+
+    int nr_of_output_wrench_ports = output_wrench_bot.size() - 1;
+
+    for(int output_wrench_port = 1; output_wrench_port < output_wrench_bot.size(); output_wrench_port++)
+    {
+        outputWrenchPortInformation wrench_port_struct;
+        yarp::os::Bottle *wrench_port = output_wrench_bot.get(output_wrench_port).asList();
+        if( wrench_port == NULL || wrench_port->isNull() || wrench_port->size() != 2
+            || wrench_port->get(1).asList() == NULL
+            || !(wrench_port->get(1).asList()->size() == 2 || wrench_port->get(1).asList()->size() == 3 ) )
+        {
+            yError() << "wholeBodyDynamics : malformed WBD_OUTPUT_EXTERNAL_WRENCH_PORTS group found in configuration, exiting";
+            if( wrench_port )
+            {
+                yError() << "wholeBodyDynamics : malformed line " << wrench_port->toString();
+            }
+            else
+            {
+                yError() << "wholeBodyDynamics : malformed line " << output_wrench_bot.get(output_wrench_port).toString();
+                yError() << "wholeBodyDynamics : malformed group " << output_wrench_bot.toString();
+            }
+            return false;
+        }
+
+        wrench_port_struct.port_name = wrench_port->get(0).asString();
+        wrench_port_struct.link = wrench_port->get(1).asList()->get(0).asString();
+
+        if( wrench_port->get(1).asList()->size() == 2 )
+        {
+            // Simple configuration, both the origin and the orientation of the
+            // force belong to the same frame
+            wrench_port_struct.orientation_frame = wrench_port->get(1).asList()->get(1).asString();
+            wrench_port_struct.origin_frame = wrench_port_struct.orientation_frame;
+        }
+        else
+        {
+            assert( wrench_port->get(1).asList()->size() == 3 );
+            // Complex configuration: the first parameter is the frame of the point of expression,
+            // the second parameter is the frame of orientation
+            wrench_port_struct.origin_frame = wrench_port->get(1).asList()->get(1).asString();
+            wrench_port_struct.orientation_frame = wrench_port->get(1).asList()->get(2).asString();
+        }
+
+        outputWrenchPorts.push_back(wrench_port_struct);
+
+    }
+
+    // Load indeces for specified links and frame
+    for(unsigned i=0; i < outputWrenchPorts.size(); i++ )
+    {
+        outputWrenchPorts[i].link_index =
+            kinDynComp.getRobotModel().getLinkIndex(outputWrenchPorts[i].link);
+        if( outputWrenchPorts[i].link_index < 0 )
+        {
+            yError() << "wholeBodyDynamics : Link " << outputWrenchPorts[i].link << " not found in the model.";
+            return false;
+        }
+
+        outputWrenchPorts[i].origin_frame_index =
+            kinDynComp.getRobotModel().getFrameIndex(outputWrenchPorts[i].origin_frame);
+
+        if( outputWrenchPorts[i].origin_frame_index < 0 )
+        {
+            yError() << "wholeBodyDynamics : Frame " << outputWrenchPorts[i].origin_frame << " not found in the model.";
+            return false;
+        }
+
+        outputWrenchPorts[i].orientation_frame_index =
+            kinDynComp.getRobotModel().getFrameIndex(outputWrenchPorts[i].orientation_frame);
+
+        if( outputWrenchPorts[i].orientation_frame_index < 0 )
+        {
+            yError() << "wholeBodyDynamics : Frame " << outputWrenchPorts[i].orientation_frame_index << " not found in the model.";
+            return false;
+        }
+    }
+
+    // Open ports
+    bool ok = true;
+    for(unsigned int i = 0; i < outputWrenchPorts.size(); i++ )
+    {
+        std::string port_name = outputWrenchPorts[i].port_name;
+        outputWrenchPorts[i].output_port = new yarp::os::BufferedPort<yarp::sig::Vector>;
+        ok = ok && outputWrenchPorts[i].output_port->open(port_name);
+        outputWrenchPorts[i].output_vector.resize(6);
+    }
+
+    if( !ok )
+    {
+        yError() << "wholeBodyDynamics impossible to open port for publishing external wrenches";
+        return false;
+    }
+
+    return ok;
+}
+
 
 void WholeBodyDynamicsDevice::resizeBuffers()
 {
@@ -335,6 +463,14 @@ void WholeBodyDynamicsDevice::resizeBuffers()
     // Resize filters
     filters.init(nrOfFTSensors,settings.forceTorqueFilterCutoffInHz,settings.imuFilterCutoffInHz,getRate()/1000.0);
 
+    // Resize external wrenches publishing software
+    this->netExternalWrenchesExertedByTheEnviroment.resize(estimator.model());
+    bool ok = this->kinDynComp.loadRobotModel(estimator.model());
+
+    if( !ok )
+    {
+        yError() << "wholeBodyDynamics : error in opening KinDynComputation class";
+    }
 }
 
 
@@ -435,6 +571,9 @@ bool WholeBodyDynamicsDevice::open(os::Searchable& config)
     // Open the skin-related ports
     ok = this->openSkinContactListPorts(config);
     if( !ok ) return false;
+
+    // Open the ports related to publishing external wrenches
+    ok = this->openExternalWrenchesPorts(config);
 
 
     return true;
@@ -939,7 +1078,6 @@ void WholeBodyDynamicsDevice::publishEstimatedQuantities()
         // Only send estimation if a valid offset is available
         if( validOffsetAvailable )
         {
-
             //Send torques
             publishTorques();
 
@@ -947,7 +1085,7 @@ void WholeBodyDynamicsDevice::publishEstimatedQuantities()
             publishContacts();
 
             //Send external wrench estimates
-            //publishExternalWrenches();
+            publishExternalWrenches();
 
             //Compute odometry
             //publishOdometry();
@@ -1006,6 +1144,39 @@ void WholeBodyDynamicsDevice::publishContacts()
     }
 }
 
+void WholeBodyDynamicsDevice::publishExternalWrenches()
+{
+    if( this->outputWrenchPorts.size() > 0 )
+    {
+        // Update kinDynComp model
+        iDynTree::Vector3 dummyGravity;
+        dummyGravity.zero();
+        this->kinDynComp.setRobotState(this->jointPos,this->jointVel,dummyGravity);
+
+        // Compute net wrenches for each link
+        estimateExternalContactWrenches.computeNetWrenches(netExternalWrenchesExertedByTheEnviroment);
+    }
+
+
+    // Get wrenches from the estimator and publish it on the port
+    for(int i=0; i < this->outputWrenchPorts.size(); i++ )
+    {
+        // Get the wrench in the link frame
+        iDynTree::LinkIndex link = this->outputWrenchPorts[i].link_index;
+        iDynTree::Wrench & link_f = netExternalWrenchesExertedByTheEnviroment(link);
+
+        // Transform the wrench in the desired frame
+        iDynTree::FrameIndex orientation = this->outputWrenchPorts[i].orientation_frame_index;
+        iDynTree::FrameIndex origin      = this->outputWrenchPorts[i].origin_frame_index;
+        iDynTree::Wrench pub_f = this->kinDynComp.getRelativeTransformExplicit(origin,orientation,link,link)*link_f;
+
+        iDynTree::toYarp(pub_f,outputWrenchPorts[i].output_vector);
+
+        broadcastData<yarp::sig::Vector>(outputWrenchPorts[i].output_vector,
+                                         *(outputWrenchPorts[i].output_port));
+    }
+}
+
 void WholeBodyDynamicsDevice::run()
 {
     yarp::os::LockGuard guard(this->deviceMutex);
@@ -1051,6 +1222,8 @@ bool WholeBodyDynamicsDevice::detachAll()
 
     closeRPCPort();
     closeSettingsPort();
+    closeSkinContactListsPorts();
+    closeExternalWrenchesPorts();
 
     yDebug() << " WholeBodyDynamicsDevice detachAll returning";
 

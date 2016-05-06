@@ -19,6 +19,7 @@
 // iDynTree includes
 #include <iDynTree/Estimation/ExtWrenchesAndJointTorquesEstimator.h>
 #include <iDynTree/iCub/skinDynLibConversions.h>
+#include <iDynTree/KinDynComputations.h>
 
 // Filters
 #include "ctrlLibRT/filters.h"
@@ -32,11 +33,35 @@
 namespace yarp {
 namespace dev {
 
+/**
+ * Structure of information relative to the remapped axis.
+ */
 struct virtualAnalogSensorRemappedAxis
 {
     IVirtualAnalogSensor * dev;
     int localAxis;
 };
+
+/**
+ * Scructure of information relative to an external force published
+ * on a port.
+ */
+struct outputWrenchPortInformation
+{
+    outputWrenchPortInformation();
+    ~outputWrenchPortInformation();
+
+    std::string port_name;
+    std::string link;
+    std::string origin_frame;
+    std::string orientation_frame;
+    iDynTree::LinkIndex link_index;
+    iDynTree::FrameIndex origin_frame_index;
+    iDynTree::FrameIndex orientation_frame_index;
+    yarp::sig::Vector output_vector;
+    yarp::os::BufferedPort<yarp::sig::Vector> * output_port;
+};
+
 
 class wholeBodyDynamicsDeviceFilters
 {
@@ -198,12 +223,15 @@ private:
     bool openEstimator(os::Searchable& config);
     bool openDefaultContactFrames(os::Searchable& config);
     bool openSkinContactListPorts(os::Searchable& config);
+    bool openExternalWrenchesPorts(os::Searchable& config);
 
     /**
      * Close-related methods
      */
     bool closeSettingsPort();
     bool closeRPCPort();
+    bool closeSkinContactListsPorts();
+    bool closeExternalWrenchesPorts();
 
     /**
      * Attach-related methods
@@ -228,6 +256,7 @@ private:
     // Publish related methods
     void publishTorques();
     void publishContacts();
+    void publishExternalWrenches();
     void publishEstimatedQuantities();
 
     /**
@@ -457,6 +486,29 @@ private:
       * Helper to convert between iDynTree and skinDynLib related datastructures.
       */
      iDynTree::skinDynLibConversionsHelper conversionHelper;
+
+     /**
+      * External force methods.
+      */
+    // Data structures for wrenches to publish on individual external wrenches
+    // (the complete external force information is published in the contacts:o
+    //  port, but for backward compatibility we have to stream external wrenches
+    //  informations on individual ports)
+    std::vector< outputWrenchPortInformation > outputWrenchPorts;
+
+    // Buffer for external forces
+    /**
+     * The element netExternalWrenchesExertedByTheEnviroment[i] is the
+     * net external wrench excerted by the environment on the link i ,
+     * expressed with the origin of link i and the orientation of link i.
+     */
+    iDynTree::LinkNetExternalWrenches netExternalWrenchesExertedByTheEnviroment;
+
+    // Class for computing relative transforms
+    iDynTree::KinDynComputations kinDynComp;
+
+
+
 
 public:
     // CONSTRUCTOR
