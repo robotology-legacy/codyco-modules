@@ -24,6 +24,7 @@
 
 // Yarp includes
 #include <yarp/os/Time.h>
+#include <yarp/os/LockGuard.h>
 #include <yarp/os/Log.h>
 #include <yarp/os/LogStream.h>
 #include <yarp/os/BufferedPort.h>
@@ -150,7 +151,7 @@ void checkFTSensorExist(std::string ft_sensor_name, wbi::IDList & all_fts, std::
     {
         int numeric_id;
         all_fts.idToIndex(ft_sensor_name,numeric_id);
-        YARP_ASSERT(icub_model_calibration->getFTSensorIndex(ft_sensor_name) == numeric_id);
+        yAssert(icub_model_calibration->getFTSensorIndex(ft_sensor_name) == numeric_id);
         ft_id_list.push_back(numeric_id);
     }
 }
@@ -228,8 +229,8 @@ bool wholeBodyDynamicsThread::loadExternalWrenchesPortsConfigurations()
 
         if( this->assume_fixed_base_calibration_from_odometry )
         {
-            YARP_ASSERT(icub_model_calibration->getFrameIndex(output_wrench_ports[i].origin_frame) == icub_model_calibration_on_l_sole->getFrameIndex(output_wrench_ports[i].origin_frame));
-            YARP_ASSERT(icub_model_calibration->getFrameIndex(output_wrench_ports[i].origin_frame) == icub_model_calibration_on_r_sole->getFrameIndex(output_wrench_ports[i].origin_frame))
+            yAssert(icub_model_calibration->getFrameIndex(output_wrench_ports[i].origin_frame) == icub_model_calibration_on_l_sole->getFrameIndex(output_wrench_ports[i].origin_frame));
+            yAssert(icub_model_calibration->getFrameIndex(output_wrench_ports[i].origin_frame) == icub_model_calibration_on_r_sole->getFrameIndex(output_wrench_ports[i].origin_frame))
         }
 
 
@@ -245,8 +246,8 @@ bool wholeBodyDynamicsThread::loadExternalWrenchesPortsConfigurations()
 
         if( this->assume_fixed_base_calibration_from_odometry )
         {
-            YARP_ASSERT(icub_model_calibration->getFrameIndex(output_wrench_ports[i].orientation_frame) == icub_model_calibration_on_l_sole->getFrameIndex(output_wrench_ports[i].orientation_frame));
-            YARP_ASSERT(icub_model_calibration->getFrameIndex(output_wrench_ports[i].orientation_frame) == icub_model_calibration_on_r_sole->getFrameIndex(output_wrench_ports[i].orientation_frame))
+            yAssert(icub_model_calibration->getFrameIndex(output_wrench_ports[i].orientation_frame) == icub_model_calibration_on_l_sole->getFrameIndex(output_wrench_ports[i].orientation_frame));
+            yAssert(icub_model_calibration->getFrameIndex(output_wrench_ports[i].orientation_frame) == icub_model_calibration_on_r_sole->getFrameIndex(output_wrench_ports[i].orientation_frame))
         }
 
 
@@ -424,7 +425,7 @@ bool wholeBodyDynamicsThread::threadInit()
 
     if( yarp_options.check("enable_w0_dw0") )
     {
-        YARP_ASSERT(false);
+        yAssert(false);
 
         yInfo() << "enable_w0_dw0 option found, enabling the use of IMU angular velocity/acceleration.";
         externalWrenchTorqueEstimator->setEnableOmegaDomegaIMU(true);
@@ -468,11 +469,11 @@ bool wholeBodyDynamicsThread::threadInit()
     int max_id = 100;
 
     root_link_idyntree_id = icub_model_calibration->getLinkIndex("root_link");
-    //YARP_ASSERT(root_link_idyntree_id >= 0 && root_link_idyntree_id < max_id );
+    //yAssert(root_link_idyntree_id >= 0 && root_link_idyntree_id < max_id );
     left_foot_link_idyntree_id = icub_model_calibration->getLinkIndex("l_foot");
-    //YARP_ASSERT(left_foot_link_idyntree_id >= 0  && left_foot_link_idyntree_id < max_id);
+    //yAssert(left_foot_link_idyntree_id >= 0  && left_foot_link_idyntree_id < max_id);
     right_foot_link_idyntree_id = icub_model_calibration->getLinkIndex("r_foot");
-    //YARP_ASSERT(right_foot_link_idyntree_id >= 0 && right_foot_link_idyntree_id < max_id);
+    //yAssert(right_foot_link_idyntree_id >= 0 && right_foot_link_idyntree_id < max_id);
     joint_status.zero();
 
     if( assume_fixed_base_calibration )
@@ -531,7 +532,7 @@ bool wholeBodyDynamicsThread::threadInit()
             {
                 yError() << "Error in opening port " << string("/"+moduleName+"/filtered/"+ft_id.toString()+":o") << ", closing";
                 return false;
-			}
+            }
         }
     }
 
@@ -774,7 +775,8 @@ void wholeBodyDynamicsThread::disableCalibration()
 //*************************************************************************************************************************
 bool wholeBodyDynamicsThread::calibrateOffsetOnDoubleSupport(const std::string calib_code, int samples_to_use)
 {
-    run_mutex.lock();
+    yarp::os::LockGuard guard(run_mutex);
+
     samples_requested_for_calibration= samples_to_use;
     std::cout << "wholeBodyDynamicsThread::calibrateOffsetOnDoubleSupport called with code " << calib_code << std::endl;
     if( samples_requested_for_calibration <= 0 )
@@ -785,6 +787,7 @@ bool wholeBodyDynamicsThread::calibrateOffsetOnDoubleSupport(const std::string c
 
     if( !this->decodeCalibCode(calib_code) )
     {
+
         return false;
     }
 
@@ -801,7 +804,6 @@ bool wholeBodyDynamicsThread::calibrateOffsetOnDoubleSupport(const std::string c
     calibration_mutex.lock();
     yInfo() << "wholeBodyDynamicsThread::calibrateOffset " << calib_code  << " called successfully, starting calibration.";
     wbd_mode = CALIBRATING_ON_DOUBLE_SUPPORT;
-    run_mutex.unlock();
 
     return true;
 }
@@ -1021,7 +1023,7 @@ bool wholeBodyDynamicsThread::initOdometry()
             return false;
         }
 
-        for(int i=0; i < frames_bot->size(); i++ )
+        for(size_t i=0; i < frames_bot->size(); i++ )
         {
             std::string frame_name = frames_bot->get(i).asString();
             int frame_index = odometry_helper.getDynTree().getFrameIndex(frame_name);
@@ -1037,7 +1039,7 @@ bool wholeBodyDynamicsThread::initOdometry()
 
         buffer_bottles.resize(frames_to_stream.size());
 
-        for(int i=0; i < buffer_bottles.size(); i++ )
+        for(size_t i=0; i < buffer_bottles.size(); i++ )
         {
             yInfo("wholeBodyDynamicsTree: streaming world position of frame %s",frames_to_stream[i].c_str());
             buffer_bottles[i].addList();
@@ -1252,7 +1254,7 @@ void wholeBodyDynamicsThread::getExternalWrenches()
             }
             else
             {
-                YARP_ASSERT(false);
+                yAssert(false);
             }
         }
 
@@ -1394,9 +1396,9 @@ void wholeBodyDynamicsThread::publishFilteredFTWithoutOffset()
 {
     if( publish_filtered_ft )
     {
-        int nr_of_ft = sensors->getSensorList(wbi::SENSOR_FORCE_TORQUE).size();
-        YARP_ASSERT(nr_of_ft == port_filtered_ft.size());
-        YARP_ASSERT(nr_of_ft == sensor_status.estimated_ft_sensors.size());
+        size_t nr_of_ft = sensors->getSensorList(wbi::SENSOR_FORCE_TORQUE).size();
+        yAssert(nr_of_ft == port_filtered_ft.size());
+        yAssert(nr_of_ft == sensor_status.estimated_ft_sensors.size());
         for(int ft =0; ft < nr_of_ft; ft++ )
         {
             broadcastData<yarp::sig::Vector>(sensor_status.estimated_ft_sensors[ft],port_filtered_ft[ft]);
@@ -1471,14 +1473,14 @@ void wholeBodyDynamicsThread::readRobotStatus()
                 sensor_status.omega_imu[i]      = sensor_status.wbi_imu[i+7];
             }
 
-            YARP_ASSERT(sensor_status.proper_ddp_imu.size() == 3);
-            YARP_ASSERT(sensor_status.omega_imu.size() == 3);
+            yAssert(sensor_status.proper_ddp_imu.size() == 3);
+            yAssert(sensor_status.omega_imu.size() == 3);
 
             sensor_status.proper_ddp_imu = filters->imuLinearAccelerationFilter->filt(sensor_status.proper_ddp_imu);
             sensor_status.omega_imu      = filters->imuAngularVelocityFilter->filt(sensor_status.omega_imu);
 
-            YARP_ASSERT(sensor_status.proper_ddp_imu.size() == 3);
-            YARP_ASSERT(sensor_status.omega_imu.size() == 3);
+            yAssert(sensor_status.proper_ddp_imu.size() == 3);
+            yAssert(sensor_status.omega_imu.size() == 3);
 
             filters->imuAngularAccelerationFiltElement.data = sensor_status.omega_imu;
             filters->imuAngularAccelerationFiltElement.time = yarp::os::Time::now();
@@ -1577,9 +1579,8 @@ void wholeBodyDynamicsThread::estimation_run()
     printCountdown = (printCountdown>=printPeriod) ? 0 : printCountdown +(int)getRate();   // countdown for next print (see sendMsg method)
 
     if( printCountdown == 0 ) {
-
-        double avgTime, stdDev, avgTimeUsed, stdDevUsed, period;
-        period = getRate();
+       
+        double avgTime, stdDev, avgTimeUsed, stdDevUsed;
 
         getEstPeriod(avgTime, stdDev);
         getEstUsed(avgTimeUsed, stdDevUsed);
@@ -1649,9 +1650,9 @@ void wholeBodyDynamicsThread::calibration_run()
     }
 
     //Estimating sensors
-    YARP_ASSERT(sensor_status.omega_imu.size() == 3);
-    YARP_ASSERT(sensor_status.domega_imu.size() == 3);
-    YARP_ASSERT(sensor_status.proper_ddp_imu.size() == 3);
+    yAssert(sensor_status.omega_imu.size() == 3);
+    yAssert(sensor_status.domega_imu.size() == 3);
+    yAssert(sensor_status.proper_ddp_imu.size() == 3);
 
     icub_model_calibration->setInertialMeasure(zero_three_elem_vector,zero_three_elem_vector,calibration_ddp);
     icub_model_calibration->setAngKDL(joint_status.getJointPosKDL());
@@ -1756,9 +1757,9 @@ void wholeBodyDynamicsThread::calibration_on_double_support_run()
     }
 
     //Estimating sensors
-    YARP_ASSERT(sensor_status.omega_imu.size() == 3);
-    YARP_ASSERT(sensor_status.domega_imu.size() == 3);
-    YARP_ASSERT(sensor_status.proper_ddp_imu.size() == 3);
+    yAssert(sensor_status.omega_imu.size() == 3);
+    yAssert(sensor_status.domega_imu.size() == 3);
+    yAssert(sensor_status.proper_ddp_imu.size() == 3);
 
     if( !this->assume_fixed_base_calibration_from_odometry )
     {

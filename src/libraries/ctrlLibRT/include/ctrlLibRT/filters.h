@@ -19,11 +19,11 @@
 /**
  * \defgroup Filters Filters
  *
- * @ingroup ctrlLib
+ * @ingroup ctrlLibRT
  *
- * Classes for filtering.
+ * Classes for filtering, modified to avoid non-realtime behaviour.
  *
- * \author Ugo Pattacini
+ * \author Ugo Pattacini, Silvio Traversaro.
  *
  */
 

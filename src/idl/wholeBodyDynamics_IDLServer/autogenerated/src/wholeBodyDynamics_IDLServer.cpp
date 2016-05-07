@@ -82,6 +82,57 @@ public:
   virtual bool read(yarp::os::ConnectionReader& connection);
 };
 
+class wholeBodyDynamics_IDLServer_set_imuFilterCutoffInHz : public yarp::os::Portable {
+public:
+  double newCutoff;
+  bool _return;
+  void init(const double newCutoff);
+  virtual bool write(yarp::os::ConnectionWriter& connection);
+  virtual bool read(yarp::os::ConnectionReader& connection);
+};
+
+class wholeBodyDynamics_IDLServer_get_imuFilterCutoffInHz : public yarp::os::Portable {
+public:
+  double _return;
+  void init();
+  virtual bool write(yarp::os::ConnectionWriter& connection);
+  virtual bool read(yarp::os::ConnectionReader& connection);
+};
+
+class wholeBodyDynamics_IDLServer_set_forceTorqueFilterCutoffInHz : public yarp::os::Portable {
+public:
+  double newCutoff;
+  bool _return;
+  void init(const double newCutoff);
+  virtual bool write(yarp::os::ConnectionWriter& connection);
+  virtual bool read(yarp::os::ConnectionReader& connection);
+};
+
+class wholeBodyDynamics_IDLServer_get_forceTorqueFilterCutoffInHz : public yarp::os::Portable {
+public:
+  double _return;
+  void init();
+  virtual bool write(yarp::os::ConnectionWriter& connection);
+  virtual bool read(yarp::os::ConnectionReader& connection);
+};
+
+class wholeBodyDynamics_IDLServer_useIMUAsKinematicSource : public yarp::os::Portable {
+public:
+  bool _return;
+  void init();
+  virtual bool write(yarp::os::ConnectionWriter& connection);
+  virtual bool read(yarp::os::ConnectionReader& connection);
+};
+
+class wholeBodyDynamics_IDLServer_useFixedFrameAsKinematicSource : public yarp::os::Portable {
+public:
+  std::string fixedFrame;
+  bool _return;
+  void init(const std::string& fixedFrame);
+  virtual bool write(yarp::os::ConnectionWriter& connection);
+  virtual bool read(yarp::os::ConnectionReader& connection);
+};
+
 bool wholeBodyDynamics_IDLServer_calib::write(yarp::os::ConnectionWriter& connection) {
   yarp::os::idl::WireWriter writer(connection);
   if (!writer.writeListHeader(3)) return false;
@@ -274,6 +325,138 @@ void wholeBodyDynamics_IDLServer_changeFixedLinkSimpleLeggedOdometry::init(const
   this->new_fixed_link = new_fixed_link;
 }
 
+bool wholeBodyDynamics_IDLServer_set_imuFilterCutoffInHz::write(yarp::os::ConnectionWriter& connection) {
+  yarp::os::idl::WireWriter writer(connection);
+  if (!writer.writeListHeader(3)) return false;
+  if (!writer.writeTag("set_imuFilterCutoffInHz",1,2)) return false;
+  if (!writer.writeDouble(newCutoff)) return false;
+  return true;
+}
+
+bool wholeBodyDynamics_IDLServer_set_imuFilterCutoffInHz::read(yarp::os::ConnectionReader& connection) {
+  yarp::os::idl::WireReader reader(connection);
+  if (!reader.readListReturn()) return false;
+  if (!reader.readBool(_return)) {
+    reader.fail();
+    return false;
+  }
+  return true;
+}
+
+void wholeBodyDynamics_IDLServer_set_imuFilterCutoffInHz::init(const double newCutoff) {
+  _return = false;
+  this->newCutoff = newCutoff;
+}
+
+bool wholeBodyDynamics_IDLServer_get_imuFilterCutoffInHz::write(yarp::os::ConnectionWriter& connection) {
+  yarp::os::idl::WireWriter writer(connection);
+  if (!writer.writeListHeader(2)) return false;
+  if (!writer.writeTag("get_imuFilterCutoffInHz",1,2)) return false;
+  return true;
+}
+
+bool wholeBodyDynamics_IDLServer_get_imuFilterCutoffInHz::read(yarp::os::ConnectionReader& connection) {
+  yarp::os::idl::WireReader reader(connection);
+  if (!reader.readListReturn()) return false;
+  if (!reader.readDouble(_return)) {
+    reader.fail();
+    return false;
+  }
+  return true;
+}
+
+void wholeBodyDynamics_IDLServer_get_imuFilterCutoffInHz::init() {
+  _return = (double)0;
+}
+
+bool wholeBodyDynamics_IDLServer_set_forceTorqueFilterCutoffInHz::write(yarp::os::ConnectionWriter& connection) {
+  yarp::os::idl::WireWriter writer(connection);
+  if (!writer.writeListHeader(3)) return false;
+  if (!writer.writeTag("set_forceTorqueFilterCutoffInHz",1,2)) return false;
+  if (!writer.writeDouble(newCutoff)) return false;
+  return true;
+}
+
+bool wholeBodyDynamics_IDLServer_set_forceTorqueFilterCutoffInHz::read(yarp::os::ConnectionReader& connection) {
+  yarp::os::idl::WireReader reader(connection);
+  if (!reader.readListReturn()) return false;
+  if (!reader.readBool(_return)) {
+    reader.fail();
+    return false;
+  }
+  return true;
+}
+
+void wholeBodyDynamics_IDLServer_set_forceTorqueFilterCutoffInHz::init(const double newCutoff) {
+  _return = false;
+  this->newCutoff = newCutoff;
+}
+
+bool wholeBodyDynamics_IDLServer_get_forceTorqueFilterCutoffInHz::write(yarp::os::ConnectionWriter& connection) {
+  yarp::os::idl::WireWriter writer(connection);
+  if (!writer.writeListHeader(2)) return false;
+  if (!writer.writeTag("get_forceTorqueFilterCutoffInHz",1,2)) return false;
+  return true;
+}
+
+bool wholeBodyDynamics_IDLServer_get_forceTorqueFilterCutoffInHz::read(yarp::os::ConnectionReader& connection) {
+  yarp::os::idl::WireReader reader(connection);
+  if (!reader.readListReturn()) return false;
+  if (!reader.readDouble(_return)) {
+    reader.fail();
+    return false;
+  }
+  return true;
+}
+
+void wholeBodyDynamics_IDLServer_get_forceTorqueFilterCutoffInHz::init() {
+  _return = (double)0;
+}
+
+bool wholeBodyDynamics_IDLServer_useIMUAsKinematicSource::write(yarp::os::ConnectionWriter& connection) {
+  yarp::os::idl::WireWriter writer(connection);
+  if (!writer.writeListHeader(1)) return false;
+  if (!writer.writeTag("useIMUAsKinematicSource",1,1)) return false;
+  return true;
+}
+
+bool wholeBodyDynamics_IDLServer_useIMUAsKinematicSource::read(yarp::os::ConnectionReader& connection) {
+  yarp::os::idl::WireReader reader(connection);
+  if (!reader.readListReturn()) return false;
+  if (!reader.readBool(_return)) {
+    reader.fail();
+    return false;
+  }
+  return true;
+}
+
+void wholeBodyDynamics_IDLServer_useIMUAsKinematicSource::init() {
+  _return = false;
+}
+
+bool wholeBodyDynamics_IDLServer_useFixedFrameAsKinematicSource::write(yarp::os::ConnectionWriter& connection) {
+  yarp::os::idl::WireWriter writer(connection);
+  if (!writer.writeListHeader(2)) return false;
+  if (!writer.writeTag("useFixedFrameAsKinematicSource",1,1)) return false;
+  if (!writer.writeString(fixedFrame)) return false;
+  return true;
+}
+
+bool wholeBodyDynamics_IDLServer_useFixedFrameAsKinematicSource::read(yarp::os::ConnectionReader& connection) {
+  yarp::os::idl::WireReader reader(connection);
+  if (!reader.readListReturn()) return false;
+  if (!reader.readBool(_return)) {
+    reader.fail();
+    return false;
+  }
+  return true;
+}
+
+void wholeBodyDynamics_IDLServer_useFixedFrameAsKinematicSource::init(const std::string& fixedFrame) {
+  _return = false;
+  this->fixedFrame = fixedFrame;
+}
+
 wholeBodyDynamics_IDLServer::wholeBodyDynamics_IDLServer() {
   yarp().setOwner(*this);
 }
@@ -353,6 +536,66 @@ bool wholeBodyDynamics_IDLServer::changeFixedLinkSimpleLeggedOdometry(const std:
   helper.init(new_fixed_link);
   if (!yarp().canWrite()) {
     yError("Missing server method '%s'?","bool wholeBodyDynamics_IDLServer::changeFixedLinkSimpleLeggedOdometry(const std::string& new_fixed_link)");
+  }
+  bool ok = yarp().write(helper,helper);
+  return ok?helper._return:_return;
+}
+bool wholeBodyDynamics_IDLServer::set_imuFilterCutoffInHz(const double newCutoff) {
+  bool _return = false;
+  wholeBodyDynamics_IDLServer_set_imuFilterCutoffInHz helper;
+  helper.init(newCutoff);
+  if (!yarp().canWrite()) {
+    yError("Missing server method '%s'?","bool wholeBodyDynamics_IDLServer::set_imuFilterCutoffInHz(const double newCutoff)");
+  }
+  bool ok = yarp().write(helper,helper);
+  return ok?helper._return:_return;
+}
+double wholeBodyDynamics_IDLServer::get_imuFilterCutoffInHz() {
+  double _return = (double)0;
+  wholeBodyDynamics_IDLServer_get_imuFilterCutoffInHz helper;
+  helper.init();
+  if (!yarp().canWrite()) {
+    yError("Missing server method '%s'?","double wholeBodyDynamics_IDLServer::get_imuFilterCutoffInHz()");
+  }
+  bool ok = yarp().write(helper,helper);
+  return ok?helper._return:_return;
+}
+bool wholeBodyDynamics_IDLServer::set_forceTorqueFilterCutoffInHz(const double newCutoff) {
+  bool _return = false;
+  wholeBodyDynamics_IDLServer_set_forceTorqueFilterCutoffInHz helper;
+  helper.init(newCutoff);
+  if (!yarp().canWrite()) {
+    yError("Missing server method '%s'?","bool wholeBodyDynamics_IDLServer::set_forceTorqueFilterCutoffInHz(const double newCutoff)");
+  }
+  bool ok = yarp().write(helper,helper);
+  return ok?helper._return:_return;
+}
+double wholeBodyDynamics_IDLServer::get_forceTorqueFilterCutoffInHz() {
+  double _return = (double)0;
+  wholeBodyDynamics_IDLServer_get_forceTorqueFilterCutoffInHz helper;
+  helper.init();
+  if (!yarp().canWrite()) {
+    yError("Missing server method '%s'?","double wholeBodyDynamics_IDLServer::get_forceTorqueFilterCutoffInHz()");
+  }
+  bool ok = yarp().write(helper,helper);
+  return ok?helper._return:_return;
+}
+bool wholeBodyDynamics_IDLServer::useIMUAsKinematicSource() {
+  bool _return = false;
+  wholeBodyDynamics_IDLServer_useIMUAsKinematicSource helper;
+  helper.init();
+  if (!yarp().canWrite()) {
+    yError("Missing server method '%s'?","bool wholeBodyDynamics_IDLServer::useIMUAsKinematicSource()");
+  }
+  bool ok = yarp().write(helper,helper);
+  return ok?helper._return:_return;
+}
+bool wholeBodyDynamics_IDLServer::useFixedFrameAsKinematicSource(const std::string& fixedFrame) {
+  bool _return = false;
+  wholeBodyDynamics_IDLServer_useFixedFrameAsKinematicSource helper;
+  helper.init(fixedFrame);
+  if (!yarp().canWrite()) {
+    yError("Missing server method '%s'?","bool wholeBodyDynamics_IDLServer::useFixedFrameAsKinematicSource(const std::string& fixedFrame)");
   }
   bool ok = yarp().write(helper,helper);
   return ok?helper._return:_return;
@@ -511,6 +754,87 @@ bool wholeBodyDynamics_IDLServer::read(yarp::os::ConnectionReader& connection) {
       reader.accept();
       return true;
     }
+    if (tag == "set_imuFilterCutoffInHz") {
+      double newCutoff;
+      if (!reader.readDouble(newCutoff)) {
+        reader.fail();
+        return false;
+      }
+      bool _return;
+      _return = set_imuFilterCutoffInHz(newCutoff);
+      yarp::os::idl::WireWriter writer(reader);
+      if (!writer.isNull()) {
+        if (!writer.writeListHeader(1)) return false;
+        if (!writer.writeBool(_return)) return false;
+      }
+      reader.accept();
+      return true;
+    }
+    if (tag == "get_imuFilterCutoffInHz") {
+      double _return;
+      _return = get_imuFilterCutoffInHz();
+      yarp::os::idl::WireWriter writer(reader);
+      if (!writer.isNull()) {
+        if (!writer.writeListHeader(1)) return false;
+        if (!writer.writeDouble(_return)) return false;
+      }
+      reader.accept();
+      return true;
+    }
+    if (tag == "set_forceTorqueFilterCutoffInHz") {
+      double newCutoff;
+      if (!reader.readDouble(newCutoff)) {
+        reader.fail();
+        return false;
+      }
+      bool _return;
+      _return = set_forceTorqueFilterCutoffInHz(newCutoff);
+      yarp::os::idl::WireWriter writer(reader);
+      if (!writer.isNull()) {
+        if (!writer.writeListHeader(1)) return false;
+        if (!writer.writeBool(_return)) return false;
+      }
+      reader.accept();
+      return true;
+    }
+    if (tag == "get_forceTorqueFilterCutoffInHz") {
+      double _return;
+      _return = get_forceTorqueFilterCutoffInHz();
+      yarp::os::idl::WireWriter writer(reader);
+      if (!writer.isNull()) {
+        if (!writer.writeListHeader(1)) return false;
+        if (!writer.writeDouble(_return)) return false;
+      }
+      reader.accept();
+      return true;
+    }
+    if (tag == "useIMUAsKinematicSource") {
+      bool _return;
+      _return = useIMUAsKinematicSource();
+      yarp::os::idl::WireWriter writer(reader);
+      if (!writer.isNull()) {
+        if (!writer.writeListHeader(1)) return false;
+        if (!writer.writeBool(_return)) return false;
+      }
+      reader.accept();
+      return true;
+    }
+    if (tag == "useFixedFrameAsKinematicSource") {
+      std::string fixedFrame;
+      if (!reader.readString(fixedFrame)) {
+        reader.fail();
+        return false;
+      }
+      bool _return;
+      _return = useFixedFrameAsKinematicSource(fixedFrame);
+      yarp::os::idl::WireWriter writer(reader);
+      if (!writer.isNull()) {
+        if (!writer.writeListHeader(1)) return false;
+        if (!writer.writeBool(_return)) return false;
+      }
+      reader.accept();
+      return true;
+    }
     if (tag == "help") {
       std::string functionName;
       if (!reader.readString(functionName)) {
@@ -553,6 +877,12 @@ std::vector<std::string> wholeBodyDynamics_IDLServer::help(const std::string& fu
     helpString.push_back("quit");
     helpString.push_back("resetSimpleLeggedOdometry");
     helpString.push_back("changeFixedLinkSimpleLeggedOdometry");
+    helpString.push_back("set_imuFilterCutoffInHz");
+    helpString.push_back("get_imuFilterCutoffInHz");
+    helpString.push_back("set_forceTorqueFilterCutoffInHz");
+    helpString.push_back("get_forceTorqueFilterCutoffInHz");
+    helpString.push_back("useIMUAsKinematicSource");
+    helpString.push_back("useFixedFrameAsKinematicSource");
     helpString.push_back("help");
   }
   else {
@@ -614,6 +944,40 @@ std::vector<std::string> wholeBodyDynamics_IDLServer::help(const std::string& fu
       helpString.push_back("Change the link that is considered fixed by the odometry. ");
       helpString.push_back("@param new_fixed_link the name of the new link that should be considered fixed ");
       helpString.push_back("@return true/false on success/failure (typically if the frame/link names are wrong) ");
+    }
+    if (functionName=="set_imuFilterCutoffInHz") {
+      helpString.push_back("bool set_imuFilterCutoffInHz(const double newCutoff) ");
+      helpString.push_back("Set the cutoff frequency (in Hz) for IMU measurements ");
+      helpString.push_back("@return true/false on success/failure ");
+    }
+    if (functionName=="get_imuFilterCutoffInHz") {
+      helpString.push_back("double get_imuFilterCutoffInHz() ");
+      helpString.push_back("Get the cutoff frequency (in Hz) for IMU measurements ");
+      helpString.push_back("@return the cutoff frequency (in Hz) ");
+    }
+    if (functionName=="set_forceTorqueFilterCutoffInHz") {
+      helpString.push_back("bool set_forceTorqueFilterCutoffInHz(const double newCutoff) ");
+      helpString.push_back("Set the cutoff frequency (in Hz) for FT measurements ");
+      helpString.push_back("@return true/false on success/failure ");
+    }
+    if (functionName=="get_forceTorqueFilterCutoffInHz") {
+      helpString.push_back("double get_forceTorqueFilterCutoffInHz() ");
+      helpString.push_back("Get the cutoff frequency (in Hz) for FT measurements ");
+      helpString.push_back("@return the cutoff frequency (in Hz) ");
+    }
+    if (functionName=="useIMUAsKinematicSource") {
+      helpString.push_back("bool useIMUAsKinematicSource() ");
+      helpString.push_back("Use the IMU as the kinematic source of ");
+      helpString.push_back("information for the acceleration of one link. ");
+    }
+    if (functionName=="useFixedFrameAsKinematicSource") {
+      helpString.push_back("bool useFixedFrameAsKinematicSource(const std::string& fixedFrame) ");
+      helpString.push_back("Use a fixed frame (tipically root_link, l_sole or r_sole) ");
+      helpString.push_back("as the source of kinematic information. The assumption ");
+      helpString.push_back("is that the specified frame will remain fixed until ");
+      helpString.push_back("the kinematic source is changing, and the gravity ");
+      helpString.push_back("on this link is specified by the fixedFrameGravity (tipically ");
+      helpString.push_back("set to (0,0,-9.81) . ");
     }
     if (functionName=="help") {
       helpString.push_back("std::vector<std::string> help(const std::string& functionName=\"--all\")");

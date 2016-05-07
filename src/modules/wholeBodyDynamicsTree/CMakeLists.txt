@@ -10,17 +10,11 @@ find_package(YARP REQUIRED)
 find_package(ICUB REQUIRED)
 find_package(iDynTree REQUIRED)
 
-#Thrift configuration
-include(YarpIDL)
-
-set(generated_libs_dir "${CMAKE_CURRENT_SOURCE_DIR}")
-yarp_idl_to_dir(wholeBodyDynamics.thrift ${generated_libs_dir})
-
 find_package(wholeBodyInterface REQUIRED)
 find_package(yarpWholeBodyInterface REQUIRED)
 
-FILE(GLOB folder_source ./src/*.cpp)
-FILE(GLOB folder_header ./include/wholeBodyDynamicsTree/*.h ./include/ctrlLibRT/*.h)
+file(GLOB folder_source ./src/*.cpp)
+file(GLOB folder_header ./include/wholeBodyDynamicsTree/*.h ./include/ctrlLibRT/*.h)
 
 SOURCE_GROUP("Source Files" FILES ${folder_source})
 SOURCE_GROUP("Header Files" FILES ${folder_header})
@@ -38,15 +32,15 @@ include_directories(SYSTEM  ${wholeBodyInterface_INCLUDE_DIRS}
                             ${EIGEN3_INCLUDE_DIR})
 
 
-ADD_EXECUTABLE(${PROJECTNAME} ${folder_source} ${folder_header})
+add_executable(${PROJECTNAME} ${folder_source} ${folder_header})
 
-message(STATUS "iDynTree_LIBRARIES: " ${iDynTree_LIBRARIES})
-message(STATUS "yarpWholeBodyInterface_LIBRARIES: " ${yarpWholeBodyInterface_LIBRARIES})
-TARGET_LINK_LIBRARIES(${PROJECTNAME} ${YARP_LIBRARIES}
+target_link_libraries(${PROJECTNAME} ${YARP_LIBRARIES}
                                      ${iDynTree_LIBRARIES}
                                      ${wholeBodyInterface_LIBRARIES}
-                                     ${yarpWholeBodyInterface_LIBRARIES})
+                                     ${yarpWholeBodyInterface_LIBRARIES}
+                                     wholeBodyDynamics_IDLServer
+                                     ctrlLibRT)
 
-INSTALL(TARGETS ${PROJECTNAME} DESTINATION bin)
+install(TARGETS ${PROJECTNAME} DESTINATION bin)
 
 add_subdirectory(app)

@@ -1,5 +1,5 @@
 # Copyright: (C) 2014 Istituto Italiano di Tecnologia
-# Authors: Silvio 
+# Authors: Silvio
 # CopyPolicy: Released under the terms of the GNU GPL v2.0+.
 
 
@@ -15,17 +15,18 @@ list(APPEND CMAKE_MODULE_PATH ${YARP_MODULE_PATH})
 
 include(YarpPlugin)
 
-BEGIN_PLUGIN_LIBRARY(codycomod)
+yarp_begin_plugin_library(codycomod)
 
 add_subdirectory(jointTorqueControl)
+add_subdirectory(wholeBodyDynamics)
 
-END_PLUGIN_LIBRARY(codycomod)
+yarp_end_plugin_library(codycomod)
 
-ADD_PLUGIN_LIBRARY_EXECUTABLE(codycomoddev codycomod)
+yarp_add_plugin_yarpdev_executable(codycomoddev codycomod)
 target_link_libraries(codycomoddev ${YARP_LIBRARIES})
 
 install(TARGETS codycomoddev DESTINATION bin)
-install(TARGETS codycomod EXPORT codycoMod 
-		LIBRARY DESTINATION lib COMPONENT shlib
-		ARCHIVE DESTINATION lib  
-		PUBLIC_HEADER DESTINATION include/codycomod COMPONENT dev)
+install(TARGETS codycomod EXPORT codycoMod
+                          LIBRARY DESTINATION lib COMPONENT shlib
+                          ARCHIVE DESTINATION lib
+                          PUBLIC_HEADER DESTINATION include/codycomod COMPONENT dev)

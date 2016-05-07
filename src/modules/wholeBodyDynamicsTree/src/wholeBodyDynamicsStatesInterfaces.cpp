@@ -260,7 +260,7 @@ bool ExternalWrenchesAndTorquesEstimator::init()
 
     std::cerr << "[DEBUG] robot_estimation_model->getSubTreeInternalDynamics().size() : " << robot_estimation_model->getSubTreeInternalDynamics().size() << std::endl;
     std::cerr << "[DEBUG] torque_estimation_subtrees.size(): " << torque_estimation_subtrees.size() << std::endl;
-    YARP_ASSERT(robot_estimation_model->getSubTreeInternalDynamics().size() ==  torque_estimation_subtrees.size());
+    yAssert(robot_estimation_model->getSubTreeInternalDynamics().size() ==  torque_estimation_subtrees.size());
 
     std::cerr << "[INFO] WBD_SUBTREES correctly loaded with " << torque_estimation_subtrees.size() << "subtrees" << std::endl;
 
@@ -274,7 +274,7 @@ bool ExternalWrenchesAndTorquesEstimator::init()
             std::cerr << "[ERR] dof " << enc.toString() << " has ID " << robot_estimation_model->getDOFIndex(enc.toString())
                       << " in the dynamical model and id " << i << "in the wbi" << std::endl;
         }
-        YARP_ASSERT((robot_estimation_model->getDOFIndex(enc.toString()) == i));
+        yAssert((robot_estimation_model->getDOFIndex(enc.toString()) == i));
     }
     yDebug() << "ExternalWrenchesAndTorquesEstimator::init() terminated successfully";
     return true;
@@ -364,17 +364,17 @@ void ExternalWrenchesAndTorquesEstimator::readSkinContacts()
                     skinContacts.insert(skinContacts.end(),*c);
                 }
             }
-            
+
         }
 
     }
     else if(Time::now()-last_reading_skin_contact_list_Stamp>SKIN_EVENTS_TIMEOUT && last_reading_skin_contact_list_Stamp!=0.0)
     {
-        // if time is up, use default contact points \todo TODO 
+        // if time is up, use default contact points \todo TODO
         //std::cout << "Resetting skin contact for timeout" << std::endl;
         skinContacts.clear();
     }
-  
+
     //std::cout << "skinContacts: " << skinContacts.toString() << std::endl;
     //std::cout << "dynContacts: " << dynContacts.toString() << std::endl;
 
@@ -436,9 +436,9 @@ dynContact ExternalWrenchesAndTorquesEstimator::getDefaultContact(const int subt
     int skinDynLib_body_part = -1;
     int skinDynLib_link_index = -1;
     int iDynTree_default_contact_link_skinFrame;
-    YARP_ASSERT(robot_estimation_model->getSkinDynLibAlias(iDynTree_default_contact_link,iDynTree_default_contact_link_skinFrame,skinDynLib_body_part,skinDynLib_link_index));
-    YARP_ASSERT(skinDynLib_body_part != -1);
-    YARP_ASSERT(skinDynLib_link_index != -1);
+    yAssert(robot_estimation_model->getSkinDynLibAlias(iDynTree_default_contact_link,iDynTree_default_contact_link_skinFrame,skinDynLib_body_part,skinDynLib_link_index));
+    yAssert(skinDynLib_body_part != -1);
+    yAssert(skinDynLib_link_index != -1);
     dynContact return_value = dynContact();
     return_value.setBodyPart((iCub::skinDynLib::BodyPart)skinDynLib_body_part);
     return_value.setLinkNumber(skinDynLib_link_index);
@@ -465,7 +465,7 @@ void getEEWrench(const iCub::iDynTree::TorqueEstimationTree & icub_model,
     f_link = H_link_contact*f_contact;
     KDLtoYarp(f_link,link_wrench);
     yarp::sig::Matrix H_gripper_link_yarp = icub_model.getPosition(ee_frame_idyntree_id,link_idyntree_id);
-    YARP_ASSERT(H_gripper_link_yarp.cols() == 4 &&
+    yAssert(H_gripper_link_yarp.cols() == 4 &&
                 H_gripper_link_yarp.rows() == 4);
     KDL::Frame H_gripper_link;
     YarptoKDL(H_gripper_link_yarp,H_gripper_link);
@@ -522,9 +522,9 @@ void ExternalWrenchesAndTorquesEstimator::estimateExternalForcesAndJointTorques(
     assert((int)joint_status.getJointAccYARP().size() == robot_estimation_model->getNrOfDOFs());
 
 
-    YARP_ASSERT(omega_used_IMU.size() == 3);
-    YARP_ASSERT(domega_used_IMU.size() == 3);
-    YARP_ASSERT(ddp_used_IMU.size() == 3);
+    yAssert(omega_used_IMU.size() == 3);
+    yAssert(domega_used_IMU.size() == 3);
+    yAssert(ddp_used_IMU.size() == 3);
     if( !assume_fixed_base_from_odometry )
     {
         bool ok = robot_estimation_model->setInertialMeasure(omega_used_IMU,domega_used_IMU,ddp_used_IMU);
