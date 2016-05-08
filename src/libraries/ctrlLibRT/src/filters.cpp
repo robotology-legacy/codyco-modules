@@ -197,8 +197,15 @@ bool FirstOrderLowPassFilter::setCutFrequency(const double cutFrequency)
     if (cutFrequency<=0.0)
         return false;
 
-    fc=cutFrequency;
-    computeCoeff();
+    // Optimization : if the  cutoff frequency is exactly the same
+    // do not update the coeffiencts
+    // Note: in general the equality between two doubles is not a
+    // reliable check, but in this case it make sense
+    if( fc != cutFrequency )
+    {
+        fc=cutFrequency;
+        computeCoeff();
+    }
 
     return true;
 }
