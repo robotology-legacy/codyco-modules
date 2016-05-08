@@ -116,6 +116,40 @@ public:
   virtual bool read(yarp::os::ConnectionReader& connection);
 };
 
+class wholeBodyDynamics_IDLServer_set_jointVelFilterCutoffInHz : public yarp::os::Portable {
+public:
+  double newCutoff;
+  bool _return;
+  void init(const double newCutoff);
+  virtual bool write(yarp::os::ConnectionWriter& connection);
+  virtual bool read(yarp::os::ConnectionReader& connection);
+};
+
+class wholeBodyDynamics_IDLServer_get_jointVelFilterCutoffInHz : public yarp::os::Portable {
+public:
+  double _return;
+  void init();
+  virtual bool write(yarp::os::ConnectionWriter& connection);
+  virtual bool read(yarp::os::ConnectionReader& connection);
+};
+
+class wholeBodyDynamics_IDLServer_set_jointAccFilterCutoffInHz : public yarp::os::Portable {
+public:
+  double newCutoff;
+  bool _return;
+  void init(const double newCutoff);
+  virtual bool write(yarp::os::ConnectionWriter& connection);
+  virtual bool read(yarp::os::ConnectionReader& connection);
+};
+
+class wholeBodyDynamics_IDLServer_get_jointAccFilterCutoffInHz : public yarp::os::Portable {
+public:
+  double _return;
+  void init();
+  virtual bool write(yarp::os::ConnectionWriter& connection);
+  virtual bool read(yarp::os::ConnectionReader& connection);
+};
+
 class wholeBodyDynamics_IDLServer_useIMUAsKinematicSource : public yarp::os::Portable {
 public:
   bool _return;
@@ -129,6 +163,32 @@ public:
   std::string fixedFrame;
   bool _return;
   void init(const std::string& fixedFrame);
+  virtual bool write(yarp::os::ConnectionWriter& connection);
+  virtual bool read(yarp::os::ConnectionReader& connection);
+};
+
+class wholeBodyDynamics_IDLServer_setUseOfJointVelocities : public yarp::os::Portable {
+public:
+  bool enable;
+  bool _return;
+  void init(const bool enable);
+  virtual bool write(yarp::os::ConnectionWriter& connection);
+  virtual bool read(yarp::os::ConnectionReader& connection);
+};
+
+class wholeBodyDynamics_IDLServer_setUseOfJointAccelerations : public yarp::os::Portable {
+public:
+  bool enable;
+  bool _return;
+  void init(const bool enable);
+  virtual bool write(yarp::os::ConnectionWriter& connection);
+  virtual bool read(yarp::os::ConnectionReader& connection);
+};
+
+class wholeBodyDynamics_IDLServer_getCurrentSettingsString : public yarp::os::Portable {
+public:
+  std::string _return;
+  void init();
   virtual bool write(yarp::os::ConnectionWriter& connection);
   virtual bool read(yarp::os::ConnectionReader& connection);
 };
@@ -413,6 +473,94 @@ void wholeBodyDynamics_IDLServer_get_forceTorqueFilterCutoffInHz::init() {
   _return = (double)0;
 }
 
+bool wholeBodyDynamics_IDLServer_set_jointVelFilterCutoffInHz::write(yarp::os::ConnectionWriter& connection) {
+  yarp::os::idl::WireWriter writer(connection);
+  if (!writer.writeListHeader(3)) return false;
+  if (!writer.writeTag("set_jointVelFilterCutoffInHz",1,2)) return false;
+  if (!writer.writeDouble(newCutoff)) return false;
+  return true;
+}
+
+bool wholeBodyDynamics_IDLServer_set_jointVelFilterCutoffInHz::read(yarp::os::ConnectionReader& connection) {
+  yarp::os::idl::WireReader reader(connection);
+  if (!reader.readListReturn()) return false;
+  if (!reader.readBool(_return)) {
+    reader.fail();
+    return false;
+  }
+  return true;
+}
+
+void wholeBodyDynamics_IDLServer_set_jointVelFilterCutoffInHz::init(const double newCutoff) {
+  _return = false;
+  this->newCutoff = newCutoff;
+}
+
+bool wholeBodyDynamics_IDLServer_get_jointVelFilterCutoffInHz::write(yarp::os::ConnectionWriter& connection) {
+  yarp::os::idl::WireWriter writer(connection);
+  if (!writer.writeListHeader(2)) return false;
+  if (!writer.writeTag("get_jointVelFilterCutoffInHz",1,2)) return false;
+  return true;
+}
+
+bool wholeBodyDynamics_IDLServer_get_jointVelFilterCutoffInHz::read(yarp::os::ConnectionReader& connection) {
+  yarp::os::idl::WireReader reader(connection);
+  if (!reader.readListReturn()) return false;
+  if (!reader.readDouble(_return)) {
+    reader.fail();
+    return false;
+  }
+  return true;
+}
+
+void wholeBodyDynamics_IDLServer_get_jointVelFilterCutoffInHz::init() {
+  _return = (double)0;
+}
+
+bool wholeBodyDynamics_IDLServer_set_jointAccFilterCutoffInHz::write(yarp::os::ConnectionWriter& connection) {
+  yarp::os::idl::WireWriter writer(connection);
+  if (!writer.writeListHeader(3)) return false;
+  if (!writer.writeTag("set_jointAccFilterCutoffInHz",1,2)) return false;
+  if (!writer.writeDouble(newCutoff)) return false;
+  return true;
+}
+
+bool wholeBodyDynamics_IDLServer_set_jointAccFilterCutoffInHz::read(yarp::os::ConnectionReader& connection) {
+  yarp::os::idl::WireReader reader(connection);
+  if (!reader.readListReturn()) return false;
+  if (!reader.readBool(_return)) {
+    reader.fail();
+    return false;
+  }
+  return true;
+}
+
+void wholeBodyDynamics_IDLServer_set_jointAccFilterCutoffInHz::init(const double newCutoff) {
+  _return = false;
+  this->newCutoff = newCutoff;
+}
+
+bool wholeBodyDynamics_IDLServer_get_jointAccFilterCutoffInHz::write(yarp::os::ConnectionWriter& connection) {
+  yarp::os::idl::WireWriter writer(connection);
+  if (!writer.writeListHeader(2)) return false;
+  if (!writer.writeTag("get_jointAccFilterCutoffInHz",1,2)) return false;
+  return true;
+}
+
+bool wholeBodyDynamics_IDLServer_get_jointAccFilterCutoffInHz::read(yarp::os::ConnectionReader& connection) {
+  yarp::os::idl::WireReader reader(connection);
+  if (!reader.readListReturn()) return false;
+  if (!reader.readDouble(_return)) {
+    reader.fail();
+    return false;
+  }
+  return true;
+}
+
+void wholeBodyDynamics_IDLServer_get_jointAccFilterCutoffInHz::init() {
+  _return = (double)0;
+}
+
 bool wholeBodyDynamics_IDLServer_useIMUAsKinematicSource::write(yarp::os::ConnectionWriter& connection) {
   yarp::os::idl::WireWriter writer(connection);
   if (!writer.writeListHeader(1)) return false;
@@ -455,6 +603,73 @@ bool wholeBodyDynamics_IDLServer_useFixedFrameAsKinematicSource::read(yarp::os::
 void wholeBodyDynamics_IDLServer_useFixedFrameAsKinematicSource::init(const std::string& fixedFrame) {
   _return = false;
   this->fixedFrame = fixedFrame;
+}
+
+bool wholeBodyDynamics_IDLServer_setUseOfJointVelocities::write(yarp::os::ConnectionWriter& connection) {
+  yarp::os::idl::WireWriter writer(connection);
+  if (!writer.writeListHeader(2)) return false;
+  if (!writer.writeTag("setUseOfJointVelocities",1,1)) return false;
+  if (!writer.writeBool(enable)) return false;
+  return true;
+}
+
+bool wholeBodyDynamics_IDLServer_setUseOfJointVelocities::read(yarp::os::ConnectionReader& connection) {
+  yarp::os::idl::WireReader reader(connection);
+  if (!reader.readListReturn()) return false;
+  if (!reader.readBool(_return)) {
+    reader.fail();
+    return false;
+  }
+  return true;
+}
+
+void wholeBodyDynamics_IDLServer_setUseOfJointVelocities::init(const bool enable) {
+  _return = false;
+  this->enable = enable;
+}
+
+bool wholeBodyDynamics_IDLServer_setUseOfJointAccelerations::write(yarp::os::ConnectionWriter& connection) {
+  yarp::os::idl::WireWriter writer(connection);
+  if (!writer.writeListHeader(2)) return false;
+  if (!writer.writeTag("setUseOfJointAccelerations",1,1)) return false;
+  if (!writer.writeBool(enable)) return false;
+  return true;
+}
+
+bool wholeBodyDynamics_IDLServer_setUseOfJointAccelerations::read(yarp::os::ConnectionReader& connection) {
+  yarp::os::idl::WireReader reader(connection);
+  if (!reader.readListReturn()) return false;
+  if (!reader.readBool(_return)) {
+    reader.fail();
+    return false;
+  }
+  return true;
+}
+
+void wholeBodyDynamics_IDLServer_setUseOfJointAccelerations::init(const bool enable) {
+  _return = false;
+  this->enable = enable;
+}
+
+bool wholeBodyDynamics_IDLServer_getCurrentSettingsString::write(yarp::os::ConnectionWriter& connection) {
+  yarp::os::idl::WireWriter writer(connection);
+  if (!writer.writeListHeader(1)) return false;
+  if (!writer.writeTag("getCurrentSettingsString",1,1)) return false;
+  return true;
+}
+
+bool wholeBodyDynamics_IDLServer_getCurrentSettingsString::read(yarp::os::ConnectionReader& connection) {
+  yarp::os::idl::WireReader reader(connection);
+  if (!reader.readListReturn()) return false;
+  if (!reader.readString(_return)) {
+    reader.fail();
+    return false;
+  }
+  return true;
+}
+
+void wholeBodyDynamics_IDLServer_getCurrentSettingsString::init() {
+  _return = "";
 }
 
 wholeBodyDynamics_IDLServer::wholeBodyDynamics_IDLServer() {
@@ -580,6 +795,46 @@ double wholeBodyDynamics_IDLServer::get_forceTorqueFilterCutoffInHz() {
   bool ok = yarp().write(helper,helper);
   return ok?helper._return:_return;
 }
+bool wholeBodyDynamics_IDLServer::set_jointVelFilterCutoffInHz(const double newCutoff) {
+  bool _return = false;
+  wholeBodyDynamics_IDLServer_set_jointVelFilterCutoffInHz helper;
+  helper.init(newCutoff);
+  if (!yarp().canWrite()) {
+    yError("Missing server method '%s'?","bool wholeBodyDynamics_IDLServer::set_jointVelFilterCutoffInHz(const double newCutoff)");
+  }
+  bool ok = yarp().write(helper,helper);
+  return ok?helper._return:_return;
+}
+double wholeBodyDynamics_IDLServer::get_jointVelFilterCutoffInHz() {
+  double _return = (double)0;
+  wholeBodyDynamics_IDLServer_get_jointVelFilterCutoffInHz helper;
+  helper.init();
+  if (!yarp().canWrite()) {
+    yError("Missing server method '%s'?","double wholeBodyDynamics_IDLServer::get_jointVelFilterCutoffInHz()");
+  }
+  bool ok = yarp().write(helper,helper);
+  return ok?helper._return:_return;
+}
+bool wholeBodyDynamics_IDLServer::set_jointAccFilterCutoffInHz(const double newCutoff) {
+  bool _return = false;
+  wholeBodyDynamics_IDLServer_set_jointAccFilterCutoffInHz helper;
+  helper.init(newCutoff);
+  if (!yarp().canWrite()) {
+    yError("Missing server method '%s'?","bool wholeBodyDynamics_IDLServer::set_jointAccFilterCutoffInHz(const double newCutoff)");
+  }
+  bool ok = yarp().write(helper,helper);
+  return ok?helper._return:_return;
+}
+double wholeBodyDynamics_IDLServer::get_jointAccFilterCutoffInHz() {
+  double _return = (double)0;
+  wholeBodyDynamics_IDLServer_get_jointAccFilterCutoffInHz helper;
+  helper.init();
+  if (!yarp().canWrite()) {
+    yError("Missing server method '%s'?","double wholeBodyDynamics_IDLServer::get_jointAccFilterCutoffInHz()");
+  }
+  bool ok = yarp().write(helper,helper);
+  return ok?helper._return:_return;
+}
 bool wholeBodyDynamics_IDLServer::useIMUAsKinematicSource() {
   bool _return = false;
   wholeBodyDynamics_IDLServer_useIMUAsKinematicSource helper;
@@ -596,6 +851,36 @@ bool wholeBodyDynamics_IDLServer::useFixedFrameAsKinematicSource(const std::stri
   helper.init(fixedFrame);
   if (!yarp().canWrite()) {
     yError("Missing server method '%s'?","bool wholeBodyDynamics_IDLServer::useFixedFrameAsKinematicSource(const std::string& fixedFrame)");
+  }
+  bool ok = yarp().write(helper,helper);
+  return ok?helper._return:_return;
+}
+bool wholeBodyDynamics_IDLServer::setUseOfJointVelocities(const bool enable) {
+  bool _return = false;
+  wholeBodyDynamics_IDLServer_setUseOfJointVelocities helper;
+  helper.init(enable);
+  if (!yarp().canWrite()) {
+    yError("Missing server method '%s'?","bool wholeBodyDynamics_IDLServer::setUseOfJointVelocities(const bool enable)");
+  }
+  bool ok = yarp().write(helper,helper);
+  return ok?helper._return:_return;
+}
+bool wholeBodyDynamics_IDLServer::setUseOfJointAccelerations(const bool enable) {
+  bool _return = false;
+  wholeBodyDynamics_IDLServer_setUseOfJointAccelerations helper;
+  helper.init(enable);
+  if (!yarp().canWrite()) {
+    yError("Missing server method '%s'?","bool wholeBodyDynamics_IDLServer::setUseOfJointAccelerations(const bool enable)");
+  }
+  bool ok = yarp().write(helper,helper);
+  return ok?helper._return:_return;
+}
+std::string wholeBodyDynamics_IDLServer::getCurrentSettingsString() {
+  std::string _return = "";
+  wholeBodyDynamics_IDLServer_getCurrentSettingsString helper;
+  helper.init();
+  if (!yarp().canWrite()) {
+    yError("Missing server method '%s'?","std::string wholeBodyDynamics_IDLServer::getCurrentSettingsString()");
   }
   bool ok = yarp().write(helper,helper);
   return ok?helper._return:_return;
@@ -808,6 +1093,60 @@ bool wholeBodyDynamics_IDLServer::read(yarp::os::ConnectionReader& connection) {
       reader.accept();
       return true;
     }
+    if (tag == "set_jointVelFilterCutoffInHz") {
+      double newCutoff;
+      if (!reader.readDouble(newCutoff)) {
+        reader.fail();
+        return false;
+      }
+      bool _return;
+      _return = set_jointVelFilterCutoffInHz(newCutoff);
+      yarp::os::idl::WireWriter writer(reader);
+      if (!writer.isNull()) {
+        if (!writer.writeListHeader(1)) return false;
+        if (!writer.writeBool(_return)) return false;
+      }
+      reader.accept();
+      return true;
+    }
+    if (tag == "get_jointVelFilterCutoffInHz") {
+      double _return;
+      _return = get_jointVelFilterCutoffInHz();
+      yarp::os::idl::WireWriter writer(reader);
+      if (!writer.isNull()) {
+        if (!writer.writeListHeader(1)) return false;
+        if (!writer.writeDouble(_return)) return false;
+      }
+      reader.accept();
+      return true;
+    }
+    if (tag == "set_jointAccFilterCutoffInHz") {
+      double newCutoff;
+      if (!reader.readDouble(newCutoff)) {
+        reader.fail();
+        return false;
+      }
+      bool _return;
+      _return = set_jointAccFilterCutoffInHz(newCutoff);
+      yarp::os::idl::WireWriter writer(reader);
+      if (!writer.isNull()) {
+        if (!writer.writeListHeader(1)) return false;
+        if (!writer.writeBool(_return)) return false;
+      }
+      reader.accept();
+      return true;
+    }
+    if (tag == "get_jointAccFilterCutoffInHz") {
+      double _return;
+      _return = get_jointAccFilterCutoffInHz();
+      yarp::os::idl::WireWriter writer(reader);
+      if (!writer.isNull()) {
+        if (!writer.writeListHeader(1)) return false;
+        if (!writer.writeDouble(_return)) return false;
+      }
+      reader.accept();
+      return true;
+    }
     if (tag == "useIMUAsKinematicSource") {
       bool _return;
       _return = useIMUAsKinematicSource();
@@ -831,6 +1170,49 @@ bool wholeBodyDynamics_IDLServer::read(yarp::os::ConnectionReader& connection) {
       if (!writer.isNull()) {
         if (!writer.writeListHeader(1)) return false;
         if (!writer.writeBool(_return)) return false;
+      }
+      reader.accept();
+      return true;
+    }
+    if (tag == "setUseOfJointVelocities") {
+      bool enable;
+      if (!reader.readBool(enable)) {
+        reader.fail();
+        return false;
+      }
+      bool _return;
+      _return = setUseOfJointVelocities(enable);
+      yarp::os::idl::WireWriter writer(reader);
+      if (!writer.isNull()) {
+        if (!writer.writeListHeader(1)) return false;
+        if (!writer.writeBool(_return)) return false;
+      }
+      reader.accept();
+      return true;
+    }
+    if (tag == "setUseOfJointAccelerations") {
+      bool enable;
+      if (!reader.readBool(enable)) {
+        reader.fail();
+        return false;
+      }
+      bool _return;
+      _return = setUseOfJointAccelerations(enable);
+      yarp::os::idl::WireWriter writer(reader);
+      if (!writer.isNull()) {
+        if (!writer.writeListHeader(1)) return false;
+        if (!writer.writeBool(_return)) return false;
+      }
+      reader.accept();
+      return true;
+    }
+    if (tag == "getCurrentSettingsString") {
+      std::string _return;
+      _return = getCurrentSettingsString();
+      yarp::os::idl::WireWriter writer(reader);
+      if (!writer.isNull()) {
+        if (!writer.writeListHeader(1)) return false;
+        if (!writer.writeString(_return)) return false;
       }
       reader.accept();
       return true;
@@ -881,8 +1263,15 @@ std::vector<std::string> wholeBodyDynamics_IDLServer::help(const std::string& fu
     helpString.push_back("get_imuFilterCutoffInHz");
     helpString.push_back("set_forceTorqueFilterCutoffInHz");
     helpString.push_back("get_forceTorqueFilterCutoffInHz");
+    helpString.push_back("set_jointVelFilterCutoffInHz");
+    helpString.push_back("get_jointVelFilterCutoffInHz");
+    helpString.push_back("set_jointAccFilterCutoffInHz");
+    helpString.push_back("get_jointAccFilterCutoffInHz");
     helpString.push_back("useIMUAsKinematicSource");
     helpString.push_back("useFixedFrameAsKinematicSource");
+    helpString.push_back("setUseOfJointVelocities");
+    helpString.push_back("setUseOfJointAccelerations");
+    helpString.push_back("getCurrentSettingsString");
     helpString.push_back("help");
   }
   else {
@@ -965,6 +1354,26 @@ std::vector<std::string> wholeBodyDynamics_IDLServer::help(const std::string& fu
       helpString.push_back("Get the cutoff frequency (in Hz) for FT measurements ");
       helpString.push_back("@return the cutoff frequency (in Hz) ");
     }
+    if (functionName=="set_jointVelFilterCutoffInHz") {
+      helpString.push_back("bool set_jointVelFilterCutoffInHz(const double newCutoff) ");
+      helpString.push_back("Set the cutoff frequency (in Hz) for joint velocities measurements ");
+      helpString.push_back("@return true/false on success/failure ");
+    }
+    if (functionName=="get_jointVelFilterCutoffInHz") {
+      helpString.push_back("double get_jointVelFilterCutoffInHz() ");
+      helpString.push_back("Get the cutoff frequency (in Hz) for joint velocities measurements ");
+      helpString.push_back("@return the cutoff frequency (in Hz) ");
+    }
+    if (functionName=="set_jointAccFilterCutoffInHz") {
+      helpString.push_back("bool set_jointAccFilterCutoffInHz(const double newCutoff) ");
+      helpString.push_back("Set the cutoff frequency (in Hz) for joint acceleration measurements ");
+      helpString.push_back("@return true/false on success/failure ");
+    }
+    if (functionName=="get_jointAccFilterCutoffInHz") {
+      helpString.push_back("double get_jointAccFilterCutoffInHz() ");
+      helpString.push_back("Get the cutoff frequency (in Hz) for joint acceleration measurements ");
+      helpString.push_back("@return the cutoff frequency (in Hz) ");
+    }
     if (functionName=="useIMUAsKinematicSource") {
       helpString.push_back("bool useIMUAsKinematicSource() ");
       helpString.push_back("Use the IMU as the kinematic source of ");
@@ -978,6 +1387,19 @@ std::vector<std::string> wholeBodyDynamics_IDLServer::help(const std::string& fu
       helpString.push_back("the kinematic source is changing, and the gravity ");
       helpString.push_back("on this link is specified by the fixedFrameGravity (tipically ");
       helpString.push_back("set to (0,0,-9.81) . ");
+    }
+    if (functionName=="setUseOfJointVelocities") {
+      helpString.push_back("bool setUseOfJointVelocities(const bool enable) ");
+      helpString.push_back("Set if to use or not the joint velocities in estimation. ");
+    }
+    if (functionName=="setUseOfJointAccelerations") {
+      helpString.push_back("bool setUseOfJointAccelerations(const bool enable) ");
+      helpString.push_back("Set if to use or not the joint velocities in estimation. ");
+    }
+    if (functionName=="getCurrentSettingsString") {
+      helpString.push_back("std::string getCurrentSettingsString() ");
+      helpString.push_back("Get the current settings in the form of a string. ");
+      helpString.push_back("@return the current settings as a human readable string. ");
     }
     if (functionName=="help") {
       helpString.push_back("std::vector<std::string> help(const std::string& functionName=\"--all\")");

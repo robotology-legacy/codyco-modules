@@ -70,13 +70,17 @@ class wholeBodyDynamicsDeviceFilters
      * Allocate the filters.
      */
     void init(int nrOfFTSensors,
-         double initialCutOffForFTInHz,
-         double initialCutOffForIMUInHz,
-         double periodInSeconds);
+              double initialCutOffForFTInHz,
+              double initialCutOffForIMUInHz,
+              int nrOfJointsProcessed,
+              double initialCutOffForJointVelInHz,
+              double initialCutOffForJointAccInHz,
+              double periodInSeconds);
 
-    void updateCutOffFrequency(double initialCutOffForFTInHz,
-                               double initialCutOffForIMUInHz);
-
+    void updateCutOffFrequency(double cutOffForFTInHz,
+                               double cutOffForIMUInHz,
+                               double cutOffForJointVelInHz,
+                               double cutOffForJointAccInHz);
     /**
      * Deallocate the filters
      */
@@ -87,10 +91,27 @@ class wholeBodyDynamicsDeviceFilters
 
     ///<  low pass filters for IMU linear accelerations
     iCub::ctrl::realTime::FirstOrderLowPassFilter * imuLinearAccelerationFilter;
+
     ///< low pass filters for IMU angular velocity
     iCub::ctrl::realTime::FirstOrderLowPassFilter * imuAngularVelocityFilter;
+
     ///< low pass filters for ForceTorque sensors
     std::vector<iCub::ctrl::realTime::FirstOrderLowPassFilter *> forcetorqueFilters;
+
+    ///< low pass filter for Joint velocities
+    iCub::ctrl::realTime::FirstOrderLowPassFilter * jntVelFilter;
+
+    ///< low pass filter for Joint accelerations
+    iCub::ctrl::realTime::FirstOrderLowPassFilter * jntAccFilter;
+
+    ///< Yarp vector buffer of dimension 3
+    yarp::sig::Vector bufferYarp3;
+
+    ///< Yarp vector buffer of dimension 6
+    yarp::sig::Vector bufferYarp6;
+
+    ///< Yarp vector buffer of dimension dofs
+    yarp::sig::Vector bufferYarpDofs;
 };
 
 /**
@@ -403,27 +424,60 @@ private:
       * @return true/false on success/failure
       */
       virtual bool set_forceTorqueFilterCutoffInHz(const double newCutoff);
-      /**
+     /**
       * Get the cutoff frequency (in Hz) for FT measurements
       * @return the cutoff frequency (in Hz)
       */
-    virtual double get_forceTorqueFilterCutoffInHz();
+      virtual double get_forceTorqueFilterCutoffInHz();
+      /**
+      * Set the cutoff frequency (in Hz) for joint velocities measurements
+      * @return true/false on success/failure
+      */
+      virtual bool set_jointVelFilterCutoffInHz(const double newCutoff);
+      /**
+      * Get the cutoff frequency (in Hz) for joint velocities measurements
+      * @return the cutoff frequency (in Hz)
+      */
+      virtual double get_jointVelFilterCutoffInHz();
+      /**
+      * Set the cutoff frequency (in Hz) for joint acceleration measurements
+      * @return true/false on success/failure
+      */
+      virtual bool set_jointAccFilterCutoffInHz(const double newCutoff);
+      /**
+      * Get the cutoff frequency (in Hz) for joint acceleration measurements
+      * @return the cutoff frequency (in Hz)
+      */
+      virtual double get_jointAccFilterCutoffInHz();
+      /**
+       * Use the IMU as the kinematic source of
+       * information for the acceleration of one link.
+       */
+      virtual bool useIMUAsKinematicSource();
 
-    /**
-     * Use the IMU as the kinematic source of
-     * information for the acceleration of one link.
-     */
-    virtual bool useIMUAsKinematicSource();
+      /**
+       * Use a fixed frame (tipically root_link, l_sole or r_sole)
+       * as the source of kinematic information. The assumption
+       * is that the specified frame will remain fixed until
+       * the kinematic source is changing, and the gravity
+       * on this link is specified by the fixedFrameGravity (tipically
+       * set to (0,0,-9.81) .
+       */
+      virtual bool useFixedFrameAsKinematicSource(const std::string& fixedFrame);
 
-    /**
-     * Use a fixed frame (tipically root_link, l_sole or r_sole)
-     * as the source of kinematic information. The assumption
-     * is that the specified frame will remain fixed until
-     * the kinematic source is changing, and the gravity
-     * on this link is specified by the fixedFrameGravity (tipically
-     * set to (0,0,-9.81) .
-     */
-    virtual bool useFixedFrameAsKinematicSource(const std::string& fixedFrame);
+      /**
+       * Set if to use or not the joint velocities in estimation.
+       */
+      virtual bool setUseOfJointVelocities(const bool enable);
+      /**
+       * Set if to use or not the joint velocities in estimation.
+       */
+      virtual bool setUseOfJointAccelerations(const bool enable);
+      /**
+       * Get the current settings in the form of a string.
+       * @return the current settings as a human readable string.
+       */
+      virtual std::string getCurrentSettingsAsString();
 
     void setupCalibrationCommonPart(const int32_t nrOfSamples);
     bool setupCalibrationWithExternalWrenchOnOneFrame(const std::string & frameName, const int32_t nrOfSamples);

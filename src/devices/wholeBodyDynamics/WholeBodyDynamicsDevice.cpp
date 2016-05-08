@@ -460,7 +460,13 @@ void WholeBodyDynamicsDevice::resizeBuffers()
     calibrationBuffers.predictedSensorMeasurementsForCalibration.resize(estimator.sensors());
 
     // Resize filters
-    filters.init(nrOfFTSensors,settings.forceTorqueFilterCutoffInHz,settings.imuFilterCutoffInHz,getRate()/1000.0);
+    filters.init(nrOfFTSensors,
+                 settings.forceTorqueFilterCutoffInHz,
+                 settings.imuFilterCutoffInHz,
+                 estimator.model().getNrOfDOFs(),
+                 settings.jointVelFilterCutoffInHz,
+                 settings.jointAccFilterCutoffInHz,
+                 getRate()/1000.0);
 
     // Resize external wrenches publishing software
     this->netExternalWrenchesExertedByTheEnviroment.resize(estimator.model());
@@ -476,12 +482,13 @@ void WholeBodyDynamicsDevice::resizeBuffers()
 bool WholeBodyDynamicsDevice::loadSettingsFromConfig(os::Searchable& config)
 {
     // Fill setting with their default values
-    settings.kinematicSource = IMU;
-    settings.useJointVelocity = 0;
-    settings.useJointAcceleration = 0;
-    settings.imuFilterCutoffInHz = 3.0;
+    settings.kinematicSource             = IMU;
+    settings.useJointVelocity            = true;
+    settings.useJointAcceleration        = true;
+    settings.imuFilterCutoffInHz         = 3.0;
     settings.forceTorqueFilterCutoffInHz = 3.0;
-
+    settings.jointVelFilterCutoffInHz    = 3.0;
+    settings.jointAccFilterCutoffInHz    = 3.0;
 
     yarp::os::Property prop;
     prop.fromString(config.toString().c_str());
@@ -793,7 +800,10 @@ void WholeBodyDynamicsDevice::readSensors()
 {
     // Read encoders
     sensorReadCorrectly = remappedControlBoardInterfaces.encs->getEncoders(jointPos.data());
+
+    // Convert from degrees (used on wire by YARP) to radians (used by iDynTree)
     convertVectorFromDegreesToRadians(jointPos);
+
     bool ok;
 
     if( !sensorReadCorrectly )
@@ -812,6 +822,7 @@ void WholeBodyDynamicsDevice::readSensors()
             yWarning() << "wholeBodyDynamics warning : joint velocities was not readed correctly";
         }
 
+        // Convert from degrees (used on wire by YARP) to radians (used by iDynTree)
         convertVectorFromDegreesToRadians(jointVel);
     }
     else
@@ -827,7 +838,10 @@ void WholeBodyDynamicsDevice::readSensors()
         {
             yWarning() << "wholeBodyDynamics warning : joint accelerations was not readed correctly";
         }
+
+        // Convert from degrees (used on wire by YARP) to radians (used by iDynTree)
         convertVectorFromDegreesToRadians(jointAcc);
+
     }
     else
     {
@@ -885,9 +899,10 @@ void WholeBodyDynamicsDevice::readSensors()
 
 void WholeBodyDynamicsDevice::filterSensorsAndRemoveSensorOffsets()
 {
-    filters.updateCutOffFrequency(settings.forceTorqueFilterCutoffInHz,settings.imuFilterCutoffInHz);
-
-    yarp::sig::Vector inputFt(6), outputFt(6), inputImu(3), outputImu(3);
+    filters.updateCutOffFrequency(settings.forceTorqueFilterCutoffInHz,
+                                  settings.imuFilterCutoffInHz,
+                                  settings.jointVelFilterCutoffInHz,
+                                  settings.jointAccFilterCutoffInHz);
 
     // Filter and remove offset fromn F/T sensors
     for(size_t ft=0; ft < estimator.sensors().getNrOfSensors(iDynTree::SIX_AXIS_FORCE_TORQUE); ft++ )
@@ -898,10 +913,10 @@ void WholeBodyDynamicsDevice::filterSensorsAndRemoveSensorOffsets()
         iDynTree::Wrench rawFTMeasureWithOffsetRemoved  = rawFTMeasure - calibrationBuffers.offset[ft];
 
         // Filter the data
-        iDynTree::toYarp(rawFTMeasureWithOffsetRemoved,inputFt);
+        iDynTree::toYarp(rawFTMeasureWithOffsetRemoved,filters.bufferYarp6);
 
         // Run the filter
-        outputFt = filters.forcetorqueFilters[ft]->filt(inputFt);
+        const yarp::sig::Vector & outputFt = filters.forcetorqueFilters[ft]->filt(filters.bufferYarp6);
 
         iDynTree::Wrench filteredFTMeasure;
 
@@ -910,20 +925,40 @@ void WholeBodyDynamicsDevice::filterSensorsAndRemoveSensorOffsets()
         filteredSensorMeasurements.setMeasurement(iDynTree::SIX_AXIS_FORCE_TORQUE,ft,filteredFTMeasure);
     }
 
+    // Filter joint vel
+    if( settings.useJointVelocity )
+    {
+        iDynTree::toYarp(jointVel,filters.bufferYarpDofs);
+
+        const yarp::sig::Vector & outputJointVel = filters.imuLinearAccelerationFilter->filt(filters.bufferYarpDofs);
+
+        iDynTree::toiDynTree(outputJointVel,jointVel);
+    }
+
+    // Filter joint acc
+    if( settings.useJointAcceleration )
+    {
+        iDynTree::toYarp(jointAcc,filters.bufferYarpDofs);
+
+        const yarp::sig::Vector & outputJointAcc = filters.imuLinearAccelerationFilter->filt(filters.bufferYarpDofs);
+
+        iDynTree::toiDynTree(outputJointAcc,jointVel);
+    }
+
     // Filter IMU Sensor
     if( settings.kinematicSource == IMU )
     {
-        iDynTree::toYarp(rawIMUMeasurements.linProperAcc,inputImu);
+        iDynTree::toYarp(rawIMUMeasurements.linProperAcc,filters.bufferYarp3);
 
-        outputImu = filters.imuLinearAccelerationFilter->filt(inputImu);
+        const yarp::sig::Vector & outputLinAcc = filters.imuLinearAccelerationFilter->filt(filters.bufferYarp3);
 
-        iDynTree::toiDynTree(outputImu,filteredIMUMeasurements.linProperAcc);
+        iDynTree::toiDynTree(outputLinAcc,filteredIMUMeasurements.linProperAcc);
 
-        iDynTree::toYarp(rawIMUMeasurements.angularVel,inputImu);
+        iDynTree::toYarp(rawIMUMeasurements.angularVel,filters.bufferYarp3);
 
-        outputImu = filters.imuAngularVelocityFilter->filt(inputImu);
+        const yarp::sig::Vector & outputAngVel = filters.imuAngularVelocityFilter->filt(filters.bufferYarp3);
 
-        iDynTree::toiDynTree(outputImu,filteredIMUMeasurements.angularVel);
+        iDynTree::toiDynTree(outputAngVel,filteredIMUMeasurements.angularVel);
 
         // For now we just assume that the angular acceleration is zero
         filteredIMUMeasurements.angularAcc.zero();
@@ -1435,6 +1470,39 @@ bool WholeBodyDynamicsDevice::set_forceTorqueFilterCutoffInHz(const double newCu
     return true;
 }
 
+double WholeBodyDynamicsDevice::get_jointVelFilterCutoffInHz()
+{
+    yarp::os::LockGuard guard(this->deviceMutex);
+
+    return this->settings.jointVelFilterCutoffInHz;
+}
+
+bool WholeBodyDynamicsDevice::set_jointVelFilterCutoffInHz(const double newCutoff)
+{
+    yarp::os::LockGuard guard(this->deviceMutex);
+
+    this->settings.jointVelFilterCutoffInHz = newCutoff;
+
+    return true;
+}
+
+double WholeBodyDynamicsDevice::get_jointAccFilterCutoffInHz()
+{
+    yarp::os::LockGuard guard(this->deviceMutex);
+
+    return this->settings.jointAccFilterCutoffInHz;
+}
+
+bool WholeBodyDynamicsDevice::set_jointAccFilterCutoffInHz(const double newCutoff)
+{
+    yarp::os::LockGuard guard(this->deviceMutex);
+
+    this->settings.jointAccFilterCutoffInHz = newCutoff;
+
+    return true;
+}
+
+
 double WholeBodyDynamicsDevice::get_imuFilterCutoffInHz()
 {
     yarp::os::LockGuard guard(this->deviceMutex);
@@ -1484,6 +1552,33 @@ bool WholeBodyDynamicsDevice::useIMUAsKinematicSource()
     return true;
 }
 
+bool WholeBodyDynamicsDevice::setUseOfJointVelocities(const bool enable)
+{
+    yarp::os::LockGuard guard(this->deviceMutex);
+
+    this->settings.useJointVelocity = enable;
+
+    return true;
+}
+
+bool WholeBodyDynamicsDevice::setUseOfJointAccelerations(const bool enable)
+{
+    yarp::os::LockGuard guard(this->deviceMutex);
+
+    this->settings.useJointAcceleration = enable;
+
+    return true;
+}
+
+std::string WholeBodyDynamicsDevice::getCurrentSettingsAsString()
+{
+   yarp::os::LockGuard guard(this->deviceMutex);
+
+   return settings.toString();
+
+}
+
+
 
 
 
@@ -1527,25 +1622,42 @@ wholeBodyDynamicsDeviceFilters::wholeBodyDynamicsDeviceFilters(): imuLinearAccel
 
 }
 
-void wholeBodyDynamicsDeviceFilters::init(int nrOfFTSensors, double initialCutOffForFTInHz, double initialCutOffForIMUInHz  , double periodInSeconds)
+void wholeBodyDynamicsDeviceFilters::init(int nrOfFTSensors,
+                                          double initialCutOffForFTInHz,
+                                          double initialCutOffForIMUInHz,
+                                          int nrOfDOFsProcessed,
+                                          double initialCutOffForJointVelInHz,
+                                          double initialCutOffForJointAccInHz,
+                                          double periodInSeconds)
 {
-    yarp::sig::Vector threeZeros(3,0.0);
-    imuLinearAccelerationFilter =
-        new iCub::ctrl::realTime::FirstOrderLowPassFilter(initialCutOffForIMUInHz,periodInSeconds,threeZeros);
-    imuAngularVelocityFilter =
-        new iCub::ctrl::realTime::FirstOrderLowPassFilter(initialCutOffForIMUInHz,periodInSeconds,threeZeros);
+    // Allocate buffers
+    bufferYarp3.resize(3,0.0);
+    bufferYarp6.resize(6,0.0);
+    bufferYarpDofs.resize(nrOfDOFsProcessed,0.0);
 
-    yarp::sig::Vector sixZeros(6,0.0);
+    imuLinearAccelerationFilter =
+        new iCub::ctrl::realTime::FirstOrderLowPassFilter(initialCutOffForIMUInHz,periodInSeconds,bufferYarp3);
+    imuAngularVelocityFilter =
+        new iCub::ctrl::realTime::FirstOrderLowPassFilter(initialCutOffForIMUInHz,periodInSeconds,bufferYarp3);
+
     forcetorqueFilters.resize(nrOfFTSensors);
     for(int ft_numeric = 0; ft_numeric < nrOfFTSensors; ft_numeric++ )
     {
         forcetorqueFilters[ft_numeric] =
-                new iCub::ctrl::realTime::FirstOrderLowPassFilter(initialCutOffForFTInHz,periodInSeconds,sixZeros);
+                new iCub::ctrl::realTime::FirstOrderLowPassFilter(initialCutOffForFTInHz,periodInSeconds,bufferYarp6);
     }
+
+    jntVelFilter =
+        new iCub::ctrl::realTime::FirstOrderLowPassFilter(initialCutOffForJointVelInHz,periodInSeconds,bufferYarpDofs);
+    jntAccFilter =
+        new iCub::ctrl::realTime::FirstOrderLowPassFilter(initialCutOffForJointAccInHz,periodInSeconds,bufferYarpDofs);
 }
 
 
-void wholeBodyDynamicsDeviceFilters::updateCutOffFrequency(double cutoffForFTInHz, double cutOffForIMUInHz)
+void wholeBodyDynamicsDeviceFilters::updateCutOffFrequency(double cutoffForFTInHz,
+                                                           double cutOffForIMUInHz,
+                                                           double cutOffForJointVelInHz,
+                                                           double cutOffForJointAccInHz)
 {
     imuLinearAccelerationFilter->setCutFrequency(cutOffForIMUInHz);
     imuAngularVelocityFilter->setCutFrequency(cutOffForIMUInHz);
@@ -1555,6 +1667,8 @@ void wholeBodyDynamicsDeviceFilters::updateCutOffFrequency(double cutoffForFTInH
         forcetorqueFilters[ft_numeric]->setCutFrequency(cutoffForFTInHz);
     }
 
+    jntVelFilter->setCutFrequency(cutOffForJointVelInHz);
+    jntAccFilter->setCutFrequency(cutOffForJointAccInHz);
 }
 
 void wholeBodyDynamicsDeviceFilters::fini()
@@ -1578,6 +1692,18 @@ void wholeBodyDynamicsDeviceFilters::fini()
     }
 
     forcetorqueFilters.resize(0);
+
+    if( jntVelFilter )
+    {
+        delete jntVelFilter;
+        jntVelFilter = 0;
+    }
+
+    if( jntAccFilter )
+    {
+        delete jntAccFilter;
+        jntAccFilter = 0;
+    }
 }
 
 wholeBodyDynamicsDeviceFilters::~wholeBodyDynamicsDeviceFilters()

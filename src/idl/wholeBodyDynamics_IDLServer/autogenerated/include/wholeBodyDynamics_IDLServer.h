@@ -97,6 +97,26 @@ public:
    */
   virtual double get_forceTorqueFilterCutoffInHz();
   /**
+   * Set the cutoff frequency (in Hz) for joint velocities measurements
+   * @return true/false on success/failure
+   */
+  virtual bool set_jointVelFilterCutoffInHz(const double newCutoff);
+  /**
+   * Get the cutoff frequency (in Hz) for joint velocities measurements
+   * @return the cutoff frequency (in Hz)
+   */
+  virtual double get_jointVelFilterCutoffInHz();
+  /**
+   * Set the cutoff frequency (in Hz) for joint acceleration measurements
+   * @return true/false on success/failure
+   */
+  virtual bool set_jointAccFilterCutoffInHz(const double newCutoff);
+  /**
+   * Get the cutoff frequency (in Hz) for joint acceleration measurements
+   * @return the cutoff frequency (in Hz)
+   */
+  virtual double get_jointAccFilterCutoffInHz();
+  /**
    * Use the IMU as the kinematic source of
    * information for the acceleration of one link.
    */
@@ -110,6 +130,19 @@ public:
    * set to (0,0,-9.81) .
    */
   virtual bool useFixedFrameAsKinematicSource(const std::string& fixedFrame);
+  /**
+   * Set if to use or not the joint velocities in estimation.
+   */
+  virtual bool setUseOfJointVelocities(const bool enable);
+  /**
+   * Set if to use or not the joint velocities in estimation.
+   */
+  virtual bool setUseOfJointAccelerations(const bool enable);
+  /**
+   * Get the current settings in the form of a string.
+   * @return the current settings as a human readable string.
+   */
+  virtual std::string getCurrentSettingsString();
   virtual bool read(yarp::os::ConnectionReader& connection);
   virtual std::vector<std::string> help(const std::string& functionName="--all");
 };

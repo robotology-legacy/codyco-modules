@@ -58,11 +58,6 @@ service wholeBodyDynamics_IDLServer
   */
   bool quit();
 
-  // This should be implemented in a separated "simpleLeggedOdometry" interface,
-  // but for the time being it is easier to just implement it here
-  //service simpleLeggedOdometry_IDLServer
-  // {
-
   /**
    * Reset the odometry world to be (initially) a frame specified in the robot model,
    * and specify a link that is assumed to be fixed in the odometry.
@@ -105,6 +100,30 @@ service wholeBodyDynamics_IDLServer
   double get_forceTorqueFilterCutoffInHz();
 
   /**
+   * Set the cutoff frequency (in Hz) for joint velocities measurements
+   * @return true/false on success/failure
+   */
+  bool set_jointVelFilterCutoffInHz(1:double newCutoff);
+
+  /**
+   * Get the cutoff frequency (in Hz) for joint velocities measurements
+   * @return the cutoff frequency (in Hz)
+   */
+  double get_jointVelFilterCutoffInHz();
+
+  /**
+   * Set the cutoff frequency (in Hz) for joint acceleration measurements
+   * @return true/false on success/failure
+   */
+  bool set_jointAccFilterCutoffInHz(1:double newCutoff);
+
+  /**
+   * Get the cutoff frequency (in Hz) for joint acceleration measurements
+   * @return the cutoff frequency (in Hz)
+   */
+  double get_jointAccFilterCutoffInHz();
+
+  /**
    * Use the IMU as the kinematic source of
    * information for the acceleration of one link.
    *
@@ -119,13 +138,27 @@ service wholeBodyDynamics_IDLServer
    * on this link is specified by the fixedFrameGravity (tipically
    * set to (0,0,-9.81) .
    *
-   * 
+   *
    */
   bool useFixedFrameAsKinematicSource(1:string fixedFrame);
 
+  /**
+   * Set if to use or not the joint velocities in estimation.
+   *
+   */
+  bool setUseOfJointVelocities(1:bool enable);
 
+  /**
+   * Set if to use or not the joint velocities in estimation.
+   *
+   */
+  bool setUseOfJointAccelerations(1:bool enable);
 
-  // } /** simpleLeggedOdometry_IDLServer */
+  /**
+   * Get the current settings in the form of a string.
+   * @return the current settings as a human readable string.
+   */
+  string getCurrentSettingsString();
 }
 
 
