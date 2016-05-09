@@ -25,7 +25,8 @@ include_directories(SYSTEM
                     ${EIGEN3_INCLUDE_DIR}
                     ${skinDynLib_INCLUDE_DIRS})
 
-yarp_add_plugin(wholeBodyDynamicsDevice WholeBodyDynamicsDevice.h WholeBodyDynamicsDevice.cpp)
+yarp_add_plugin(wholeBodyDynamicsDevice WholeBodyDynamicsDevice.h WholeBodyDynamicsDevice.cpp
+                                                                  SixAxisForceTorqueMeasureHelpers.cpp)
 target_link_libraries(wholeBodyDynamicsDevice wholeBodyDynamicsSettings
                                               wholeBodyDynamics_IDLServer
                                               ctrlLibRT

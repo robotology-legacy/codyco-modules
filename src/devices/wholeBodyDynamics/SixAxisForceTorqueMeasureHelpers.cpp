@@ -34,7 +34,7 @@ const iDynTree::Wrench& SixAxisForceTorqueMeasureProcessor::offset() const
 
 iDynTree::Wrench SixAxisForceTorqueMeasureProcessor::filt(const iDynTree::Wrench& input) const
 {
-    Eigen::Vector<double,6,1> retEig = toEigen(m_secondaryCalibrationMatrix)*toEigen(input)-toEigen(m_offset);
+    Eigen::Matrix<double,6,1> retEig = toEigen(m_secondaryCalibrationMatrix)*toEigen(input)-toEigen(m_offset);
 
     iDynTree::Wrench ret;
     fromEigen(ret,retEig);

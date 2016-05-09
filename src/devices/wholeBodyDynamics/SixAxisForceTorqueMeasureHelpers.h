@@ -48,12 +48,12 @@ public:
     const iDynTree::Wrench & offset() const;
 
     /**
-     * Accessor to the offset.
+     * Accessor to the secondary calibration matrix.
      */
     iDynTree::Matrix6x6 & secondaryCalibrationMatrix();
 
     /**
-     * Const accessor to the offset.
+     * Const accessor to the secondary calibration matrix.
      */
     const iDynTree::Matrix6x6 & secondaryCalibrationMatrix() const;
 
