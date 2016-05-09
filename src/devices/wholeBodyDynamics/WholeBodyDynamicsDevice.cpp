@@ -32,7 +32,7 @@ WholeBodyDynamicsDevice::WholeBodyDynamicsDevice(): RateThread(10),
     calibrationBuffers.ongoingCalibration = false;
     calibrationBuffers.calibratingFTsensor.resize(0);
     calibrationBuffers.offsetSumBuffer.resize(0);
-    calibrationBuffers.offset.resize(0);
+    ftProcessors.resize(0);
     calibrationBuffers.nrOfSamplesToUseForCalibration = 0;
     calibrationBuffers.nrOfSamplesUsedUntilNowForCalibration = 0;
 
@@ -164,7 +164,7 @@ bool WholeBodyDynamicsDevice::openRemapperControlBoard(os::Searchable& config)
 
     if( !ok )
     {
-        yError() << "WholeBodyDynamicsDevice::open impossible to use the necessary interfaces in remappedControlBoard";
+        yError() << "wholeBodyDynamics : open impossible to use the necessary interfaces in remappedControlBoard";
         return ok;
     }
 
@@ -173,7 +173,7 @@ bool WholeBodyDynamicsDevice::openRemapperControlBoard(os::Searchable& config)
     remappedControlBoardInterfaces.encs->getAxes(&axes);
     if( axes != (int) estimator.model().getNrOfDOFs() )
     {
-        yError() << "WholeBodyDynamicsDevice::open estimator model and the remappedControlBoard has an inconsistent number of joints";
+        yError() << "wholeBodyDynamics : open estimator model and the remappedControlBoard has an inconsistent number of joints";
         return false;
     }
 
@@ -272,12 +272,12 @@ bool WholeBodyDynamicsDevice::openDefaultContactFrames(os::Searchable& /*config*
     {
         if( subModelIndex2DefaultContact[subModelIdx] == iDynTree::FRAME_INVALID_INDEX )
         {
-            yError() << "WholeBodyDynamicsDevice::openDefaultContactFrames : missing default contact for submodel composed by the links: ";
+            yError() << "wholeBodyDynamics : openDefaultContactFrames : missing default contact for submodel composed by the links: ";
             const iDynTree::Traversal & subModelTraversal = estimator.submodels().getTraversal(subModelIdx);
             for(iDynTree::TraversalIndex i = 0; i < (iDynTree::TraversalIndex) subModelTraversal.getNrOfVisitedLinks(); i++)
             {
                 iDynTree::LinkIndex linkIdx = subModelTraversal.getLink(i)->getIndex();
-                yError() << "WholeBodyDynamicsDevice::openDefaultContactFrames :" << estimator.model().getLinkName(linkIdx);
+                yError() << "wholeBodyDynamics : openDefaultContactFrames :" << estimator.model().getLinkName(linkIdx);
             }
 
             return false;
@@ -452,12 +452,13 @@ void WholeBodyDynamicsDevice::resizeBuffers()
     calibrationBuffers.calibratingFTsensor.resize(nrOfFTSensors,false);
     iDynTree::Wrench zeroWrench;
     zeroWrench.zero();
-    calibrationBuffers.offset.resize(nrOfFTSensors,zeroWrench);
     calibrationBuffers.offsetSumBuffer.resize(nrOfFTSensors,zeroWrench.asVector());
     calibrationBuffers.assumedContactLocationsForCalibration.resize(estimator.model());
     calibrationBuffers.predictedExternalContactWrenchesForCalibration.resize(estimator.model());
     calibrationBuffers.predictedJointTorquesForCalibration.resize(estimator.model());
     calibrationBuffers.predictedSensorMeasurementsForCalibration.resize(estimator.sensors());
+
+    ftProcessors.resize(nrOfFTSensors);
 
     // Resize filters
     filters.init(nrOfFTSensors,
@@ -627,7 +628,7 @@ bool WholeBodyDynamicsDevice::attachAllVirtualAnalogSensor(const PolyDriverList&
             virtualAnalogList.push_back(pVirtualAnalogSens);
             if( !(p[devIdx]->poly->view(pAxisInfo)) )
             {
-                yError() << "WholeBodyDynamicsDevice::attachAll error: device "
+                yError() << "wholeBodyDynamics : attachAll error: device "
                          << p[devIdx]->key << " exposes a IVirtualAnalogSensor, but not a IAxisInfo interface,"
                          << " impossible to map the list of joint names to the IVirtualAnalogSensor interface";
                 return false;
@@ -698,7 +699,7 @@ bool WholeBodyDynamicsDevice::attachAllFTs(const PolyDriverList& p)
 
     if( ftList.size() != estimator.sensors().getNrOfSensors(iDynTree::SIX_AXIS_FORCE_TORQUE) )
     {
-        yError() << " WholeBodyDynamicsDevice was expecting "
+        yError() << "wholeBodyDynamicsDevice : was expecting "
                  << estimator.sensors().getNrOfSensors(iDynTree::SIX_AXIS_FORCE_TORQUE)
                  << " from the model, but got " << ftList.size() << " FT sensor in the attach list.";
         return false;
@@ -774,7 +775,7 @@ bool WholeBodyDynamicsDevice::attachAll(const PolyDriverList& p)
     if( ok )
     {
         correctlyConfigured = true;
-        yDebug() << " WholeBodyDynamicsDevice correctly configured, starting the thread and the calibration";
+        yDebug() << "wholeBodyDynamicsDevice : correctly configured, starting the thread and the calibration";
         this->start();
     }
 
@@ -910,7 +911,7 @@ void WholeBodyDynamicsDevice::filterSensorsAndRemoveSensorOffsets()
         iDynTree::Wrench rawFTMeasure;
         rawSensorsMeasurements.getMeasurement(iDynTree::SIX_AXIS_FORCE_TORQUE,ft,rawFTMeasure);
 
-        iDynTree::Wrench rawFTMeasureWithOffsetRemoved  = rawFTMeasure - calibrationBuffers.offset[ft];
+        iDynTree::Wrench rawFTMeasureWithOffsetRemoved  = ftProcessors[ft].filt(rawFTMeasure);
 
         // Filter the data
         iDynTree::toYarp(rawFTMeasureWithOffsetRemoved,filters.bufferYarp6);
@@ -1079,9 +1080,9 @@ void WholeBodyDynamicsDevice::computeCalibration()
             {
                 if( calibrationBuffers.calibratingFTsensor[ft] )
                 {
-                    computeMean(calibrationBuffers.offsetSumBuffer[ft],calibrationBuffers.nrOfSamplesUsedUntilNowForCalibration,calibrationBuffers.offset[ft]);
+                    computeMean(calibrationBuffers.offsetSumBuffer[ft],calibrationBuffers.nrOfSamplesUsedUntilNowForCalibration,ftProcessors[ft].offset());
 
-                    yInfo() << "wholeBodyDynamics: Offset for sensor " << estimator.sensors().getSensor(iDynTree::SIX_AXIS_FORCE_TORQUE,ft)->getName() << " " << calibrationBuffers.offset[ft].toString();
+                    yInfo() << "wholeBodyDynamics: Offset for sensor " << estimator.sensors().getSensor(iDynTree::SIX_AXIS_FORCE_TORQUE,ft)->getName() << " " << ftProcessors[ft].offset().toString();
                 }
             }
 
@@ -1096,7 +1097,7 @@ void WholeBodyDynamicsDevice::computeCalibration()
 void WholeBodyDynamicsDevice::computeExternalForcesAndJointTorques()
 {
     // The kinematics information was already set by the readSensorsAndUpdateKinematics method
-    //yDebug() << "WholeBodyDynamicsDevice::computeExternalForcesAndJointTorques() " << measuredContactLocations.toString(estimator.model());
+    //yDebug() << "wholeBodyDynamics : computeExternalForcesAndJointTorques() " << measuredContactLocations.toString(estimator.model());
     estimationWentWell = estimator.estimateExtWrenchesAndJointTorques(measuredContactLocations,filteredSensorMeasurements,
                                                                        estimateExternalContactWrenches,estimatedJointTorques);
 }
@@ -1167,13 +1168,13 @@ void WholeBodyDynamicsDevice::publishContacts()
 
     if( !ok )
     {
-        yError() << "WholeBodyDynamicsDevice::publishContacts() error in converting estimated external wrenches from iDynTree to skinDynLib";
+        yError() << "wholeBodyDynamics : publishContacts() error in converting estimated external wrenches from iDynTree to skinDynLib";
     }
 
     if( ok )
     {
-        //yDebug() << "WholeBodyDynamicsDevice::publishContacts " << estimateExternalContactWrenches.toString(estimator.model());
-        //yDebug() << "WholeBodyDynamicsDevice::publishContacts converted to " << contactsEstimated.toString();
+        //yDebug() << "wholeBodyDynamics : publishContacts " << estimateExternalContactWrenches.toString(estimator.model());
+        //yDebug() << "wholeBodyDynamics : publishContacts converted to " << contactsEstimated.toString();
         broadcastData(contactsEstimated,portContactsOutput);
     }
 }
@@ -1245,12 +1246,12 @@ void WholeBodyDynamicsDevice::run()
 
 bool WholeBodyDynamicsDevice::detachAll()
 {
-    yDebug() << " WholeBodyDynamicsDevice detachAll called ";
+    yDebug() << "wholeBodyDynamicsDevice : detachAll called ";
     yarp::os::LockGuard guard(this->deviceMutex);
 
     correctlyConfigured = false;
 
-    yDebug() << " WholeBodyDynamicsDevice detachAll, closing thread ";
+    yDebug() << "wholeBodyDynamicsDevice : detachAll, closing thread ";
     if (isRunning())
         stop();
 
@@ -1259,21 +1260,21 @@ bool WholeBodyDynamicsDevice::detachAll()
     closeSkinContactListsPorts();
     closeExternalWrenchesPorts();
 
-    yDebug() << " WholeBodyDynamicsDevice detachAll returning";
+    yDebug() << "wholeBodyDynamicsDevice : detachAll returning";
 
     return true;
 }
 
 bool WholeBodyDynamicsDevice::close()
 {
-    yDebug() << " WholeBodyDynamicsDevice close called ";
+    yDebug() << "wholeBodyDynamicsDevice : close called ";
 
     // Uncommenting this will result in a deadlock when closing the wbd interface
     //yarp::os::LockGuard guard(this->deviceMutex);
 
     correctlyConfigured = false;
 
-    yDebug() << " WholeBodyDynamicsDevice close returning ";
+    yDebug() << "wholeBodyDynamicsDevice : close returning ";
 
 
     return true;
@@ -1290,7 +1291,7 @@ bool WholeBodyDynamicsDevice::setupCalibrationWithExternalWrenchOnOneFrame(const
     iDynTree::FrameIndex frameIndex = estimator.model().getFrameIndex(frameName);
     if( frameIndex == iDynTree::FRAME_INVALID_INDEX )
     {
-        yError() << "WholeBodyDynamicsDevice::setupCalibrationWithExternalWrenchOnOneFrame impossible to find frame " << frameName;
+        yError() << "wholeBodyDynamics : setupCalibrationWithExternalWrenchOnOneFrame impossible to find frame " << frameName;
         return false;
     }
 
@@ -1301,7 +1302,7 @@ bool WholeBodyDynamicsDevice::setupCalibrationWithExternalWrenchOnOneFrame(const
 
     if( !ok )
     {
-        yError() << "WholeBodyDynamicsDevice::setupCalibrationWithExternalWrenchOnOneFrame error for frame " << frameName;
+        yError() << "wholeBodyDynamics : setupCalibrationWithExternalWrenchOnOneFrame error for frame " << frameName;
         return false;
     }
 
@@ -1338,14 +1339,14 @@ bool WholeBodyDynamicsDevice::setupCalibrationWithExternalWrenchesOnTwoFrames(co
     iDynTree::FrameIndex frame1Index = estimator.model().getFrameIndex(frame1Name);
     if( frame1Index == iDynTree::FRAME_INVALID_INDEX )
     {
-        yError() << "WholeBodyDynamicsDevice::setupCalibrationWithExternalWrenchesOnTwoFrames impossible to find frame " << frame1Index;
+        yError() << "wholeBodyDynamics : setupCalibrationWithExternalWrenchesOnTwoFrames impossible to find frame " << frame1Index;
         return false;
     }
 
     iDynTree::FrameIndex frame2Index = estimator.model().getFrameIndex(frame2Name);
     if( frame2Index == iDynTree::FRAME_INVALID_INDEX )
     {
-        yError() << "WholeBodyDynamicsDevice::setupCalibrationWithExternalWrenchesOnTwoFrames impossible to find frame " << frame2Index;
+        yError() << "wholeBodyDynamics : setupCalibrationWithExternalWrenchesOnTwoFrames impossible to find frame " << frame2Index;
         return false;
     }
 
@@ -1357,7 +1358,7 @@ bool WholeBodyDynamicsDevice::setupCalibrationWithExternalWrenchesOnTwoFrames(co
 
     if( !ok )
     {
-        yError() << "WholeBodyDynamicsDevice::setupCalibrationWithExternalWrenchesOnTwoFrames error";
+        yError() << "wholeBodyDynamics : setupCalibrationWithExternalWrenchesOnTwoFrames error";
         return false;
     }
 
@@ -1370,7 +1371,7 @@ bool WholeBodyDynamicsDevice::calib(const std::string& calib_code, const int32_t
 {
     yarp::os::LockGuard guard(this->deviceMutex);
 
-    yWarning() << "WholeBodyDynamicsDevice::calib ignoring calib_code " << calib_code;
+    yWarning() << "wholeBodyDynamics : calib ignoring calib_code " << calib_code;
 
     bool ok = this->setupCalibrationWithExternalWrenchOnOneFrame("base_link",nr_of_samples);
 
@@ -1387,7 +1388,7 @@ bool WholeBodyDynamicsDevice::calibStanding(const std::string& calib_code, const
 {
     yarp::os::LockGuard guard(this->deviceMutex);
 
-    yWarning() << "WholeBodyDynamicsDevice::calibStanding ignoring calib_code " << calib_code;
+    yWarning() << "wholeBodyDynamics : calibStanding ignoring calib_code " << calib_code;
 
     bool ok = this->setupCalibrationWithExternalWrenchesOnTwoFrames("r_sole","l_sole",nr_of_samples);
 
@@ -1404,7 +1405,7 @@ bool WholeBodyDynamicsDevice::calibStandingLeftFoot(const std::string& calib_cod
 {
     yarp::os::LockGuard guard(this->deviceMutex);
 
-    yWarning() << "WholeBodyDynamicsDevice::calibStandingLeftFoot ignoring calib_code " << calib_code;
+    yWarning() << " wholeBodyDynamics : calibStandingLeftFoot ignoring calib_code " << calib_code;
 
     bool ok = this->setupCalibrationWithExternalWrenchOnOneFrame("l_sole",nr_of_samples);
 
@@ -1420,7 +1421,7 @@ bool WholeBodyDynamicsDevice::calibStandingRightFoot(const std::string& calib_co
 {
     yarp::os::LockGuard guard(this->deviceMutex);
 
-    yWarning() << "WholeBodyDynamicsDevice::calibStandingRightFoot ignoring calib_code " << calib_code;
+    yWarning() << " wholeBodyDynamics : calibStandingRightFoot ignoring calib_code " << calib_code;
 
     bool ok = this->setupCalibrationWithExternalWrenchOnOneFrame("r_sole",nr_of_samples);
 
@@ -1437,11 +1438,11 @@ bool WholeBodyDynamicsDevice::resetOffset(const std::string& calib_code)
 {
     yarp::os::LockGuard guard(this->deviceMutex);
 
-    yWarning() << "WholeBodyDynamicsDevice::calib ignoring calib_code " << calib_code;
+    yWarning() << "wholeBodyDynamics : calib ignoring calib_code " << calib_code;
 
     for(size_t ft = 0; ft < this->getNrOfFTSensors(); ft++)
     {
-        calibrationBuffers.offset[ft].zero();
+        ftProcessors[ft].offset().zero();
     }
 
     return true;
@@ -1450,7 +1451,7 @@ bool WholeBodyDynamicsDevice::resetOffset(const std::string& calib_code)
 
 bool WholeBodyDynamicsDevice::changeFixedLinkSimpleLeggedOdometry(const std::string& /*new_fixed_link*/)
 {
-    yError() << "WholeBodyDynamicsDevice::changeFixedLinkSimpleLeggedOdometry method not implemented";
+    yError() << "wholeBodyDynamics : changeFixedLinkSimpleLeggedOdometry method not implemented";
     return false;
 }
 
@@ -1527,7 +1528,7 @@ bool WholeBodyDynamicsDevice::useFixedFrameAsKinematicSource(const std::string& 
 
     if( fixedFrameIndex == iDynTree::FRAME_INVALID_INDEX )
     {
-        yError() << "WholeBodyDynamicsDevice::useFixedFrameAsKinematicSource : requested not exiting frame " << fixedFrame << ", method failed";
+        yError() << "wholeBodyDynamics : useFixedFrameAsKinematicSource : requested not exiting frame " << fixedFrame << ", method failed";
         return false;
     }
 
@@ -1570,12 +1571,11 @@ bool WholeBodyDynamicsDevice::setUseOfJointAccelerations(const bool enable)
     return true;
 }
 
-std::string WholeBodyDynamicsDevice::getCurrentSettingsAsString()
+std::string WholeBodyDynamicsDevice::getCurrentSettingsString()
 {
    yarp::os::LockGuard guard(this->deviceMutex);
 
    return settings.toString();
-
 }
 
 
@@ -1586,19 +1586,19 @@ std::string WholeBodyDynamicsDevice::getCurrentSettingsAsString()
 
 bool WholeBodyDynamicsDevice::resetSimpleLeggedOdometry(const std::string& /*initial_world_frame*/, const std::string& /*initial_fixed_link*/)
 {
-    yError() << "WholeBodyDynamicsDevice::resetSimpleLeggedOdometry method not implemented";
+    yError() << " wholeBodyDynamics : resetSimpleLeggedOdometry method not implemented";
     return false;
 }
 
 bool WholeBodyDynamicsDevice::quit()
 {
-    yError() << "WholeBodyDynamicsDevice::quit method not implemented";
+    yError() << " wholeBodyDynamics : quit method not implemented";
     return false;
 }
 
 size_t WholeBodyDynamicsDevice::getNrOfFTSensors()
 {
-    return this->calibrationBuffers.offset.size();
+    return this->ftProcessors.size();
 }
 
 void WholeBodyDynamicsDevice::endCalibration()
@@ -1610,7 +1610,7 @@ void WholeBodyDynamicsDevice::endCalibration()
         calibrationBuffers.calibratingFTsensor[ft] = false;
     }
 
-    yInfo() << "WholeBodyDynamicsDevice: calibration ended.";
+    yInfo() << " : calibration ended.";
 
     return;
 }

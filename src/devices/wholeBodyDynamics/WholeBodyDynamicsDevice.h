@@ -26,6 +26,7 @@
 
 #include <wholeBodyDynamicsSettings.h>
 #include <wholeBodyDynamics_IDLServer.h>
+#include "SixAxisForceTorqueMeasureHelpers.h"
 
 #include <vector>
 
@@ -323,14 +324,13 @@ private:
     iDynTree::LinkContactWrenches  estimateExternalContactWrenches;
 
     /**
-     * Calibration buffers
+     * FT processing data structures
      */
     struct
     {
         bool ongoingCalibration;
         std::vector<bool> calibratingFTsensor;
         std::vector<iDynTree::Vector6> offsetSumBuffer;
-        std::vector<iDynTree::Wrench>  offset;
         iDynTree::LinkUnknownWrenchContacts assumedContactLocationsForCalibration;
         iDynTree::SensorsMeasurements  predictedSensorMeasurementsForCalibration;
         iDynTree::JointDOFsDoubleArray predictedJointTorquesForCalibration;
@@ -338,6 +338,12 @@ private:
         size_t nrOfSamplesUsedUntilNowForCalibration;
         size_t nrOfSamplesToUseForCalibration;
     } calibrationBuffers;
+
+    /**
+     * Vector of classes used to process the raw FT measurements,
+     * removing offset and using a secondary calibration matrix.
+     */
+    std::vector<wholeBodyDynamics::SixAxisForceTorqueMeasureProcessor> ftProcessors;
 
     /***
      * RPC Calibration related methods
@@ -477,7 +483,7 @@ private:
        * Get the current settings in the form of a string.
        * @return the current settings as a human readable string.
        */
-      virtual std::string getCurrentSettingsAsString();
+      virtual std::string getCurrentSettingsString();
 
     void setupCalibrationCommonPart(const int32_t nrOfSamples);
     bool setupCalibrationWithExternalWrenchOnOneFrame(const std::string & frameName, const int32_t nrOfSamples);
@@ -549,11 +555,8 @@ private:
      */
     iDynTree::LinkNetExternalWrenches netExternalWrenchesExertedByTheEnviroment;
 
-    // Class for computing relative transforms
+    // Class for computing relative transforms (useful for net external wrench frame computations)
     iDynTree::KinDynComputations kinDynComp;
-
-
-
 
 public:
     // CONSTRUCTOR
