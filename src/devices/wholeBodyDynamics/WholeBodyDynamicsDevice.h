@@ -331,6 +331,8 @@ private:
         bool ongoingCalibration;
         std::vector<bool> calibratingFTsensor;
         std::vector<iDynTree::Vector6> offsetSumBuffer;
+        std::vector<iDynTree::Vector6> measurementSumBuffer;
+        std::vector<iDynTree::Vector6> estimationSumBuffer;
         iDynTree::LinkUnknownWrenchContacts assumedContactLocationsForCalibration;
         iDynTree::SensorsMeasurements  predictedSensorMeasurementsForCalibration;
         iDynTree::JointDOFsDoubleArray predictedJointTorquesForCalibration;
@@ -579,3 +581,4 @@ public:
 }
 
 #endif /* CODYCO_WHOLE_BODY_DYNAMICS_DEVICE_H */
+

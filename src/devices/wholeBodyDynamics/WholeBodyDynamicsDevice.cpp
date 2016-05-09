@@ -33,6 +33,8 @@ WholeBodyDynamicsDevice::WholeBodyDynamicsDevice(): RateThread(10),
     calibrationBuffers.calibratingFTsensor.resize(0);
     calibrationBuffers.offsetSumBuffer.resize(0);
     ftProcessors.resize(0);
+    calibrationBuffers.estimationSumBuffer.resize(0);
+    calibrationBuffers.measurementSumBuffer.resize(0);
     calibrationBuffers.nrOfSamplesToUseForCalibration = 0;
     calibrationBuffers.nrOfSamplesUsedUntilNowForCalibration = 0;
 
@@ -453,6 +455,8 @@ void WholeBodyDynamicsDevice::resizeBuffers()
     iDynTree::Wrench zeroWrench;
     zeroWrench.zero();
     calibrationBuffers.offsetSumBuffer.resize(nrOfFTSensors,zeroWrench.asVector());
+    calibrationBuffers.measurementSumBuffer.resize(nrOfFTSensors,zeroWrench.asVector());
+    calibrationBuffers.estimationSumBuffer.resize(nrOfFTSensors,zeroWrench.asVector());
     calibrationBuffers.assumedContactLocationsForCalibration.resize(estimator.model());
     calibrationBuffers.predictedExternalContactWrenchesForCalibration.resize(estimator.model());
     calibrationBuffers.predictedJointTorquesForCalibration.resize(estimator.model());
@@ -775,7 +779,6 @@ bool WholeBodyDynamicsDevice::attachAll(const PolyDriverList& p)
     if( ok )
     {
         correctlyConfigured = true;
-        yDebug() << "wholeBodyDynamicsDevice : correctly configured, starting the thread and the calibration";
         this->start();
     }
 
@@ -931,7 +934,7 @@ void WholeBodyDynamicsDevice::filterSensorsAndRemoveSensorOffsets()
     {
         iDynTree::toYarp(jointVel,filters.bufferYarpDofs);
 
-        const yarp::sig::Vector & outputJointVel = filters.imuLinearAccelerationFilter->filt(filters.bufferYarpDofs);
+        const yarp::sig::Vector & outputJointVel = filters.jntVelFilter->filt(filters.bufferYarpDofs);
 
         iDynTree::toiDynTree(outputJointVel,jointVel);
     }
@@ -941,7 +944,7 @@ void WholeBodyDynamicsDevice::filterSensorsAndRemoveSensorOffsets()
     {
         iDynTree::toYarp(jointAcc,filters.bufferYarpDofs);
 
-        const yarp::sig::Vector & outputJointAcc = filters.imuLinearAccelerationFilter->filt(filters.bufferYarpDofs);
+        const yarp::sig::Vector & outputJointAcc = filters.jntAccFilter->filt(filters.bufferYarpDofs);
 
         iDynTree::toiDynTree(outputJointAcc,jointVel);
     }
@@ -973,6 +976,7 @@ void WholeBodyDynamicsDevice::updateKinematics()
     {
         // Hardcode for the meanwhile
         iDynTree::FrameIndex imuFrameIndex = estimator.model().getFrameIndex("imu_frame");
+ 
         estimator.updateKinematicsFromFloatingBase(jointPos,jointVel,jointAcc,imuFrameIndex,
                                                    filteredIMUMeasurements.linProperAcc,filteredIMUMeasurements.angularVel,filteredIMUMeasurements.angularAcc);
     }
@@ -1003,21 +1007,11 @@ void WholeBodyDynamicsDevice::readContactPoints()
     // For now just put the default contact points
     size_t nrOfSubModels = estimator.submodels().getNrOfSubModels();
 
-    //yDebug() << "WholeBodyDynamicsDevice nrOfSubModels " << nrOfSubModels;
-
     for(size_t subModel = 0; subModel < nrOfSubModels; subModel++)
     {
         bool ok = measuredContactLocations.addNewContactInFrame(estimator.model(),
                                                                 subModelIndex2DefaultContact[subModel],
                                                                iDynTree::UnknownWrenchContact(iDynTree::FULL_WRENCH,iDynTree::Position::Zero()));
-
-        /*
-        yDebug() << "WholeBodyDynamicsDevice for submodel " << subModel;
-        yDebug() << "WholeBodyDynamicsDevice adding contact in frame " << estimator.model().getFrameName(subModelIndex2DefaultContact[subModel]);
-        yDebug() << "WholeBodyDynamicsDevice of link " << estimator.model().getLinkName(estimator.model().getFrameLink(subModelIndex2DefaultContact[subModel]));
-        yDebug() << "WholeBodyDynamicsDevice total nr of contacts : " << measuredContactLocations.getNrOfContactsForLink(estimator.model().getFrameLink(subModelIndex2DefaultContact[subModel]));
-        */
-
         if( !ok )
         {
             yWarning() << "wholeBodyDynamics: Failing in adding default contact for submodel " << subModel;
@@ -1025,7 +1019,6 @@ void WholeBodyDynamicsDevice::readContactPoints()
     }
 
     // Todo: read contact positions from skin
-    //yDebug() << "WholeBodyDynamicsDevice measuredContactLocations " << measuredContactLocations.toString(estimator.model());
 
     return;
 }
@@ -1051,6 +1044,8 @@ void WholeBodyDynamicsDevice::computeCalibration()
 {
     if( calibrationBuffers.ongoingCalibration )
     {
+        // Todo: Check that the model is actually still during calibration 
+
         // Run the calibration
         estimator.computeExpectedFTSensorsMeasurements(calibrationBuffers.assumedContactLocationsForCalibration,
                                                        calibrationBuffers.predictedSensorMeasurementsForCalibration,
@@ -1067,6 +1062,8 @@ void WholeBodyDynamicsDevice::computeCalibration()
                 calibrationBuffers.predictedSensorMeasurementsForCalibration.getMeasurement(iDynTree::SIX_AXIS_FORCE_TORQUE,ft,estimatedFT);
                 rawSensorsMeasurements.getMeasurement(iDynTree::SIX_AXIS_FORCE_TORQUE,ft,measuredRawFT);
                 addToSummer(calibrationBuffers.offsetSumBuffer[ft],measuredRawFT-estimatedFT);
+                addToSummer(calibrationBuffers.measurementSumBuffer[ft],measuredRawFT);
+                addToSummer(calibrationBuffers.estimationSumBuffer[ft],estimatedFT);
             }
         }
 
@@ -1080,9 +1077,13 @@ void WholeBodyDynamicsDevice::computeCalibration()
             {
                 if( calibrationBuffers.calibratingFTsensor[ft] )
                 {
+                    iDynTree::Wrench measurementMean, estimationMean;
                     computeMean(calibrationBuffers.offsetSumBuffer[ft],calibrationBuffers.nrOfSamplesUsedUntilNowForCalibration,ftProcessors[ft].offset());
+                    computeMean(calibrationBuffers.measurementSumBuffer[ft],calibrationBuffers.nrOfSamplesUsedUntilNowForCalibration,measurementMean);
+                    computeMean(calibrationBuffers.estimationSumBuffer[ft],calibrationBuffers.nrOfSamplesUsedUntilNowForCalibration,estimationMean);
 
                     yInfo() << "wholeBodyDynamics: Offset for sensor " << estimator.sensors().getSensor(iDynTree::SIX_AXIS_FORCE_TORQUE,ft)->getName() << " " << ftProcessors[ft].offset().toString();
+                    yInfo() << "wholeBodyDynamics: obtained assuming a measurement of " << measurementMean.toString() << " and an estimated ft of " << estimationMean.toString();
                 }
             }
 
@@ -1097,7 +1098,6 @@ void WholeBodyDynamicsDevice::computeCalibration()
 void WholeBodyDynamicsDevice::computeExternalForcesAndJointTorques()
 {
     // The kinematics information was already set by the readSensorsAndUpdateKinematics method
-    //yDebug() << "wholeBodyDynamics : computeExternalForcesAndJointTorques() " << measuredContactLocations.toString(estimator.model());
     estimationWentWell = estimator.estimateExtWrenchesAndJointTorques(measuredContactLocations,filteredSensorMeasurements,
                                                                        estimateExternalContactWrenches,estimatedJointTorques);
 }
@@ -1173,8 +1173,6 @@ void WholeBodyDynamicsDevice::publishContacts()
 
     if( ok )
     {
-        //yDebug() << "wholeBodyDynamics : publishContacts " << estimateExternalContactWrenches.toString(estimator.model());
-        //yDebug() << "wholeBodyDynamics : publishContacts converted to " << contactsEstimated.toString();
         broadcastData(contactsEstimated,portContactsOutput);
     }
 }
@@ -1246,12 +1244,10 @@ void WholeBodyDynamicsDevice::run()
 
 bool WholeBodyDynamicsDevice::detachAll()
 {
-    yDebug() << "wholeBodyDynamicsDevice : detachAll called ";
     yarp::os::LockGuard guard(this->deviceMutex);
 
     correctlyConfigured = false;
 
-    yDebug() << "wholeBodyDynamicsDevice : detachAll, closing thread ";
     if (isRunning())
         stop();
 
@@ -1260,22 +1256,15 @@ bool WholeBodyDynamicsDevice::detachAll()
     closeSkinContactListsPorts();
     closeExternalWrenchesPorts();
 
-    yDebug() << "wholeBodyDynamicsDevice : detachAll returning";
-
     return true;
 }
 
 bool WholeBodyDynamicsDevice::close()
 {
-    yDebug() << "wholeBodyDynamicsDevice : close called ";
-
     // Uncommenting this will result in a deadlock when closing the wbd interface
     //yarp::os::LockGuard guard(this->deviceMutex);
 
     correctlyConfigured = false;
-
-    yDebug() << "wholeBodyDynamicsDevice : close returning ";
-
 
     return true;
 }
@@ -1325,6 +1314,8 @@ void WholeBodyDynamicsDevice::setupCalibrationCommonPart(const int32_t nrOfSampl
     for(size_t ft = 0; ft < this->getNrOfFTSensors(); ft++)
     {
         calibrationBuffers.offsetSumBuffer[ft].zero();
+        calibrationBuffers.measurementSumBuffer[ft].zero();
+        calibrationBuffers.estimationSumBuffer[ft].zero();
     }
 }
 
@@ -1725,4 +1716,5 @@ wholeBodyDynamicsDeviceFilters::~wholeBodyDynamicsDeviceFilters()
 
 }
 }
+
 
