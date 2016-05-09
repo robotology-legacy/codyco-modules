@@ -1617,7 +1617,12 @@ void WholeBodyDynamicsDevice::endCalibration()
 
 wholeBodyDynamicsDeviceFilters::wholeBodyDynamicsDeviceFilters(): imuLinearAccelerationFilter(0),
                                                                   imuAngularVelocityFilter(0),
-                                                                  forcetorqueFilters(0)
+                                                                  forcetorqueFilters(0),
+                                                                  jntVelFilter(0),
+                                                                  jntAccFilter(0),
+                                                                  bufferYarp3(0),
+                                                                  bufferYarp6(0),
+                                                                  bufferYarpDofs(0)
 {
 
 }
