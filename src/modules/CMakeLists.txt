@@ -11,6 +11,8 @@ endif()
 add_subdirectory(icubWalkingIK)
 add_subdirectory(walkPlayer)
 
+add_subdirectory(wholeBodySensorTester)
+
 add_subdirectory(codycoCoordinatorDemoY1)
 
 if(NOT MSVC)
