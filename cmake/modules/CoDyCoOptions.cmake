@@ -127,3 +127,7 @@ option(CODYCO_BUILD_WHOLEBODYREACH "Compile the wholeBodyReach module" FALSE)
 
 option(CODYCO_USES_OROCOS_BFL_BERDY "Use Orocos BFL and build related modules" FALSE)
 option(CODYCO_USES_KDL "Compile the software that depends on KDL" TRUE)
+
+if(NOT WIN32)
+    set(BUILD_SHARED_LIBS TRUE)
+endif()
