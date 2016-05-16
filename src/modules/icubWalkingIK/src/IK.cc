@@ -8,7 +8,7 @@
 #include <Eigen/SVD>
 #include <Eigen/Geometry>
 #include <iCub/iDynTree/DynTree.h>
-#include <iDynTree/Estimation/simpleLeggedOdometry.h>
+#include <iDynTree/Estimation/simpleLeggedOdometryKDL.h>
 #include <cmath>
 
 //using namespace qpOASES;

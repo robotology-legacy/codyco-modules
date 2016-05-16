@@ -119,17 +119,22 @@ class wholeBodyDynamicsDeviceFilters
  * \section WholeBodyDynamicsDevice
  * A device that takes a list of axes and estimates the joint torques for each one of this axes.
  *
- *  Parameters required by this device are:
+ *  The parameters taken in input by this device are:
  * | Parameter name | SubParameter   | Type              | Units | Default Value | Required |   Description                                                     | Notes |
  * |:--------------:|:--------------:|:-----------------:|:-----:|:-------------:|:--------:|:-----------------------------------------------------------------:|:-----:|
  * | axesNames      |      -         | vector of strings |   -   |   -           | Yes      | Ordered list of the axes that are part of the remapped device.    |       |
  * | modelFile      |      -         | path to file      |   -   | model.urdf    | No       | Path to the URDF file used for the kinematic and dynamic model.   |       |
- * | assumeFixed    |                | frame name        |   -   |     -         | No       | If it is present, the initial kinematic source used for estimation will be that specified frame is fixed, and its gravity is specified by fixedFrameGravity | |
+ * | assumeFixed    |                | frame name        |   -   |     -         | No       | If it is present, the initial kinematic source used for estimation will be that specified frame is fixed, and its gravity is specified by fixedFrameGravity. Otherwise, the default IMU will be used. | |
  * | fixedFrameGravity  |      -     | vector of doubles | m/s^2 | -             | Yes      | Gravity of the frame that is assumed to be fixed, if the kinematic source used is the fixed frame. | |
+ * | imuFilterCutoffInHz |     -     | double            | Hz    |      -        | Yes      | Cutoff frequency of the filter used to filter IMU measures. | The used filter is a simple first order filter. |
+ * | forceTorqueFilterCutoffInHz | - | double            | Hz    |      -        | Yes      | Cutoff frequency of the filter used to filter FT measures.  |  The used filter is a simple first order filter. |
+ * | jointVelFilterCutoffInHz    | - | double            | Hz    |      -        | Yes      | Cutoff frequency of the filter used to filter joint velocities measures. | The used filter is a simple first order filter. |
+ * | jointAccFilterCutoffInHz    | - | double            | Hz    |      -        | Yes      | Cutoff frequency of the filter used to filter joint accelerations measures. | The used filter is a simple first order filter. |
  *
- *
- * The axes are then mapped to the wrapped controlboard in the attachAll method, using controlBoardRemapper class.
+ * The axes contained in the axesNames parameter are then mapped to the wrapped controlboard in the attachAll method, using controlBoardRemapper class.
  * Furthermore are also used to match the yarp axes to the joint names found in the passed URDF file.
+ *
+ * All the filters used for the input measurements are using the iCub::ctrl::realTime::FirstOrderLowPassFilter class.
  *
  *
  * Configuration file using .ini format.
