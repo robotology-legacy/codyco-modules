@@ -1,9 +1,0 @@
-<application>
-    <name>linearAdaptiveControl</name>
-    <module>
-        <name>linearRegressorAdaptiveControl</name>
-        <parameters>--robot icub</parameters>
-        <node>node1</node>
-        <tag>linearAdaptiveControlModule</tag>
-    </module>
-</application>
