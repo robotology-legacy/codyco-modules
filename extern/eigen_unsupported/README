@@ -1,4 +1,0 @@
-This files are part of the unsupported extensions of Eigen3.
-To facilitate compilation, please install Eigen3 in a "standard" way then let us include this folder to avoid conflicts.
-
-Authors of the unsupported files are cited in each included file.
