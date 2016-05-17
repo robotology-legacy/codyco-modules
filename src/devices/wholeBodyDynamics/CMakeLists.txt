@@ -31,7 +31,7 @@ target_link_libraries(wholeBodyDynamicsDevice wholeBodyDynamicsSettings
                                               wholeBodyDynamics_IDLServer
                                               ctrlLibRT
                                               ${YARP_LIBRARIES}
-                                              ${ICUB_LIBRARIES}
+                                              skinDynLib
                                               ${iDynTree_LIBRARIES})
 											  
 if(MSVC)
