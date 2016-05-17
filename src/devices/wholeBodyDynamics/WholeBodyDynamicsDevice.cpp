@@ -92,6 +92,8 @@ bool WholeBodyDynamicsDevice::closeSkinContactListsPorts()
 {
     this->portContactsInput.close();
     this->portContactsOutput.close();
+    
+    return true;
 }
 
 bool WholeBodyDynamicsDevice::closeExternalWrenchesPorts()

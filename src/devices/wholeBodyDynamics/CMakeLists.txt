@@ -33,6 +33,11 @@ target_link_libraries(wholeBodyDynamicsDevice wholeBodyDynamicsSettings
                                               ${YARP_LIBRARIES}
                                               ${ICUB_LIBRARIES}
                                               ${iDynTree_LIBRARIES})
+											  
+if(MSVC)
+   add_definitions(-D_USE_MATH_DEFINES)
+endif()
+
 
 yarp_install(TARGETS wholeBodyDynamicsDevice
              EXPORT CoDyCo
