@@ -65,7 +65,7 @@ function [C,RA,RB] = insertrows(A,B,ind)
 %  - changed "if nargout" to "if nargout>1" so that additional outputs are
 %    only calculated when requested for
 
-error(nargchk(2,3,nargin)) ;
+narginchk(2,3);
 
 if nargin==2,
     % just horizontal concatenation, suggested by Tim Davis
