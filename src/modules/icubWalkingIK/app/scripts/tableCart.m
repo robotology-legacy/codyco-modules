@@ -1,7 +1,7 @@
 %% .............::: SHEET 07 MORMS'14 (WS 14/15) :::.............
 
 %% Table cart mparameters
-function tableCart(fileName)
+function tableCart(outputDir, muscodFile)
 close all;
 clc;
 addpath(genpath('utilities'));
@@ -198,10 +198,8 @@ pos_CoM(2:n_samples+1,2) = Ayy\byy;
 %% ............ open file if given
 data_MUSCOD = [];
 
-if (nargin == 1)
-    p_pArgList = argv ();
-    filename = p_pArgList{1};
-    data_MUSCOD = dlmread(filename,'','');
+if exist('muscodFile','var')
+    data_MUSCOD = dlmread(muscodFile,'','');
 end
 
 
@@ -294,17 +292,24 @@ hold off;
 % zmp from pos_ZMP
 % com from pos_CoM
 trajectories = [pos_ZMP(:,1) pos_CoM(1:n_samples,1) pos_CoM(1:n_samples,2) pos_ZMP(:,2) pos_ZMP(:,3)];
+
+robotName = getenv('YARP_ROBOT_NAME');
+if ~exist('outputDir', 'var')
+    outputDir = getenv('INSTALLED_ROBOT_DIRS');
+end
+comFilename = fullfile(outputDir, ['comTraj_', robotName, '.csv']);
+
 % csvwrite([getenv('ICUB_WALK_ROOT') '/WalkTrajectories/comTraj_iCubGenova01.csv'],trajectories);
-csvwrite([getenv('INSTALLED_ROBOT_DIRS') '/comTraj_iCubGenova01.csv'],trajectories);
+csvwrite(comFilename, trajectories);
 display('COM trajectory saved in: ');
-display([getenv('INSTALLED_ROBOT_DIRS') '/comTraj_iCubGenova01.csv']);
+display(comFilename);
 
 %% Footholds
 [r_foot_pattern_aug, l_foot_pattern_aug] = extractFootholds(pos_ZMP, params);
-writeToCSV('r_foot_pattern_aug',r_foot_pattern_aug, [getenv('INSTALLED_ROBOT_DIRS') '/']);
-writeToCSV('l_foot_pattern_aug',l_foot_pattern_aug, [getenv('INSTALLED_ROBOT_DIRS') '/']);
-copyfile('walkingParams.txt',getenv('INSTALLED_ROBOT_DIRS'));
+writeToCSV('r_foot_pattern_aug',r_foot_pattern_aug, outputDir);
+writeToCSV('l_foot_pattern_aug',l_foot_pattern_aug, outputDir);
+copyfile('walkingParams.txt', outputDir);
 display('Walking parameters file installed as: ');
-display([getenv('INSTALLED_ROBOT_DIRS') '/walkingParams.txt']);
+display([outputDir '/walkingParams.txt']);
 
 end

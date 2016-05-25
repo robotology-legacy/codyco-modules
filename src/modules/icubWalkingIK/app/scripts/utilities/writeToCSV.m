@@ -6,7 +6,7 @@ function [ ret ] = writeToCSV( name, input, dest )
 %   Note: DEST contains the last backslash
 ret = 1;
 
-fileID = fopen([dest name '.csv'],'w');
+fileID = fopen(fullfile(dest, [name '.csv']),'w');
 if fileID == -1
     error(['Problem writing CSV file... ' name '\.csv' '. Check destination provided.']);
     ret = 0;
