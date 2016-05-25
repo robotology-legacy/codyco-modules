@@ -6,7 +6,9 @@ zmpx = zmpdata(:,2);
 zmpy = zmpdata(:,3);
 
 % Find peaks of zmpy
-[pksy,timeIdx] = findpeaks(zmpy);
+% [pksy,timeIdx] = findpeaks(zmpy);
+[pksy,timeIdx] = peakseek(zmpy, 2, zmpy(1));
+pksy = pksy'; %%peakseek and findpeaks return transposed result
 timeLocs = t(timeIdx);
 % from previous peaks locations extrapolate peaks for zmpx
 c = ismember(t,timeLocs);
@@ -95,7 +97,8 @@ r_foot_pattern_aug = [];
 
 % Find valleys
 % -- This works only for straight walking trajectories
-[pksy,timeIdx] = findpeaks(-zmpy);
+[pksy,timeIdx] = peakseek(-zmpy, 2, zmpy(1));
+pksy = pksy';
 timeLocs = t(timeIdx);
 c = ismember(t,timeLocs);
 indices = find(c);
@@ -154,8 +157,11 @@ else
 end
 
 %% adjustments for slow transition
-[l_foot_peaks,l_foot_peaks_locs] = findpeaks(l_foot_pattern_aug(:,4));
-[r_foot_peaks,r_foot_peaks_locs] = findpeaks(r_foot_pattern_aug(:,4));
+% [l_foot_peaks,l_foot_peaks_locs] = findpeaks(l_foot_pattern_aug(:,4));
+% [r_foot_peaks,r_foot_peaks_locs] = findpeaks(r_foot_pattern_aug(:,4));
+[~, l_foot_peaks_locs] = peakseek(l_foot_pattern_aug(:,4), 2);
+[~, r_foot_peaks_locs] = peakseek(r_foot_pattern_aug(:,4), 2);
+
 
 l_foot_pattern_aug(l_foot_peaks_locs-1,1) = l_foot_pattern_aug(l_foot_peaks_locs-1,1) + params.T_switch;
 l_foot_pattern_aug(l_foot_peaks_locs+1,1) = l_foot_pattern_aug(l_foot_peaks_locs+1,1) - params.T_switch;
