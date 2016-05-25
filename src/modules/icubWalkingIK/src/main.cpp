@@ -8,8 +8,8 @@ int main (int argc, char **argv)
     yarp::os::Network yarp;
     if (!yarp::os::Network::checkNetwork(5)) {
         yError("YARP network is not available");
-    return -1;
-}
+        return -1;
+    }
 
     yarp::os::ResourceFinder rf;
 

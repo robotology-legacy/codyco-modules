@@ -27,24 +27,23 @@ bool iCubWalkingIKModule::configure(ResourceFinder &rf) {
         yError("Not possible to load WBI properties from file.");
         return false;
     }
-    
+
     m_moduleName = rf.check("name", Value("iCubWalkingIK"), "Looking for module name").asString();
     m_robotName = rf.check("robot", Value("icubGazeboSim"), "Looking for robot name").asString();
     m_period = rf.check("period", Value(10), "Looking for period").asInt();
     m_outputDir = rf.check("outputDir", Value(""), "Output directory to store results").asString();
-    
+
     wbiProperties.fromString(rf.toString(), false);
-    yarp::os::ConstString jointList = rf.find("wbi_joints_list").asString();
+    yarp::os::Value jointList = rf.find("wbi_joints_list");
     
     //Open RPC port
     // RPC Port opening
     m_rpc_port.open(std::string("/" + m_moduleName + "/rpc").c_str());
     attach(m_rpc_port);
 
-    
     //retrieve all main joints
     wbi::IDList iCubMainJoints;
-    if (!yarpWbi::loadIdListFromConfig(jointList, wbiProperties, iCubMainJoints)) {
+    if (!yarpWbi::idListFromParsedConfigurationOption(wbiProperties, jointList, iCubMainJoints)) {
         yError("Cannot find joint list");
         return false;
     }
