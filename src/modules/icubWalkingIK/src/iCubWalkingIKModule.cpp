@@ -50,7 +50,7 @@ bool iCubWalkingIKModule::configure(ResourceFinder &rf) {
 
     // Building robot model
     m_robotModel = new yarpWbi::yarpWholeBodyModel(m_moduleName.c_str(), wbiProperties);
-    m_robotStates = new yarpWbi::yarpWholeBodyStates(m_moduleName.c_str(), wbiProperties);
+    m_robotStates = new yarpWbi::yarpWholeBodyStates(m_moduleName.c_str(), wbiProperties, m_robotModel);
     //add joints
     m_robotModel->addJoints(iCubMainJoints);
     if (!m_robotModel->init()) {

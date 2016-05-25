@@ -1,0 +1,24 @@
+name         icubWalkingIK
+robot        icub
+period       10
+patternFile  comTraj_iCubGenova01
+outputDir    ${CMAKE_INSTALL_PREFIX}/${CODYCO_ROBOTS_INSTALL_DIR}/${robotname}
+stream_floating_base_pose   false
+
+wbi_config_file             yarpWholeBodyInterface.ini
+wbi_joints_list             (ROBOT_LEFT_LEG_JOINTS, ROBOT_RIGHT_LEG_JOINTS, ROBOT_TORSO_JOINTS)
+
+[odometry_params]
+initial_world_reference_frame   l_sole
+initial_fixed_frame             l_sole
+floating_base                   root_link
+offset_from_world_reference     (0.0 -0.0706 0.0)
+world_between_feet              false
+
+[inverse_kinematics_params]
+step_tolerance      1e-4
+lambda              0.001
+max_iter            100
+trials_initial_IK   10
+
+
