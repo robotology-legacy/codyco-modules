@@ -6,8 +6,8 @@ patternFile  comTraj_iCubGenova01
 outputDir    ${CMAKE_INSTALL_PREFIX}/${CODYCO_ROBOTS_INSTALL_DIR}/${robotname}
 stream_floating_base_pose   false
 
-wbi_config_file             yarpWholeBodyInterface_icubWalkingIK.ini
-wbi_joints_list             ROBOT_JOINTS_WALKING_IK
+wbi_config_file             yarpWholeBodyInterface.ini
+wbi_joints_list             (ROBOT_LEFT_LEG_JOINTS, ROBOT_RIGHT_LEG_JOINTS, ROBOT_TORSO_JOINTS)
 
 [odometry_params]
 initial_world_reference_frame   l_sole
