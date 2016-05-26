@@ -35,6 +35,30 @@ namespace yarp {
 namespace dev {
 
 /**
+ * Simple class that implements a IGenericSensor either by
+ * using a real IGenericSensor or by emulating it using an
+ * IAnalogSensor
+ */
+class IGenericSensorEmulator: IGenericSensor
+{
+private:
+    IGenericSensor * m_genericSensor;
+    IAnalogSensor  * m_analogSensor;
+
+public:
+    IGenericSensorEmulator();
+    virtual ~IGenericSensorEmulator();
+
+    void useIGenericSensor(IGenericSensor * _genericSensor);
+    void useIAnalogSensor(IAnalogSensor   * _analogSensor);
+
+    virtual bool read(sig::Vector& out);
+    virtual bool getChannels(int* nc);
+    virtual bool calibrate(int ch, double v);
+};
+
+
+/**
  * Structure of information relative to the remapped axis.
  */
 struct virtualAnalogSensorRemappedAxis
@@ -208,7 +232,7 @@ private:
     std::vector<yarp::dev::IAnalogSensor * > ftSensors;
 
     /** IMU interface */
-    yarp::dev::IGenericSensor * imuInterface;
+    yarp::dev::IGenericSensorEmulator imuInterface;
 
     /**
      * Vector containg the information about the IVirtualAnalogSensor devices
@@ -260,9 +284,42 @@ private:
     /**
      * Attach-related methods
      */
+
+    /**
+     * Attach all controlboard devices.
+     * A device is identified as a controlboard if it
+     * implements the IEncoders interface.
+     */
     bool attachAllControlBoard(const PolyDriverList& p);
+
+    /**
+     * Attach all virtual analog sensor device.
+     * A device is identified as a virtual analog sensor if it
+     * implements the IVirtualAnalogSensor interface.
+     *
+     * Furthermore, the IAxisInfo interface is used to get the
+     * name of the axes for which virtual torque measurements are provided.
+     */
     bool attachAllVirtualAnalogSensor(const PolyDriverList& p);
+
+    /**
+     * Attach all Six Axis Force/Torque devices.
+     * A device is identified as a Six Axis F/T if it
+     * implements the IAnalogSensor interface.
+     *
+     */
     bool attachAllFTs(const PolyDriverList& p);
+
+    /**
+     * Attach all IMU devices.
+     * A device is identified as an IMU if it
+     * implements the IGenericSensor interface
+     *  OR (it implements
+     * the IAnalogSensor interface AND it has 12 channels).
+     * (The first is the case of FT sensors in the yarprobotinterface
+     *  and the second is in the case of AnalogSensorClient).
+     *
+     */
     bool attachAllIMUs(const PolyDriverList& p);
 
     /**

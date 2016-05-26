@@ -19,13 +19,17 @@ namespace yarp
 namespace dev
 {
 
+const size_t wholeBodyDynamics_nrOfChannelsOfYARPFTSensor = 6;
+const size_t wholeBodyDynamics_nrOfChannelsOfAYARPIMUSensor = 12;
+
+
+
 WholeBodyDynamicsDevice::WholeBodyDynamicsDevice(): RateThread(10),
                                                     portPrefix("/wholeBodyDynamics"),
                                                     correctlyConfigured(false),
                                                     sensorReadCorrectly(false),
                                                     estimationWentWell(false),
                                                     validOffsetAvailable(false),
-                                                    imuInterface(0),
                                                     settingsEditor(settings)
 {
     // Calibration quantities
@@ -425,7 +429,7 @@ bool WholeBodyDynamicsDevice::openExternalWrenchesPorts(os::Searchable& config)
         std::string port_name = outputWrenchPorts[i].port_name;
         outputWrenchPorts[i].output_port = new yarp::os::BufferedPort<yarp::sig::Vector>;
         ok = ok && outputWrenchPorts[i].output_port->open(port_name);
-        outputWrenchPorts[i].output_vector.resize(6);
+        outputWrenchPorts[i].output_vector.resize(wholeBodyDynamics_nrOfChannelsOfYARPFTSensor);
     }
 
     if( !ok )
@@ -444,8 +448,8 @@ void WholeBodyDynamicsDevice::resizeBuffers()
     this->jointVel.resize(estimator.model());
     this->jointAcc.resize(estimator.model());
     this->measuredContactLocations.resize(estimator.model());
-    this->ftMeasurement.resize(6);
-    this->imuMeasurement.resize(12);
+    this->ftMeasurement.resize(wholeBodyDynamics_nrOfChannelsOfYARPFTSensor);
+    this->imuMeasurement.resize(wholeBodyDynamics_nrOfChannelsOfAYARPIMUSensor);
     this->rawSensorsMeasurements.resize(estimator.sensors());
     this->filteredSensorMeasurements.resize(estimator.sensors());
     this->estimatedJointTorques.resize(estimator.model());
@@ -695,11 +699,15 @@ bool WholeBodyDynamicsDevice::attachAllFTs(const PolyDriverList& p)
     std::vector<std::string>     ftDeviceNames;
     for(size_t devIdx = 0; devIdx < (size_t)p.size(); devIdx++)
     {
+        // A device is considered an ft if it implements IAnalogSensor and has 6 channels
         IAnalogSensor * pAnalogSens = 0;
         if( p[devIdx]->poly->view(pAnalogSens) )
         {
-            ftList.push_back(pAnalogSens);
-            ftDeviceNames.push_back(p[devIdx]->key);
+            if( pAnalogSens->getChannels() == (int)wholeBodyDynamics_nrOfChannelsOfYARPFTSensor )
+            {
+                ftList.push_back(pAnalogSens);
+                ftDeviceNames.push_back(p[devIdx]->key);
+            }
         }
     }
 
@@ -744,6 +752,7 @@ bool WholeBodyDynamicsDevice::attachAllFTs(const PolyDriverList& p)
 bool WholeBodyDynamicsDevice::attachAllIMUs(const PolyDriverList& p)
 {
     std::vector<IGenericSensor*> imuList;
+    std::vector<IAnalogSensor*>  imuList2;
 
     for(size_t devIdx = 0; devIdx < (size_t)p.size(); devIdx++)
     {
@@ -754,14 +763,38 @@ bool WholeBodyDynamicsDevice::attachAllIMUs(const PolyDriverList& p)
         }
     }
 
-    if( imuList.size() != 1 )
+    for(size_t devIdx = 0; devIdx < (size_t)p.size(); devIdx++)
     {
-        yError() << " WholeBodyDynamicsDevice::attachAll only one IMU sensors is supported, but "
-                 << imuList.size() << " have been attached to the device";
+        IAnalogSensor * pAnalogSensor = 0;
+        if( p[devIdx]->poly->view(pAnalogSensor) )
+        {
+            int channels = pAnalogSensor->getChannels();
+
+            if( channels == wholeBodyDynamics_nrOfChannelsOfAYARPIMUSensor )
+            {
+                imuList2.push_back(pAnalogSensor);
+            }
+        }
+    }
+
+    size_t nrOfIMUDetected = imuList.size() + imuList2.size();
+
+    if( nrOfIMUDetected != 1 )
+    {
+        yError() << "WholeBodyDynamicsDevice was expecting only one IMU, but it did not find " << nrOfIMUDetected << " in the attached devices";
         return false;
     }
 
-    this->imuInterface = imuList[0];
+    if( imuList.size() == 1 )
+    {
+        this->imuInterface.useIGenericSensor(imuList[0]);
+    }
+
+    if( imuList2.size() == 1 )
+    {
+        this->imuInterface.useIAnalogSensor(imuList2[0]);
+    }
+
 
     return true;
 }
@@ -883,7 +916,7 @@ void WholeBodyDynamicsDevice::readSensors()
         rawIMUMeasurements.linProperAcc.zero();
         rawIMUMeasurements.angularVel.zero();
 
-        ok = imuInterface->read(imuMeasurement);
+        ok = imuInterface.read(imuMeasurement);
 
         sensorReadCorrectly = sensorReadCorrectly && ok;
 
@@ -1027,7 +1060,7 @@ void WholeBodyDynamicsDevice::readContactPoints()
 
 void addToSummer(iDynTree::Vector6 & buffer, const iDynTree::Wrench & addedWrench)
 {
-    for(int i=0; i < 6; i++)
+    for(int i=0; i < wholeBodyDynamics_nrOfChannelsOfYARPFTSensor; i++)
     {
         buffer(i) = buffer(i) + addedWrench(i);
     }
@@ -1035,7 +1068,7 @@ void addToSummer(iDynTree::Vector6 & buffer, const iDynTree::Wrench & addedWrenc
 
 void computeMean(const iDynTree::Vector6 & buffer, const size_t nrOfSamples, iDynTree::Wrench & mean)
 {
-    for(int i=0; i < 6; i++)
+    for(int i=0; i < wholeBodyDynamics_nrOfChannelsOfYARPFTSensor; i++)
     {
         mean(i) = buffer(i)/nrOfSamples;
     }
@@ -1708,6 +1741,76 @@ wholeBodyDynamicsDeviceFilters::~wholeBodyDynamicsDeviceFilters()
 {
     fini();
 }
+
+
+IGenericSensorEmulator::IGenericSensorEmulator(): m_genericSensor(0),
+                                                  m_analogSensor(0)
+{
+}
+
+IGenericSensorEmulator::~IGenericSensorEmulator()
+{
+
+}
+
+void IGenericSensorEmulator::useIAnalogSensor(IAnalogSensor* _analogSensor)
+{
+    m_analogSensor = _analogSensor;
+    m_genericSensor = 0;
+}
+
+void IGenericSensorEmulator::useIGenericSensor(IGenericSensor* _genericSensor)
+{
+    m_genericSensor = _genericSensor;
+    m_analogSensor  = 0;
+}
+
+bool IGenericSensorEmulator::read(sig::Vector& out)
+{
+    if( m_genericSensor )
+    {
+        return m_genericSensor->read(out);
+    }
+
+    if( m_analogSensor )
+    {
+        return (m_analogSensor->read(out) == IAnalogSensor::AS_OK);
+    }
+
+    return false;
+}
+
+bool IGenericSensorEmulator::calibrate(int ch, double v)
+{
+    if( m_genericSensor )
+    {
+        return m_genericSensor->calibrate(ch,v);
+    }
+
+    if( m_analogSensor )
+    {
+        return (m_analogSensor->calibrateChannel(ch,v)  == IAnalogSensor::AS_OK);
+    }
+
+    return false;
+}
+
+bool IGenericSensorEmulator::getChannels(int* nc)
+{
+    if( m_genericSensor )
+    {
+        return m_genericSensor->getChannels(nc);
+    }
+
+    if( m_analogSensor )
+    {
+        *nc = m_analogSensor->getChannels();
+        return true;
+    }
+
+    return false;
+}
+
 
 
 
