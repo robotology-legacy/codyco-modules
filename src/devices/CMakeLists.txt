@@ -19,6 +19,8 @@ yarp_begin_plugin_library(codycomod)
 
 add_subdirectory(jointTorqueControl)
 add_subdirectory(wholeBodyDynamics)
+add_subdirectory(virtualAnalogClient)
+add_subdirectory(virtualAnalogRemapper)
 
 yarp_end_plugin_library(codycomod)
 

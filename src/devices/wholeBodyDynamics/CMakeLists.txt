@@ -33,7 +33,7 @@ target_link_libraries(wholeBodyDynamicsDevice wholeBodyDynamicsSettings
                                               ${YARP_LIBRARIES}
                                               skinDynLib
                                               ${iDynTree_LIBRARIES})
-											  
+
 if(MSVC)
    add_definitions(-D_USE_MATH_DEFINES)
 endif()
