@@ -1,4 +1,4 @@
-set(modulename wholeBodyDynamicsTree)
+set(modulename wholeBodyDynamics3)
 
 file(GLOB conf ${CMAKE_CURRENT_SOURCE_DIR}/conf/*.ini)
 
