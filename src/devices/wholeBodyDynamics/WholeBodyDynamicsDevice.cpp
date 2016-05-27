@@ -22,8 +22,6 @@ namespace dev
 const size_t wholeBodyDynamics_nrOfChannelsOfYARPFTSensor = 6;
 const size_t wholeBodyDynamics_nrOfChannelsOfAYARPIMUSensor = 12;
 
-
-
 WholeBodyDynamicsDevice::WholeBodyDynamicsDevice(): RateThread(10),
                                                     portPrefix("/wholeBodyDynamics"),
                                                     correctlyConfigured(false),
@@ -96,7 +94,7 @@ bool WholeBodyDynamicsDevice::closeSkinContactListsPorts()
 {
     this->portContactsInput.close();
     this->portContactsOutput.close();
-    
+
     return true;
 }
 
@@ -1011,7 +1009,7 @@ void WholeBodyDynamicsDevice::updateKinematics()
     {
         // Hardcode for the meanwhile
         iDynTree::FrameIndex imuFrameIndex = estimator.model().getFrameIndex("imu_frame");
- 
+
         estimator.updateKinematicsFromFloatingBase(jointPos,jointVel,jointAcc,imuFrameIndex,
                                                    filteredIMUMeasurements.linProperAcc,filteredIMUMeasurements.angularVel,filteredIMUMeasurements.angularAcc);
     }
@@ -1079,7 +1077,7 @@ void WholeBodyDynamicsDevice::computeCalibration()
 {
     if( calibrationBuffers.ongoingCalibration )
     {
-        // Todo: Check that the model is actually still during calibration 
+        // Todo: Check that the model is actually still during calibration
 
         // Run the calibration
         estimator.computeExpectedFTSensorsMeasurements(calibrationBuffers.assumedContactLocationsForCalibration,
