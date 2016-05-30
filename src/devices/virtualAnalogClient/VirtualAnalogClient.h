@@ -7,7 +7,6 @@
 #ifndef YARP_DEV_VIRTUALANALOGCLIENT_H
 #define YARP_DEV_VIRTUALANALOGCLIENT_H
 
-
 #include <yarp/os/Network.h>
 #include <yarp/os/BufferedPort.h>
 

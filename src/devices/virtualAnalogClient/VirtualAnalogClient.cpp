@@ -93,7 +93,7 @@ bool VirtualAnalogClient::open(Searchable& config)
     }
     else
     {
-        for(int jnt=0; jnt < m_axisType.size(); jnt++)
+        for(size_t jnt=0; jnt < m_axisType.size(); jnt++)
         {
             m_axisType[jnt] = VOCAB_JOINTTYPE_REVOLUTE;
         }
@@ -133,9 +133,11 @@ bool VirtualAnalogClient::open(Searchable& config)
         if( !ok )
         {
             yError() << "VirtualAnalogClient: impossible to connect port " << m_local << " to " << m_remote << " with carrier " << carrier;
+            return false;
         }
     }
 
+    return true;
 }
 
 bool VirtualAnalogClient::close()
@@ -147,7 +149,7 @@ bool VirtualAnalogClient::close()
 
 bool VirtualAnalogClient::updateMeasure(Vector& measure)
 {
-    if( measure.size() != this->getChannels() )
+    if( (int) measure.size() != this->getChannels() )
     {
         yError() << "VirtualAnalogClient: updateMeasure failed : input measure has size " << measure.size() << " while the client is configured with " << this->getChannels() << " channels";
         return false;
@@ -191,7 +193,7 @@ int VirtualAnalogClient::getChannels()
     return this->m_axisName.size();
 }
 
-int VirtualAnalogClient::getState(int ch)
+int VirtualAnalogClient::getState(int /*ch*/)
 {
     return VAS_OK;
 }
