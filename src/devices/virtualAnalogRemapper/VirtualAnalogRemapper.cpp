@@ -43,7 +43,7 @@ bool VirtualAnalogRemapper::open(Searchable& config)
         m_axesNames[jnt] = axesNamesBot->get(jnt).asString();
     }
 
-    if( !( prop.check("alwaysUpdateAllSubDevices") && prop.find("alwaysUpdateAllSubDevices").isBool() ) )
+    if( !( prop.check("alwaysUpdateAllSubDevices") && prop.find("alwaysUpdateAllSubDevices").isBool()) )
     {
         yError("VirtualAnalogRemapper: Missing required alwaysUpdateAllSubDevices bool parameter");
         return false;
@@ -52,6 +52,7 @@ bool VirtualAnalogRemapper::open(Searchable& config)
     m_alwaysUpdateAllSubDevices = prop.find("alwaysUpdateAllSubDevices").asBool();
 
     // Waiting for attach now
+    return true;
 }
 
 bool VirtualAnalogRemapper::attachAll(const PolyDriverList& p)
@@ -113,16 +114,21 @@ bool VirtualAnalogRemapper::attachAll(const PolyDriverList& p)
     {
         std::string jointName = m_axesNames[axis];
 
-        // if the name is not exposed in the VirtualAnalogSensors, raise an errpr
+        // if the name is not exposed in the VirtualAnalogSensors, raise an error if alwaysUpdateAllSubDevices is enabled
         if( axisName2virtualAnalogSensorPtr.find(jointName) == axisName2virtualAnalogSensorPtr.end() )
         {
             remappedAxes[axis].dev = 0;
             remappedAxes[axis].devInfo = 0;
             remappedAxes[axis].localAxis = 0;
 
-            yError() << "VirtualAnalogRemapper: channel " << jointName << " not found in the subdevices, exiting.";
-            detachAll();
-            return false;
+            if( m_alwaysUpdateAllSubDevices )
+            {
+                yError() << "VirtualAnalogRemapper: channel " << jointName << " not found in the subdevices, exiting because option alwaysUpdateAllSubDevices is enabled.";
+                detachAll();
+                return false;
+            }
+
+            // If m_alwaysUpdateAllSubDevices is not enabled, we support not publishing the information for some axis
         }
         else
         {
@@ -140,7 +146,7 @@ bool VirtualAnalogRemapper::attachAll(const PolyDriverList& p)
     {
         // Let's count the total number of channels: if it is different from the axesNames size, give an error
         // because some channel is not covered
-        int totalChannels = 0;
+        size_t totalChannels = 0;
         for(size_t subdev = 0; subdev < virtualAnalogList.size(); subdev++)
         {
             totalChannels += virtualAnalogList[subdev]->getChannels();
@@ -163,12 +169,12 @@ bool VirtualAnalogRemapper::attachAll(const PolyDriverList& p)
             remappedSubdevices[subdev].local2globalIdx.resize(remappedSubdevices[subdev].dev->getChannels());
 
             // Let's fill the local2globalIdx vector by searching on all the vector
-            for(int localIndex = 0; localIndex < remappedSubdevices[subdev].local2globalIdx.size(); localIndex++)
+            for(size_t localIndex = 0; localIndex < remappedSubdevices[subdev].local2globalIdx.size(); localIndex++)
             {
                 for(size_t globalAxis = 0; globalAxis < remappedAxes.size(); globalAxis++)
                 {
                     if( (remappedAxes[globalAxis].dev == remappedSubdevices[subdev].dev) &&
-                        (remappedAxes[globalAxis].localAxis == localIndex) )
+                        (remappedAxes[globalAxis].localAxis == (int)localIndex) )
                     {
                         remappedSubdevices[subdev].local2globalIdx[localIndex] = globalAxis;
                     }
@@ -200,7 +206,7 @@ bool VirtualAnalogRemapper::updateMeasure(Vector& measure)
 {
     bool ret = true;
 
-    if( measure.size() != this->getChannels() )
+    if( (int) measure.size() != this->getChannels() )
     {
         yError() << "VirtualAnalogClient: updateMeasure failed : input measure has size " << measure.size() << " while the client is configured with " << this->getChannels() << " channels";
         return false;
@@ -209,12 +215,12 @@ bool VirtualAnalogRemapper::updateMeasure(Vector& measure)
     if( m_alwaysUpdateAllSubDevices )
     {
         // use multiple axis method
-        for(int subdevIdx=0; subdevIdx < remappedSubdevices.size(); subdevIdx++)
+        for(size_t subdevIdx=0; subdevIdx < remappedSubdevices.size(); subdevIdx++)
         {
             IVirtualAnalogSensor * dev = this->remappedSubdevices[subdevIdx].dev;
 
             // Update the measure buffer
-            for(int localIndex = 0; localIndex < this->remappedSubdevices[subdevIdx].measureBuffer.size(); localIndex++)
+            for(size_t localIndex = 0; localIndex < this->remappedSubdevices[subdevIdx].measureBuffer.size(); localIndex++)
             {
                 int globalIndex = this->remappedSubdevices[subdevIdx].local2globalIdx[localIndex];
                 this->remappedSubdevices[subdevIdx].measureBuffer[localIndex] = measure[globalIndex];
@@ -232,8 +238,11 @@ bool VirtualAnalogRemapper::updateMeasure(Vector& measure)
             IVirtualAnalogSensor * dev = this->remappedAxes[jnt].dev;
             int localAxis = this->remappedAxes[jnt].localAxis;
 
-            bool ok = dev->updateMeasure(localAxis,measure[jnt]);
-            ret = ok && ret;
+            if( dev )
+            {
+                bool ok = dev->updateMeasure(localAxis,measure[jnt]);
+                ret = ok && ret;
+            }
         }
     }
 
@@ -251,7 +260,16 @@ bool VirtualAnalogRemapper::updateMeasure(int ch, double& measure)
     IVirtualAnalogSensor * dev = this->remappedAxes[ch].dev;
     int localAxis = this->remappedAxes[ch].localAxis;
 
-    return dev->updateMeasure(localAxis,measure);
+    bool ret;
+    if( dev )
+    {
+        ret = dev->updateMeasure(localAxis,measure);
+    }
+    else
+    {
+        ret = false;
+    }
+    return ret;
 }
 
 int VirtualAnalogRemapper::getChannels()
@@ -270,7 +288,16 @@ int VirtualAnalogRemapper::getState(int ch)
     IVirtualAnalogSensor * dev = this->remappedAxes[ch].dev;
     int localAxis = this->remappedAxes[ch].localAxis;
 
-    return dev->getState(localAxis);
+    bool ret;
+    if( dev )
+    {
+        ret = dev->getState(localAxis);
+    }
+    else
+    {
+        ret = false;
+    }
+    return ret;
 }
 
 bool VirtualAnalogRemapper::getAxisName(int axis, ConstString& name)
@@ -285,7 +312,16 @@ bool VirtualAnalogRemapper::getAxisName(int axis, ConstString& name)
     IAxisInfo * dev = this->remappedAxes[axis].devInfo;
     int localAxis = this->remappedAxes[axis].localAxis;
 
-    return dev->getAxisName(localAxis,name);
+    bool ret;
+    if( dev )
+    {
+        ret = dev->getAxisName(localAxis,name);
+    }
+    else
+    {
+        ret = false;
+    }
+    return ret;
 }
 
 bool VirtualAnalogRemapper::getJointType(int axis, JointTypeEnum& type)
@@ -300,5 +336,14 @@ bool VirtualAnalogRemapper::getJointType(int axis, JointTypeEnum& type)
     IAxisInfo * dev = this->remappedAxes[axis].devInfo;
     int localAxis = this->remappedAxes[axis].localAxis;
 
-    return dev->getJointType(localAxis,type);
+    bool ret;
+    if( dev )
+    {
+        ret = dev->getJointType(localAxis,type);
+    }
+    else
+    {
+        ret = false;
+    }
+    return ret;
 }

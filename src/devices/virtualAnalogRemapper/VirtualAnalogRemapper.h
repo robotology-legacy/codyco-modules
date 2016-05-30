@@ -12,7 +12,6 @@
 #include <yarp/dev/IVirtualAnalogSensor.h>
 #include <yarp/dev/Wrapper.h>
 
-
 #include <vector>
 
 namespace yarp {
