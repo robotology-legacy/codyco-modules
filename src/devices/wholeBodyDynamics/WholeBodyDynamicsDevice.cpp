@@ -4,6 +4,7 @@
 #include <yarp/os/LogStream.h>
 #include <yarp/os/Property.h>
 #include <yarp/os/ResourceFinder.h>
+#include <yarp/os/Time.h>
 
 #include <yarp/dev/IAnalogSensor.h>
 #include <yarp/dev/GenericSensorInterfaces.h>
@@ -21,6 +22,7 @@ namespace dev
 
 const size_t wholeBodyDynamics_nrOfChannelsOfYARPFTSensor = 6;
 const size_t wholeBodyDynamics_nrOfChannelsOfAYARPIMUSensor = 12;
+const double wholeBodyDynamics_sensorTimeoutInSeconds = 2.0;
 
 WholeBodyDynamicsDevice::WholeBodyDynamicsDevice(): RateThread(10),
                                                     portPrefix("/wholeBodyDynamics"),
@@ -186,6 +188,47 @@ bool WholeBodyDynamicsDevice::openRemapperControlBoard(os::Searchable& config)
     return true;
 }
 
+bool WholeBodyDynamicsDevice::openRemapperVirtualSensors(os::Searchable& config)
+{
+    // Pass to the remapper just the relevant parameters (axesList)
+    yarp::os::Property propRemapper;
+    propRemapper.put("device","virtualAnalogRemapper");
+    bool ok = getUsedDOFsList(config,estimationJointNames);
+    if(!ok) return false;
+
+    addVectorOfStringToProperty(propRemapper,"axesNames",estimationJointNames);
+
+    // Handle alwaysUpdateAllSubDevices : false on yarprobotinterface, true if the estimation is external
+    propRemapper.put("alwaysUpdateAllSubDevices",config.find("alwaysUpdateAllVirtualTorqueSensors"));
+
+    ok = remappedVirtualAnalogSensors.open(propRemapper);
+
+    if( !ok )
+    {
+        return ok;
+    }
+
+    // View relevant interfaces for the remappedVirtualAnalogSensors
+    ok = ok && remappedVirtualAnalogSensors.view(remappedVirtualAnalogSensorsInterfaces.ivirtsens);
+    ok = ok && remappedVirtualAnalogSensors.view(remappedVirtualAnalogSensorsInterfaces.multwrap);
+
+    if( !ok )
+    {
+        yError() << "wholeBodyDynamics : open impossible to use the necessary interfaces in remappedControlBoard";
+        return ok;
+    }
+
+    // Check if the controlboard and the estimator have a consistent number of joints
+    int axes = remappedVirtualAnalogSensorsInterfaces.ivirtsens->getChannels();
+    if( axes != (int) estimator.model().getNrOfDOFs() )
+    {
+        yError() << "wholeBodyDynamics : open estimator model and the remapperVirtualAnalogSensor has an inconsistent number of joints";
+        return false;
+    }
+
+    return true;
+}
+
 bool WholeBodyDynamicsDevice::openEstimator(os::Searchable& config)
 {
     // get the list of considered dofs from config
@@ -203,7 +246,6 @@ bool WholeBodyDynamicsDevice::openEstimator(os::Searchable& config)
     std::string modelFileFullPath = rf.findFileByName(modelFileName);
 
     yInfo() << "wholeBodyDynamics : Loading model from " << modelFileFullPath;
-
 
     ok = estimator.loadModelAndSensorsFromFileWithSpecifiedDOFs(modelFileFullPath,estimationJointNames);
     if( !ok )
@@ -343,8 +385,6 @@ bool WholeBodyDynamicsDevice::openExternalWrenchesPorts(os::Searchable& config)
         // The WBD_OUTPUT_EXTERNAL_WRENCH_PORTS is optional
         return true;
     }
-
-    int nr_of_output_wrench_ports = output_wrench_bot.size() - 1;
 
     for(int output_wrench_port = 1; output_wrench_port < output_wrench_bot.size(); output_wrench_port++)
     {
@@ -551,6 +591,12 @@ bool WholeBodyDynamicsDevice::loadSettingsFromConfig(os::Searchable& config)
         return false;
     }
 
+    if( !( prop.check("alwaysUpdateAllVirtualTorqueSensors") && prop.find("alwaysUpdateAllVirtualTorqueSensors").isBool() ) )
+    {
+        yError() << "wholeBodyDynamics : missing required bool parameter alwaysUpdateAllVirtualTorqueSensors";
+        return false;
+    }
+
     return true;
 }
 
@@ -578,6 +624,10 @@ bool WholeBodyDynamicsDevice::open(os::Searchable& config)
 
     // Open the controlboard remapper
     ok = this->openRemapperControlBoard(config);
+    if( !ok ) return false;
+
+     // Open the virtualsensor remapper
+    ok = this->openRemapperVirtualSensors(config);
     if( !ok ) return false;
 
     ok = this->openDefaultContactFrames(config);
@@ -620,72 +670,12 @@ bool WholeBodyDynamicsDevice::attachAllControlBoard(const PolyDriverList& p)
 
 bool WholeBodyDynamicsDevice::attachAllVirtualAnalogSensor(const PolyDriverList& p)
 {
-    // For the moment we assume that the controlboard device is the
-    // same that implements the IVirtualAnalogSensor interface (this is how things
-    // are implemented in embObjMotionControl) In general we at least assume that
-    // all the devices that implement IVirtualAnalogSensor also implement IAxisInfo
-    // to provide a name for the virtual analog axis
-    std::vector<IVirtualAnalogSensor *> virtualAnalogList;
-    std::vector<IAxisInfo *>            axisInfoList;
-    for(size_t devIdx = 0; devIdx < (size_t)p.size(); devIdx++)
+    bool ok = remappedVirtualAnalogSensorsInterfaces.multwrap->attachAll(p);
+
+    if( !ok )
     {
-        IVirtualAnalogSensor * pVirtualAnalogSens = 0;
-        IAxisInfo            * pAxisInfo          = 0;
-        if( p[devIdx]->poly->view(pVirtualAnalogSens) )
-        {
-            virtualAnalogList.push_back(pVirtualAnalogSens);
-            if( !(p[devIdx]->poly->view(pAxisInfo)) )
-            {
-                yError() << "wholeBodyDynamics : attachAll error: device "
-                         << p[devIdx]->key << " exposes a IVirtualAnalogSensor, but not a IAxisInfo interface,"
-                         << " impossible to map the list of joint names to the IVirtualAnalogSensor interface";
-                return false;
-
-            }
-            else
-            {
-                axisInfoList.push_back(pAxisInfo);
-            }
-        }
-    }
-
-    // Find the axisName ---> device , localAxis mapping
-    std::map<std::string, IVirtualAnalogSensor *> axisName2virtualAnalogSensorPtr;
-    std::map<std::string, int> axisName2localAxis;
-
-    for(size_t devIdx = 0; devIdx < virtualAnalogList.size(); devIdx++)
-    {
-        int nrOfVirtualAxes = virtualAnalogList[devIdx]->getChannels();
-        for(int localAxis=0; localAxis < nrOfVirtualAxes; localAxis++)
-        {
-            yarp::os::ConstString axisName;
-            axisInfoList[devIdx]->getAxisName(localAxis,axisName);
-
-            std::string axisNameStd = axisName.c_str();
-
-            axisName2virtualAnalogSensorPtr[axisNameStd] = virtualAnalogList[devIdx];
-            axisName2localAxis[axisNameStd] = localAxis;
-        }
-    }
-
-    // Save the axis ---> device, localAxis mapping
-    remappedVirtualAnalogSensorAxis.resize(estimationJointNames.size());
-
-    for(size_t axis = 0; axis < remappedVirtualAnalogSensorAxis.size(); axis++)
-    {
-        std::string jointName = estimationJointNames[axis];
-        // if the name is not exposed in the VirtualAnalogSensors, just save a null pointer
-        // and don't publish the torque estimated for that joint
-        if( axisName2virtualAnalogSensorPtr.find(jointName) == axisName2virtualAnalogSensorPtr.end() )
-        {
-            remappedVirtualAnalogSensorAxis[axis].dev = 0;
-            remappedVirtualAnalogSensorAxis[axis].localAxis = 0;
-        }
-        else
-        {
-            remappedVirtualAnalogSensorAxis[axis].dev = axisName2virtualAnalogSensorPtr[jointName];
-            remappedVirtualAnalogSensorAxis[axis].localAxis = axisName2localAxis[jointName];
-        }
+        yError() << " WholeBodyDynamicsDevice::attachAll: error in attachAll of the remapperVirtualAnalogSensor";
+        return false;
     }
 
     return true;
@@ -743,14 +733,30 @@ bool WholeBodyDynamicsDevice::attachAllFTs(const PolyDriverList& p)
         ftSensors[IDTsensIdx] = ftList[deviceThatHasTheSameNameOfTheSensor];
     }
 
-    return true;
+    // We try to read for a brief moment the sensors for two reasons:
+    // so we can make sure that they actually work, and to make sure that the buffers are correctly initialized
+    bool verbose = false;
+    double tic = yarp::os::Time::now();
+    bool timeSpentTryngToReadSensors = 0.0;
+    bool readSuccessfull = false;
+    while( (timeSpentTryngToReadSensors < wholeBodyDynamics_sensorTimeoutInSeconds) && !readSuccessfull )
+    {
+        readSuccessfull = readFTSensors(verbose);
+        timeSpentTryngToReadSensors = (yarp::os::Time::now() - tic);
+    }
+
+    if( !readSuccessfull )
+    {
+       yError() << "WholeBodyDynamicsDevice was unable to correctly read from the FT sensors";
+    }
+
+    return readSuccessfull;
 }
 
 
 bool WholeBodyDynamicsDevice::attachAllIMUs(const PolyDriverList& p)
 {
     std::vector<IGenericSensor*> imuList;
-    std::vector<IAnalogSensor*>  imuList2;
 
     for(size_t devIdx = 0; devIdx < (size_t)p.size(); devIdx++)
     {
@@ -761,21 +767,7 @@ bool WholeBodyDynamicsDevice::attachAllIMUs(const PolyDriverList& p)
         }
     }
 
-    for(size_t devIdx = 0; devIdx < (size_t)p.size(); devIdx++)
-    {
-        IAnalogSensor * pAnalogSensor = 0;
-        if( p[devIdx]->poly->view(pAnalogSensor) )
-        {
-            int channels = pAnalogSensor->getChannels();
-
-            if( channels == wholeBodyDynamics_nrOfChannelsOfAYARPIMUSensor )
-            {
-                imuList2.push_back(pAnalogSensor);
-            }
-        }
-    }
-
-    size_t nrOfIMUDetected = imuList.size() + imuList2.size();
+    size_t nrOfIMUDetected = imuList.size();
 
     if( nrOfIMUDetected != 1 )
     {
@@ -785,16 +777,27 @@ bool WholeBodyDynamicsDevice::attachAllIMUs(const PolyDriverList& p)
 
     if( imuList.size() == 1 )
     {
-        this->imuInterface.useIGenericSensor(imuList[0]);
+        this->imuInterface = imuList[0];
     }
 
-    if( imuList2.size() == 1 )
+    // We try to read for a brief moment the sensors for two reasons:
+    // so we can make sure that they actually work, and to make sure that the buffers are correctly initialized
+    bool verbose = false;
+    double tic = yarp::os::Time::now();
+    bool timeSpentTryngToReadSensors = 0.0;
+    bool readSuccessfull = false;
+    while( (timeSpentTryngToReadSensors < wholeBodyDynamics_sensorTimeoutInSeconds) && !readSuccessfull )
     {
-        this->imuInterface.useIAnalogSensor(imuList2[0]);
+        readSuccessfull = readIMUSensors(verbose);
+        timeSpentTryngToReadSensors = (yarp::os::Time::now() - tic);
     }
 
+    if( !readSuccessfull )
+    {
+       yError() << "WholeBodyDynamicsDevice was unable to correctly read from the IMU for " << wholeBodyDynamics_sensorTimeoutInSeconds << " seconds, exiting.";
+    }
 
-    return true;
+    return readSuccessfull;
 }
 
 bool WholeBodyDynamicsDevice::attachAll(const PolyDriverList& p)
@@ -807,7 +810,7 @@ bool WholeBodyDynamicsDevice::attachAll(const PolyDriverList& p)
     ok = ok && this->attachAllFTs(p);
     ok = ok && this->attachAllIMUs(p);
 
-    ok = this->setupCalibrationWithExternalWrenchOnOneFrame("base_link",100);
+    ok = ok && this->setupCalibrationWithExternalWrenchOnOneFrame("base_link",100);
 
     if( ok )
     {
@@ -832,6 +835,65 @@ void convertVectorFromDegreesToRadians(iDynTree::VectorDynSize & vector)
 
     return;
 }
+
+bool WholeBodyDynamicsDevice::readFTSensors(bool verbose)
+{
+    bool FTSensorsReadCorrectly = true;
+    for(size_t ft=0; ft < estimator.sensors().getNrOfSensors(iDynTree::SIX_AXIS_FORCE_TORQUE); ft++ )
+    {
+        iDynTree::Wrench bufWrench;
+        int ftRetVal = ftSensors[ft]->read(ftMeasurement);
+
+        bool ok = (ftRetVal == IAnalogSensor::AS_OK);
+
+        FTSensorsReadCorrectly = FTSensorsReadCorrectly && ok;
+
+        if( !ok && verbose )
+        {
+            std::string sensorName = estimator.sensors().getSensor(iDynTree::SIX_AXIS_FORCE_TORQUE,ft)->getName();
+            yWarning() << "wholeBodyDynamics warning : FT sensor " << sensorName << " was not readed correctly, using old measurement";
+        }
+
+        if( ok )
+        {
+            // Format of F/T measurement in YARP/iDynTree is consistent: linear/angular
+            iDynTree::toiDynTree(ftMeasurement,bufWrench);
+
+            rawSensorsMeasurements.setMeasurement(iDynTree::SIX_AXIS_FORCE_TORQUE,ft,bufWrench);
+        }
+    }
+
+    return FTSensorsReadCorrectly;
+}
+
+bool WholeBodyDynamicsDevice::readIMUSensors(bool verbose)
+{
+    rawIMUMeasurements.angularAcc.zero();
+    rawIMUMeasurements.linProperAcc.zero();
+    rawIMUMeasurements.angularVel.zero();
+
+    bool ok = imuInterface->read(imuMeasurement);
+
+    if( !ok && verbose )
+    {
+        yWarning() << "wholeBodyDynamics warning : imu sensor was not readed correctly, using old measurement";
+    }
+
+    if( ok )
+    {
+        // Check format of IMU in YARP http://wiki.icub.org/wiki/Inertial_Sensor
+        rawIMUMeasurements.angularVel(0) = deg2rad(imuMeasurement[6]);
+        rawIMUMeasurements.angularVel(1) = deg2rad(imuMeasurement[7]);
+        rawIMUMeasurements.angularVel(2) = deg2rad(imuMeasurement[8]);
+
+        rawIMUMeasurements.linProperAcc(0) = imuMeasurement[3];
+        rawIMUMeasurements.linProperAcc(1) = imuMeasurement[4];
+        rawIMUMeasurements.linProperAcc(2) = imuMeasurement[5];
+    }
+
+    return ok;
+}
+
 
 void WholeBodyDynamicsDevice::readSensors()
 {
@@ -886,52 +948,17 @@ void WholeBodyDynamicsDevice::readSensors()
     }
 
     // Read F/T sensors
-    for(size_t ft=0; ft < estimator.sensors().getNrOfSensors(iDynTree::SIX_AXIS_FORCE_TORQUE); ft++ )
-    {
-        iDynTree::Wrench bufWrench;
-        int ftRetVal = ftSensors[ft]->read(ftMeasurement);
-
-        ok = (ftRetVal == IAnalogSensor::AS_OK);
-
-        sensorReadCorrectly = sensorReadCorrectly && ok;
-
-        if( !ok )
-        {
-            std::string sensorName = estimator.sensors().getSensor(iDynTree::SIX_AXIS_FORCE_TORQUE,ft)->getName();
-            yWarning() << "wholeBodyDynamics warning : FT sensor " << sensorName << " was not readed correctly";
-        }
-
-        // Format of F/T measurement in YARP/iDynTree is consistent: linear/angular
-        iDynTree::toiDynTree(ftMeasurement,bufWrench);
-
-        rawSensorsMeasurements.setMeasurement(iDynTree::SIX_AXIS_FORCE_TORQUE,ft,bufWrench);
-    }
+    ok = readFTSensors();
+    sensorReadCorrectly = ok && sensorReadCorrectly;
 
     // Read IMU Sensor
     if( settings.kinematicSource == IMU )
     {
-        rawIMUMeasurements.angularAcc.zero();
-        rawIMUMeasurements.linProperAcc.zero();
-        rawIMUMeasurements.angularVel.zero();
-
-        ok = imuInterface.read(imuMeasurement);
-
-        sensorReadCorrectly = sensorReadCorrectly && ok;
-
-        if( !ok )
-        {
-            yWarning() << "wholeBodyDynamics warning : imu sensor was not readed correctly";
-        }
-
-        // Check format of IMU in YARP http://wiki.icub.org/wiki/Inertial_Sensor
-        rawIMUMeasurements.angularVel(0) = deg2rad(imuMeasurement[6]);
-        rawIMUMeasurements.angularVel(1) = deg2rad(imuMeasurement[7]);
-        rawIMUMeasurements.angularVel(2) = deg2rad(imuMeasurement[8]);
-
-        rawIMUMeasurements.linProperAcc(0) = imuMeasurement[3];
-        rawIMUMeasurements.linProperAcc(1) = imuMeasurement[4];
-        rawIMUMeasurements.linProperAcc(2) = imuMeasurement[5];
+        ok = readIMUSensors();
+        sensorReadCorrectly = ok && sensorReadCorrectly;
     }
+
+
 }
 
 void WholeBodyDynamicsDevice::filterSensorsAndRemoveSensorOffsets()
@@ -1058,7 +1085,7 @@ void WholeBodyDynamicsDevice::readContactPoints()
 
 void addToSummer(iDynTree::Vector6 & buffer, const iDynTree::Wrench & addedWrench)
 {
-    for(int i=0; i < wholeBodyDynamics_nrOfChannelsOfYARPFTSensor; i++)
+    for(size_t i=0; i < wholeBodyDynamics_nrOfChannelsOfYARPFTSensor; i++)
     {
         buffer(i) = buffer(i) + addedWrench(i);
     }
@@ -1066,7 +1093,7 @@ void addToSummer(iDynTree::Vector6 & buffer, const iDynTree::Wrench & addedWrenc
 
 void computeMean(const iDynTree::Vector6 & buffer, const size_t nrOfSamples, iDynTree::Wrench & mean)
 {
-    for(int i=0; i < wholeBodyDynamics_nrOfChannelsOfYARPFTSensor; i++)
+    for(size_t i=0; i < wholeBodyDynamics_nrOfChannelsOfYARPFTSensor; i++)
     {
         mean(i) = buffer(i)/nrOfSamples;
     }
@@ -1181,14 +1208,6 @@ template <class T> void broadcastData(T& _values, yarp::os::BufferedPort<T>& _po
 
 void WholeBodyDynamicsDevice::publishTorques()
 {
-
-    for(size_t axis=0; axis < remappedVirtualAnalogSensorAxis.size(); axis++)
-    {
-        if( remappedVirtualAnalogSensorAxis[axis].dev )
-        {
-            remappedVirtualAnalogSensorAxis[axis].dev->updateMeasure(remappedVirtualAnalogSensorAxis[axis].localAxis,estimatedJointTorques(axis));
-        }
-    }
 }
 
 void WholeBodyDynamicsDevice::publishContacts()
@@ -1225,7 +1244,7 @@ void WholeBodyDynamicsDevice::publishExternalWrenches()
 
 
     // Get wrenches from the estimator and publish it on the port
-    for(int i=0; i < this->outputWrenchPorts.size(); i++ )
+    for(size_t i=0; i < this->outputWrenchPorts.size(); i++ )
     {
         // Get the wrench in the link frame
         iDynTree::LinkIndex link = this->outputWrenchPorts[i].link_index;
@@ -1282,21 +1301,24 @@ bool WholeBodyDynamicsDevice::detachAll()
     correctlyConfigured = false;
 
     if (isRunning())
+    {
         stop();
+    }
+
+    closeExternalWrenchesPorts();
 
     closeRPCPort();
+
     closeSettingsPort();
+
     closeSkinContactListsPorts();
-    closeExternalWrenchesPorts();
+
 
     return true;
 }
 
 bool WholeBodyDynamicsDevice::close()
 {
-    // Uncommenting this will result in a deadlock when closing the wbd interface
-    //yarp::os::LockGuard guard(this->deviceMutex);
-
     correctlyConfigured = false;
 
     return true;
@@ -1602,12 +1624,6 @@ std::string WholeBodyDynamicsDevice::getCurrentSettingsString()
    return settings.toString();
 }
 
-
-
-
-
-
-
 bool WholeBodyDynamicsDevice::resetSimpleLeggedOdometry(const std::string& /*initial_world_frame*/, const std::string& /*initial_fixed_link*/)
 {
     yError() << " wholeBodyDynamics : resetSimpleLeggedOdometry method not implemented";
@@ -1714,7 +1730,7 @@ void wholeBodyDynamicsDeviceFilters::fini()
         imuAngularVelocityFilter = 0;
     }
 
-    for(int ft_numeric = 0; ft_numeric < forcetorqueFilters.size(); ft_numeric++ )
+    for(size_t ft_numeric = 0; ft_numeric < forcetorqueFilters.size(); ft_numeric++ )
     {
         delete forcetorqueFilters[ft_numeric];
         forcetorqueFilters[ft_numeric] = 0;
@@ -1739,80 +1755,6 @@ wholeBodyDynamicsDeviceFilters::~wholeBodyDynamicsDeviceFilters()
 {
     fini();
 }
-
-
-IGenericSensorEmulator::IGenericSensorEmulator(): m_genericSensor(0),
-                                                  m_analogSensor(0)
-{
-}
-
-IGenericSensorEmulator::~IGenericSensorEmulator()
-{
-
-}
-
-void IGenericSensorEmulator::useIAnalogSensor(IAnalogSensor* _analogSensor)
-{
-    m_analogSensor = _analogSensor;
-    m_genericSensor = 0;
-}
-
-void IGenericSensorEmulator::useIGenericSensor(IGenericSensor* _genericSensor)
-{
-    m_genericSensor = _genericSensor;
-    m_analogSensor  = 0;
-}
-
-bool IGenericSensorEmulator::read(sig::Vector& out)
-{
-    if( m_genericSensor )
-    {
-        return m_genericSensor->read(out);
-    }
-
-    if( m_analogSensor )
-    {
-        return (m_analogSensor->read(out) == IAnalogSensor::AS_OK);
-    }
-
-    return false;
-}
-
-bool IGenericSensorEmulator::calibrate(int ch, double v)
-{
-    if( m_genericSensor )
-    {
-        return m_genericSensor->calibrate(ch,v);
-    }
-
-    if( m_analogSensor )
-    {
-        return (m_analogSensor->calibrateChannel(ch,v)  == IAnalogSensor::AS_OK);
-    }
-
-    return false;
-}
-
-bool IGenericSensorEmulator::getChannels(int* nc)
-{
-    if( m_genericSensor )
-    {
-        return m_genericSensor->getChannels(nc);
-    }
-
-    if( m_analogSensor )
-    {
-        *nc = m_analogSensor->getChannels();
-        return true;
-    }
-
-    return false;
-}
-
-
-
-
-
 
 
 

@@ -34,38 +34,6 @@
 namespace yarp {
 namespace dev {
 
-/**
- * Simple class that implements a IGenericSensor either by
- * using a real IGenericSensor or by emulating it using an
- * IAnalogSensor
- */
-class IGenericSensorEmulator: IGenericSensor
-{
-private:
-    IGenericSensor * m_genericSensor;
-    IAnalogSensor  * m_analogSensor;
-
-public:
-    IGenericSensorEmulator();
-    virtual ~IGenericSensorEmulator();
-
-    void useIGenericSensor(IGenericSensor * _genericSensor);
-    void useIAnalogSensor(IAnalogSensor   * _analogSensor);
-
-    virtual bool read(sig::Vector& out);
-    virtual bool getChannels(int* nc);
-    virtual bool calibrate(int ch, double v);
-};
-
-
-/**
- * Structure of information relative to the remapped axis.
- */
-struct virtualAnalogSensorRemappedAxis
-{
-    IVirtualAnalogSensor * dev;
-    int localAxis;
-};
 
 /**
  * Scructure of information relative to an external force published
@@ -163,6 +131,9 @@ class wholeBodyDynamicsDeviceFilters
  * |                |   portName_1   | string (name of the port opened to stream the external wrench | - | - | Yes    | Bottle of three elements describing the wrench published on the port: the first element is the link of which the published external wrench is applied. This wrench is expressed around the origin of the frame named as second paramter, and with the orientation of the third parameter.  |  |
  * |                |   ...   | | - | .. | Yes    | ..  |  |
  * |                |   portName_n   | .. | - | - | Yes    | ..  | |
+ * | alwaysUpdateAllVirtualTorqueSensors | - |  bool     |  -    |      -        |  Yes      | Enforce that a virtual sensor for each estimated axes is available. | Tipically this is set to false when the device is running in the robot, while to true if it is running outside the robot. |
+ *
+ *
  *
  *
  * The axes contained in the axesNames parameter are then mapped to the wrapped controlboard in the attachAll method, using controlBoardRemapper class.
@@ -242,18 +213,20 @@ private:
         yarp::dev::IMultipleWrapper * multwrap;
     } remappedControlBoardInterfaces;
 
+    /** Remapped virtual analog sensor containg the axes for which the joint torques estimates are published */
+    yarp::dev::PolyDriver remappedVirtualAnalogSensors;
+    struct
+    {
+        yarp::dev::IVirtualAnalogSensor * ivirtsens;
+        yarp::dev::IMultipleWrapper     * multwrap;
+    } remappedVirtualAnalogSensorsInterfaces;
+
 
     /** F/T sensors interfaces */
     std::vector<yarp::dev::IAnalogSensor * > ftSensors;
 
     /** IMU interface */
-    yarp::dev::IGenericSensorEmulator imuInterface;
-
-    /**
-     * Vector containg the information about the IVirtualAnalogSensor devices
-     * on which to publish the estimated torques
-     */
-    std::vector<virtualAnalogSensorRemappedAxis> remappedVirtualAnalogSensorAxis;
+    yarp::dev::IGenericSensor * imuInterface;
 
     /**
      * Setting for the whole body external wrenches and joint torques estimation.
@@ -283,6 +256,7 @@ private:
     bool openSettingsPort();
     bool openRPCPort();
     bool openRemapperControlBoard(os::Searchable& config);
+    bool openRemapperVirtualSensors(os::Searchable& config);
     bool openEstimator(os::Searchable& config);
     bool openDefaultContactFrames(os::Searchable& config);
     bool openSkinContactListPorts(os::Searchable& config);
@@ -340,6 +314,18 @@ private:
     /**
      * Run-related methods.
      */
+
+    /**
+     * Return true if we were able to read the sensors and update
+     * the internal buffers, false otherwise.
+     */
+    bool readFTSensors(bool verbose=true);
+
+    /**
+     * Return true if we were able to read the sensors and update
+     * the internal buffers, false otherwise.
+     */
+    bool readIMUSensors(bool verbose=true);
     void readSensors();
     void filterSensorsAndRemoveSensorOffsets();
     void updateKinematics();
