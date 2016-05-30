@@ -19,3 +19,4 @@ add_executable(jointReferenceGenerator ${INCLUDES} ${SOURCES})
 include_directories(include)
 include_directories(SYSTEM ${IPOPT_INCLUDE_DIRS} ${EIGEN3_INCLUDE_DIR})
 target_link_libraries(jointReferenceGenerator ${YARP_LIBRARIES} ${iDynTree_LIBRARIES} ${IPOPT_LIBRARIES})
+
