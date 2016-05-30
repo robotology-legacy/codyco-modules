@@ -11,7 +11,9 @@ add_executable(${PROJECT_NAME} main.cpp)
 include_directories(${YARP_INCLUDE_DIRS})
 target_link_libraries(${PROJECT_NAME} ${YARP_LIBRARIES})
 
-INSTALL(TARGETS ${PROJECT_NAME} DESTINATION bin)
+install(TARGETS ${PROJECT_NAME} DESTINATION bin)
+
+add_subdirectory(app)
 
 
 

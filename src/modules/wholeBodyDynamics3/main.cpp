@@ -1,7 +1,7 @@
 /* 
  * Copyright (C) 2016 RobotCub Consortium, European Commission FP6 Project IST-004370
- * Author: Ugo Pattacini
- * email:  ugo.pattacini@iit.it
+ * Author: Silvio Traversaro
+ * email:  so@iit.it
  * website: www.robotcub.org
  * Permission is granted to copy, distribute, and/or modify this program
  * under the terms of the GNU General Public License, version 2 or any
@@ -21,11 +21,11 @@
  
 @ingroup codyco_module
  
-A module that uses the wholeBodyDynamics device
+A module that uses the wholeBodyDynamics device with network wrappers.
  
-Copyright (C) 2010 RobotCub Consortium
+Copyright (C) 2016 Fondazione Istituto Italiano di Tecnologia
  
-Author: Ugo Pattacini 
+Author: Silvio Traversaro
 
 CopyPolicy: Released under the terms of the GNU LGPL v2.1+.
 
@@ -120,6 +120,7 @@ public:
             {
                 yError() << "wholeBodyDynamics3 : error in opening device " << devKey;
                 this->close();
+                return false;
             }
 
             // Add to PolyDriverList
@@ -137,6 +138,7 @@ public:
 
         return true;
     }
+
 
     /************************************************************************/
     bool close()
