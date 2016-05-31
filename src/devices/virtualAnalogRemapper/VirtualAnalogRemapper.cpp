@@ -43,14 +43,6 @@ bool VirtualAnalogRemapper::open(Searchable& config)
         m_axesNames[jnt] = axesNamesBot->get(jnt).asString();
     }
 
-    if( !( prop.check("alwaysUpdateAllSubDevices") && prop.find("alwaysUpdateAllSubDevices").isBool()) )
-    {
-        yError("VirtualAnalogRemapper: Missing required alwaysUpdateAllSubDevices bool parameter");
-        return false;
-    }
-
-    m_alwaysUpdateAllSubDevices = prop.find("alwaysUpdateAllSubDevices").asBool();
-
     // Waiting for attach now
     return true;
 }
@@ -114,21 +106,16 @@ bool VirtualAnalogRemapper::attachAll(const PolyDriverList& p)
     {
         std::string jointName = m_axesNames[axis];
 
-        // if the name is not exposed in the VirtualAnalogSensors, raise an error if alwaysUpdateAllSubDevices is enabled
+        // if the name is not exposed in the VirtualAnalogSensors, save it as a null pointer
         if( axisName2virtualAnalogSensorPtr.find(jointName) == axisName2virtualAnalogSensorPtr.end() )
         {
             remappedAxes[axis].dev = 0;
             remappedAxes[axis].devInfo = 0;
             remappedAxes[axis].localAxis = 0;
 
-            if( m_alwaysUpdateAllSubDevices )
-            {
-                yError() << "VirtualAnalogRemapper: channel " << jointName << " not found in the subdevices, exiting because option alwaysUpdateAllSubDevices is enabled.";
-                detachAll();
-                return false;
-            }
 
-            // If m_alwaysUpdateAllSubDevices is not enabled, we support not publishing the information for some axis
+            // we support not publishing the information for some axis
+            // (as most of the time we estimates torques for axis that don't have a virtual analog sensor)
         }
         else
         {
@@ -138,46 +125,54 @@ bool VirtualAnalogRemapper::attachAll(const PolyDriverList& p)
         }
     }
 
-    // if m_alwaysUpdateAllSubDevices is set to false, then we are ok with just this information
-    // (because we will use just the single axis updateMeasure) otherwise, we must check that all
-    // the channels of the underling subdevices are part of m_axesNames, so we can always use the
-    // updateMeasure (that is more efficient if network communication is involved)
-    if( m_alwaysUpdateAllSubDevices )
+
+    // Let's fill the remappedSubdevices structure
+    remappedSubdevices.resize(virtualAnalogList.size());
+
+    for(size_t subdev = 0; subdev < virtualAnalogList.size(); subdev++)
     {
-        // Let's count the total number of channels: if it is different from the axesNames size, give an error
-        // because some channel is not covered
-        size_t totalChannels = 0;
-        for(size_t subdev = 0; subdev < virtualAnalogList.size(); subdev++)
+        remappedSubdevices[subdev].dev = virtualAnalogList[subdev];
+        remappedSubdevices[subdev].measureBuffer.resize(remappedSubdevices[subdev].dev->getChannels(),0.0);
+        remappedSubdevices[subdev].local2globalIdx.resize(remappedSubdevices[subdev].dev->getChannels(),-1);
+
+        // Let's fill the local2globalIdx vector by searching on all the vector
+        // In the meanwhile, we also count the channels of the subdevices that are remapped:
+        // if all the axes on subdevice are remapped, we can use the updateMeasure(Vector&out) method
+        int axesOfSubDeviceThatAreRemapped=0;
+        for(size_t localIndex = 0; localIndex < remappedSubdevices[subdev].local2globalIdx.size(); localIndex++)
         {
-            totalChannels += virtualAnalogList[subdev]->getChannels();
+            for(size_t globalAxis = 0; globalAxis < remappedAxes.size(); globalAxis++)
+            {
+                if( (remappedAxes[globalAxis].dev == remappedSubdevices[subdev].dev) &&
+                    (remappedAxes[globalAxis].localAxis == (int)localIndex) )
+                {
+                    remappedSubdevices[subdev].local2globalIdx[localIndex] = globalAxis;
+                    remappedAxes[globalAxis].devIdx = (int)subdev;
+                    axesOfSubDeviceThatAreRemapped++;
+                }
+            }
         }
 
-        if( totalChannels != m_axesNames.size() )
+        // If all the axes of the subdevice are remapped, we can use the vector updateMeasure
+        if( axesOfSubDeviceThatAreRemapped == remappedSubdevices[subdev].dev->getChannels() )
         {
-            yError() << "VirtualAnalogRemapper: alwaysUpdateAllSubDevices is set to true, but axesNames has only " << m_axesNames.size() << " listed, while there are " << totalChannels << " in the subdevices";
-            detachAll();
-            return false;
-        }
-
-        // Let's fill the remappedSubdevices structure
-        remappedSubdevices.resize(virtualAnalogList.size());
-
-        for(size_t subdev = 0; subdev < virtualAnalogList.size(); subdev++)
-        {
-            remappedSubdevices[subdev].dev = virtualAnalogList[subdev];
-            remappedSubdevices[subdev].measureBuffer.resize(remappedSubdevices[subdev].dev->getChannels());
-            remappedSubdevices[subdev].local2globalIdx.resize(remappedSubdevices[subdev].dev->getChannels());
-
-            // Let's fill the local2globalIdx vector by searching on all the vector
+            remappedSubdevices[subdev].useVectorUpdateMeasure = true;
             for(size_t localIndex = 0; localIndex < remappedSubdevices[subdev].local2globalIdx.size(); localIndex++)
             {
-                for(size_t globalAxis = 0; globalAxis < remappedAxes.size(); globalAxis++)
+                int globalIdx = remappedSubdevices[subdev].local2globalIdx[localIndex];
+                remappedAxes[globalIdx].useVectorUpdateMeasure = true;
+            }
+        }
+        else
+        {
+            remappedSubdevices[subdev].useVectorUpdateMeasure = false;
+            for(size_t localIndex = 0; localIndex < remappedSubdevices[subdev].local2globalIdx.size(); localIndex++)
+            {
+                int globalIdx = remappedSubdevices[subdev].local2globalIdx[localIndex];
+
+                if( globalIdx > 0 )
                 {
-                    if( (remappedAxes[globalAxis].dev == remappedSubdevices[subdev].dev) &&
-                        (remappedAxes[globalAxis].localAxis == (int)localIndex) )
-                    {
-                        remappedSubdevices[subdev].local2globalIdx[localIndex] = globalAxis;
-                    }
+                    remappedAxes[globalIdx].useVectorUpdateMeasure = false;
                 }
             }
         }
@@ -212,10 +207,11 @@ bool VirtualAnalogRemapper::updateMeasure(Vector& measure)
         return false;
     }
 
-    if( m_alwaysUpdateAllSubDevices )
+
+    // Call the vector updateMeasure for subdevices in which all parts are remapped
+    for(size_t subdevIdx=0; subdevIdx < remappedSubdevices.size(); subdevIdx++)
     {
-        // use multiple axis method
-        for(size_t subdevIdx=0; subdevIdx < remappedSubdevices.size(); subdevIdx++)
+        if( this->remappedSubdevices[subdevIdx].useVectorUpdateMeasure )
         {
             IVirtualAnalogSensor * dev = this->remappedSubdevices[subdevIdx].dev;
 
@@ -230,10 +226,11 @@ bool VirtualAnalogRemapper::updateMeasure(Vector& measure)
             ret = ok && ret;
         }
     }
-    else
+
+    // use single axis method (for axis that are not already updated)
+    for(int jnt=0; jnt < this->getChannels(); jnt++)
     {
-        // use single axis method
-        for(int jnt=0; jnt < this->getChannels(); jnt++)
+        if( !(this->remappedAxes[jnt].useVectorUpdateMeasure) )
         {
             IVirtualAnalogSensor * dev = this->remappedAxes[jnt].dev;
             int localAxis = this->remappedAxes[jnt].localAxis;

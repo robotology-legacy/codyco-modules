@@ -25,6 +25,8 @@ struct virtualAnalogSensorRemappedAxis
     IVirtualAnalogSensor * dev;
     IAxisInfo            * devInfo;
     int localAxis;
+    int devIdx;
+    bool useVectorUpdateMeasure;
 };
 
 /**
@@ -35,6 +37,7 @@ struct virtualAnalogSensorRemappedSubdevice
     IVirtualAnalogSensor * dev;
     yarp::sig::Vector measureBuffer;
     std::vector<int> local2globalIdx;
+    bool useVectorUpdateMeasure;
 };
 
 
@@ -55,18 +58,16 @@ struct virtualAnalogSensorRemappedSubdevice
 *  The main difference with respect to the style of remapping provided by the ControlBoardRemapper
 *  is that the IVirtualAnalogSensor does not provide updateMeasure methods for a subset of the axes.
 *  Using just the single-axis version is tipically doable when this device is running on the robot, but
-*  it may be prohibitly expensive to do when the measure are published on a port.
-*  Consequently if the alwaysUpdateAllSubDevices parameters is set to true,
-*  the device open will check that all the axes of the attached devices should be part of the axesNames parameters,
-*  otherwise the open will fail. If instead the alwaysUpdateAllSubDevices is set to false, the single channel
-*  methods will be used.
+*  it may be prohibitly expensive to do when the measure are published on a port, as each call to the
+*  single-axis updateMeasure may involve to send a packed.
+*  Consequently if the VirtualAnalogRemapper detects that all channels in a subdevice are part
+*  of the remapped device, the vector-value updateMeasure method will be used.
 *
 *
 *  Parameters required by this device are:
 * | Parameter name | SubParameter   | Type    | Units          | Default Value | Required                    | Description                                                       | Notes |
 * |:--------------:|:--------------:|:-------:|:--------------:|:-------------:|:--------------------------: |:-----------------------------------------------------------------:|:-----:|
 * | axesNames     |      -          | vector of strings  | -   |   -           | Yes     | Ordered list of the axes that are part of the remapped device. |  |
-* | alwaysUpdateAllSubDevices |  -  | bool    |      -         |   -           | Yes  | If  yes, only the updateMeasure(yarp::sig::Vector &measure) method of the underlyng subdevices, if false use always the updateMeasure(int ch, double &measure) method.   | Tipically this is set to yes if used with the VirtualAnalogClient, and to false if used inside the yarprobotinterface. |
 *
 * The axes are then mapped to the wrapped controlboard in the attachAll method, using the
 * values returned by the getAxisName method of the attached devices.
@@ -76,7 +77,6 @@ struct virtualAnalogSensorRemappedSubdevice
 * \code{.unparsed}
 *  device virtualAnalogRemapper
 *  axesNames (joint1 joint2 joint3)
-*  alwaysUpdateAllSubDevices true
 * ...
 * \endcode
 *
@@ -89,7 +89,6 @@ class VirtualAnalogRemapper:  public DeviceDriver,
 protected:
 
     std::vector<std::string> m_axesNames;
-    bool m_alwaysUpdateAllSubDevices;
 
     /**
      * Vector containg the information about a specific axis remapped by this device.
@@ -100,11 +99,15 @@ protected:
 
     /**
      * Vector containing the information about a specific subdevice remapped by this device.
-     * This vector will have the dimension of the number of mapper subdevices, and
-     * will be populated only if m_alwaysUpdateAllSubDevices is set to true.
+     * This vector will have the dimension of the number of mapper subdevices,
+     * but will be used only if for a specific subdevice it would be detected that all the channels
+     * are part of the remapper device.
      */
     std::vector<virtualAnalogSensorRemappedSubdevice> remappedSubdevices;
 
+    /**
+     * Get the number of remapped devices. 
+     */
     int getNrOfSubDevices();
 
 
