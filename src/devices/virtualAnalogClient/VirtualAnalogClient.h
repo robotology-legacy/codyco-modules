@@ -41,7 +41,7 @@ namespace dev {
 * | AxisName       | vector of strings | - |    -   | Yes       | name of the axes in which the torque estimate is published | - |
 * | AxisType       | vector of strings | - |revolute| No        | type of the axies in which the torque estimate is published | - |
 * | virtualAnalogSensorInteger | int | - | -        | Yes       | A virtualAnalogServer specific integer, check the VirtualAnalogServer for more info.  | - |
-* | doNotConnect    |   -    |   -   |      -       | No        | If present, do not connect automatically the ports. | - |
+* | autoconnect    |   bool    |   -   |    true  | No        | Specify if port should be connected or not | - |
 *
 *  The device will create a port with name <local> and will connect to a port colled <remote> at startup,
 * ex: <b> /wholeBodyDynamics/left_leg/Torques:o  </b>, and will connect to a port called <b> /icub/joint_vsens/left_leg:i <b>.

@@ -121,9 +121,16 @@ bool VirtualAnalogClient::open(Searchable& config)
     // Connect the port
     bool autoconnect = true;
 
-    if( prop.check("doNotConnect") )
+    if( prop.check("autoconnect") )
     {
-        autoconnect = false;
+        if( prop.find("autoconnect").isBool() )
+        {
+            autoconnect = prop.find("autoconnect").asBool();
+        }
+        else 
+        {
+            yError() << "VirtualAnalogClient: autoconnect option found, but is not a bool, exiting.";
+        }
     }
 
     if( autoconnect )
