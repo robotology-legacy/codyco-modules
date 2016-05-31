@@ -27,6 +27,7 @@
 #include <wholeBodyDynamicsSettings.h>
 #include <wholeBodyDynamics_IDLServer.h>
 #include "SixAxisForceTorqueMeasureHelpers.h"
+#include "GravityCompensationHelpers.h"
 
 #include <vector>
 
@@ -220,6 +221,9 @@ private:
     {
         yarp::dev::IEncoders        * encs;
         yarp::dev::IMultipleWrapper * multwrap;
+        yarp::dev::IImpedanceControl * impctrl;
+        yarp::dev::IControlMode2    * ctrlmode;
+        yarp::dev::IInteractionMode * intmode;
     } remappedControlBoardInterfaces;
 
     /** Remapped virtual analog sensor containg the axes for which the joint torques estimates are published */
@@ -638,7 +642,10 @@ private:
 
     // Attributes for gravity compensation
     bool m_gravityCompensationEnabled;
-    std::vector<iDynTree::JointIndex> m_gravityCompesationJoints;
+    wholeBodyDynamics::GravityCompensationHelper m_gravCompHelper;
+    std::vector<size_t> m_gravityCompesationJoints;
+    iDynTree::JointDOFsDoubleArray m_gravityCompensationTorques;
+    void resetGravityCompensation();
 
 public:
     // CONSTRUCTOR

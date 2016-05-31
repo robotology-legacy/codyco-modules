@@ -22,7 +22,9 @@ include_directories(SYSTEM
                     ${skinDynLib_INCLUDE_DIRS})
 
 yarp_add_plugin(wholeBodyDynamicsDevice WholeBodyDynamicsDevice.h WholeBodyDynamicsDevice.cpp
-                                                                  SixAxisForceTorqueMeasureHelpers.cpp)
+                                        SixAxisForceTorqueMeasureHelpers.h SixAxisForceTorqueMeasureHelpers.cpp
+                                        GravityCompensationHelpers.h GravityCompensationHelpers.cpp)
+                                        
 target_link_libraries(wholeBodyDynamicsDevice wholeBodyDynamicsSettings
                                               wholeBodyDynamics_IDLServer
                                               ctrlLibRT

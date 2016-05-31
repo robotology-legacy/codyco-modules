@@ -190,6 +190,9 @@ bool WholeBodyDynamicsDevice::openRemapperControlBoard(os::Searchable& config)
     // View relevant interfaces for the remappedControlBoard
     ok = ok && remappedControlBoard.view(remappedControlBoardInterfaces.encs);
     ok = ok && remappedControlBoard.view(remappedControlBoardInterfaces.multwrap);
+    ok = ok && remappedControlBoard.view(remappedControlBoardInterfaces.impctrl);
+    ok = ok && remappedControlBoard.view(remappedControlBoardInterfaces.ctrlmode);
+    ok = ok && remappedControlBoard.view(remappedControlBoardInterfaces.intmode);
 
     if( !ok )
     {
@@ -689,7 +692,8 @@ bool WholeBodyDynamicsDevice::loadGravityCompensationSettingsFromConfig(os::Sear
         // We use the kinDynComp class that was opened together with the estimator
         std::string gravityCompensationBaseLink = propGravComp.find("gravityCompensationBaseLink").asString().c_str();
 
-        ret = this->kinDynComp.setFloatingBase(gravityCompensationBaseLink);
+        ret = m_gravCompHelper.loadModel(this->estimator.model(),gravityCompensationBaseLink);
+        m_gravityCompensationTorques.resize(this->estimator.model());
 
         if( !ret )
         {
@@ -1145,6 +1149,13 @@ void WholeBodyDynamicsDevice::updateKinematics()
 
         estimator.updateKinematicsFromFloatingBase(jointPos,jointVel,jointAcc,imuFrameIndex,
                                                    filteredIMUMeasurements.linProperAcc,filteredIMUMeasurements.angularVel,filteredIMUMeasurements.angularAcc);
+
+        if( m_gravityCompensationEnabled )
+        {
+            m_gravCompHelper.updateKinematicsFromProperAcceleration(jointPos,
+                                                                    imuFrameIndex,
+                                                                    filteredIMUMeasurements.linProperAcc);
+        }
     }
     else
     {
@@ -1158,6 +1169,13 @@ void WholeBodyDynamicsDevice::updateKinematics()
         gravity(2) = settings.fixedFrameGravity.z;
 
         estimator.updateKinematicsFromFixedBase(jointPos,jointVel,jointAcc,fixedFrameIndex,gravity);
+
+        if( m_gravityCompensationEnabled )
+        {
+            m_gravCompHelper.updateKinematicsFromGravity(jointPos,
+                                                         fixedFrameIndex,
+                                                         gravity);
+        }
     }
 }
 
@@ -1305,7 +1323,67 @@ void WholeBodyDynamicsDevice::publishEstimatedQuantities()
 
 void WholeBodyDynamicsDevice::publishGravityCompensation()
 {
+    if( m_gravityCompensationEnabled )
+    {
+        this->m_gravCompHelper.getGravityCompensationTorques(this->m_gravityCompensationTorques);
+        // Publish torques only in joints that are in compliant mode that they need it
+
+        for(size_t ii=0; ii < m_gravityCompesationJoints.size(); ii++)
+        {
+            size_t dof = m_gravityCompesationJoints[ii];
+
+            int ctrl_mode=0;
+            yarp::dev::InteractionModeEnum int_mode;
+            remappedControlBoardInterfaces.ctrlmode->getControlMode(dof,&ctrl_mode);
+            remappedControlBoardInterfaces.intmode->getInteractionMode(dof,&int_mode);
+
+            switch(ctrl_mode)
+            {
+                //for all this control modes do nothing
+                case VOCAB_CM_OPENLOOP:
+                case VOCAB_CM_IDLE:
+                case VOCAB_CM_UNKNOWN:
+                case VOCAB_CM_HW_FAULT:
+                    break;
+
+                case VOCAB_CM_TORQUE:
+                    // We don't do anything in torque mode, differently from the
+                    // old gravity compensation : because otherwise we interfere
+                    // with any torque control loop
+                    break;
+
+                case VOCAB_CM_POSITION:
+                case VOCAB_CM_POSITION_DIRECT:
+                case VOCAB_CM_MIXED:
+                case VOCAB_CM_VELOCITY:
+                     if (int_mode == VOCAB_IM_COMPLIANT)
+                     {
+                         remappedControlBoardInterfaces.impctrl->setImpedanceOffset((int)dof,this->m_gravityCompensationTorques(dof));
+                     }
+                     else
+                     {
+                         //stiff or unknown mode, nothing to do
+                     }
+                     break;
+            }
+        }
+    }
 }
+
+void WholeBodyDynamicsDevice::resetGravityCompensation()
+{
+    if( m_gravityCompensationEnabled )
+    {
+        for(size_t ii=0; ii < m_gravityCompesationJoints.size(); ii++)
+        {
+            size_t dof = m_gravityCompesationJoints[ii];
+
+            // Regardless of the controlmode, we reset the setImpedanceOffset
+            remappedControlBoardInterfaces.impctrl->setImpedanceOffset((int)dof,0.0);
+        }
+    }
+}
+
 
 
 template <class T> void broadcastData(T& _values, yarp::os::BufferedPort<T>& _port)
@@ -1411,13 +1489,16 @@ bool WholeBodyDynamicsDevice::detachAll()
 {
     yarp::os::LockGuard guard(this->deviceMutex);
 
-    // Detach remappers
     correctlyConfigured = false;
 
     if (isRunning())
     {
         stop();
     }
+
+    // If gravity compensation was enabled, reset the offsets
+    this->resetGravityCompensation();
+
 
     this->remappedControlBoardInterfaces.multwrap->detachAll();
     this->remappedVirtualAnalogSensorsInterfaces.multwrap->detachAll();
