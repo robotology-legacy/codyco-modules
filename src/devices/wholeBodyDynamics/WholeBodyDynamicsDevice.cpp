@@ -148,6 +148,27 @@ bool getUsedDOFsList(os::Searchable& config, std::vector<std::string> & usedDOFs
     return true;
 }
 
+bool getGravityCompensationDOFsList(os::Searchable& config, std::vector<std::string> & gravityCompensationDOFs)
+{
+    yarp::os::Property prop;
+    prop.fromString(config.toString().c_str());
+
+    yarp::os::Bottle *propAxesNames=prop.find("gravityCompensationAxesNames").asList();
+    if(propAxesNames==0)
+    {
+       yError() <<"wholeBodyDynamics : Error parsing parameters: \"gravityCompensationAxesNames\" should be followed by a list\n";
+       return false;
+    }
+
+    gravityCompensationDOFs.resize(propAxesNames->size());
+    for(int ax=0; ax < propAxesNames->size(); ax++)
+    {
+        gravityCompensationDOFs[ax] = propAxesNames->get(ax).asString().c_str();
+    }
+
+    return true;
+}
+
 
 bool WholeBodyDynamicsDevice::openRemapperControlBoard(os::Searchable& config)
 {
@@ -601,6 +622,87 @@ bool WholeBodyDynamicsDevice::loadSettingsFromConfig(os::Searchable& config)
     return true;
 }
 
+bool WholeBodyDynamicsDevice::loadGravityCompensationSettingsFromConfig(os::Searchable& config)
+{
+    bool ret = true;
+    yarp::os::Property propAll;
+    propAll.fromString(config.toString().c_str());
+
+    if( !propAll.check("GRAVITY_COMPENSATION") )
+    {
+        m_gravityCompensationEnabled = false;
+        m_gravityCompesationJoints.resize(0);
+        ret = false;
+    }
+    else
+    {
+        yarp::os::Property prop;
+        prop.fromString(propAll.findGroup("GRAVITY_COMPENSATION").c_str());
+
+        if( !(prop.check("enableGravityCompensation") && prop.find("enableGravityCompensation").isBool()) )
+        {
+            yError() << "wholeBodyDynamics: GRAVITY_COMPENSATION group found, but enableGravityCompensation bool parameter missing";
+            return false;
+        }
+
+        if( !(prop.check("gravityCompensationBaseLink") && prop.find("gravityCompensationBaseLink").isString()) )
+        {
+            yError() << "wholeBodyDynamics: GRAVITY_COMPENSATION group found, but gravityCompensationBaseLink string parameter missing";
+            return false;
+        }
+
+        if( !(prop.check("gravityCompensationAxesNames") && prop.find("gravityCompensationAxesNames").isBool()) )
+        {
+            yError() << "wholeBodyDynamics: GRAVITY_COMPENSATION group found, but gravityCompensationAxesNames list parameter missing";
+            return false;
+        }
+
+        m_gravityCompensationEnabled = prop.find("enableGravityCompensation").asBool();
+
+        std::vector<std::string> gravityCompesationAxes;
+
+        ret = getGravityCompensationDOFsList(prop,gravityCompesationAxes);
+
+        if( !ret) return false;
+
+        m_gravityCompesationJoints.resize(0);
+        for(int i=0; i < gravityCompesationAxes.size(); i++)
+        {
+            iDynTree::JointIndex dofGravityJointIndex = this->kinDynComp.getRobotModel().getJointIndex(gravityCompesationAxes[i]);
+
+            if( !(this->kinDynComp.getRobotModel().isValidJointIndex(dofGravityJointIndex)) )
+            {
+                yError() << "wholeBodyDynamics: joint " << gravityCompesationAxes[i] << " passed as a gravityCompensationAxesNames not found in the model.";
+                return false;
+            }
+
+            if( this->kinDynComp.getRobotModel().getJoint(dofGravityJointIndex)->getNrOfDOFs() != 1 )
+            {
+                yError() << "wholeBodyDynamics: joint " << gravityCompesationAxes[i] << " passed as a gravityCompensationAxesNames is not a 1 dof joint.";
+                return false;
+            }
+
+            size_t dofOffset = this->kinDynComp.getRobotModel().getJoint(dofGravityJointIndex)->getDOFsOffset();
+
+            m_gravityCompesationJoints.push_back(dofOffset);
+        }
+
+        // We use the kinDynComp class that was opened together with the estimator
+        std::string gravityCompensationBaseLink = prop.find("gravityCompensationBaseLink").asString().c_str();
+
+        ret = this->kinDynComp.setFloatingBase(gravityCompensationBaseLink);
+
+        if( !ret )
+        {
+            yError() << "wholeBodyDynamics: link " << gravityCompensationBaseLink << " passed as gravityCompensationBaseLink not found in the model.";
+            return false;
+        }
+    }
+
+    return ret;
+}
+
+
 bool WholeBodyDynamicsDevice::open(os::Searchable& config)
 {
     yarp::os::LockGuard guard(this->deviceMutex);
@@ -614,6 +716,9 @@ bool WholeBodyDynamicsDevice::open(os::Searchable& config)
     // Create the estimator
     ok = this->openEstimator(config);
     if( !ok ) return false;
+
+    // Open settings related to gravity compensation (we need the estimator to be open)
+    ok = this->loadGravityCompensationSettingsFromConfig(config);
 
     // Open rpc port
     ok = this->openRPCPort();
@@ -640,6 +745,7 @@ bool WholeBodyDynamicsDevice::open(os::Searchable& config)
 
     // Open the ports related to publishing external wrenches
     ok = this->openExternalWrenchesPorts(config);
+    if( !ok ) return false;
 
 
     return true;
@@ -1183,8 +1289,8 @@ void WholeBodyDynamicsDevice::publishEstimatedQuantities()
             //Send external wrench estimates
             publishExternalWrenches();
 
-            //Compute odometry
-            //publishOdometry();
+            // Send gravity compensation torques
+            publishGravityCompensation();
 
             //Send base information to iCubGui
             //publishBaseToGui();
@@ -1197,6 +1303,11 @@ void WholeBodyDynamicsDevice::publishEstimatedQuantities()
         }
     }
 }
+
+void WholeBodyDynamicsDevice::publishGravityCompensation()
+{
+}
+
 
 template <class T> void broadcastData(T& _values, yarp::os::BufferedPort<T>& _port)
 {

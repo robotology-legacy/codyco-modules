@@ -122,27 +122,36 @@ class wholeBodyDynamicsDeviceFilters
  * | forceTorqueFilterCutoffInHz | - | double            | Hz    |      -        | Yes      | Cutoff frequency of the filter used to filter FT measures.  |  The used filter is a simple first order filter. |
  * | jointVelFilterCutoffInHz    | - | double            | Hz    |      -        | Yes      | Cutoff frequency of the filter used to filter joint velocities measures. | The used filter is a simple first order filter. |
  * | jointAccFilterCutoffInHz    | - | double            | Hz    |      -        | Yes      | Cutoff frequency of the filter used to filter joint accelerations measures. | The used filter is a simple first order filter. |
- * | defaultContactFrames        | - | vector of strings (name of frames ) | - | - |  Yes   | Vector of default contact frames. If no external force read from the skin is found on a given submodel, the defaultContactFrames list is scanned and the first frame found on the submodel is the one at which origin the unknown contact force is assumed to be. |
+ * | defaultContactFrames      | - | vector of strings (name of frames ) | - | - |  Yes     | Vector of default contact frames. If no external force read from the skin is found on a given submodel, the defaultContactFrames list is scanned and the first frame found on the submodel is the one at which origin the unknown contact force is assumed to be. |
+ * | alwaysUpdateAllVirtualTorqueSensors | - |  bool     |  -    |      -        |  Yes     | Enforce that a virtual sensor for each estimated axes is available. | Tipically this is set to false when the device is running in the robot, while to true if it is running outside the robot. |
  * | IDYNTREE_SKINDYNLIB_LINKS |  -  | group             | -     | -             | Yes      |  Group describing the mapping between link names and skinDynLib identifiers. | |
- * |                |   linkName_1   | string (name of a link in the model) | - | - | Yes    | Bottle of three elements describing how the link with linkName is described in skinDynLib: the first element is the name of the frame in which the contact info is expressed in skinDynLib (tipically DH frames), the second a integer describing the skinDynLib BodyPart , and the third a integer describing the skinDynLib LinkIndex  | |
- * |                |   ...   | string (name of a link in the model) | - | - | Yes    | Bottle of three elements describing how the link with linkName is described in skinDynLib: the first element is the name of the frame in which the contact info is expressed in skinDynLib (tipically DH frames), the second a integer describing the skinDynLib BodyPart , and the third a integer describing the skinDynLib LinkIndex  | |
- * |                |   linkName_n   | string (name of a link in the model) | - | - | Yes    | Bottle of three elements describing how the link with linkName is described in skinDynLib: the first element is the name of the frame in which the contact info is expressed in skinDynLib (tipically DH frames), the second a integer describing the skinDynLib BodyPart , and the third a integer describing the skinDynLib LinkIndex  | |
- * | WBD_OUTPUT_EXTERNAL_WRENCH_PORTS |  -  | group             | -     | -             | Yes      |  Group describing the external forces published on a YARP port by wholeBodyDynamics. | |  |
+ * |                |   linkName_1   | string (name of a link in the model) | - | - | Yes   | Bottle of three elements describing how the link with linkName is described in skinDynLib: the first element is the name of the frame in which the contact info is expressed in skinDynLib (tipically DH frames), the second a integer describing the skinDynLib BodyPart , and the third a integer describing the skinDynLib LinkIndex  | |
+ * |                |   ...   | string (name of a link in the model) | - | -     | Yes      | Bottle of three elements describing how the link with linkName is described in skinDynLib: the first element is the name of the frame in which the contact info is expressed in skinDynLib (tipically DH frames), the second a integer describing the skinDynLib BodyPart , and the third a integer describing the skinDynLib LinkIndex  | |
+ * |                |   linkName_n   | string (name of a link in the model) | - | - | Yes   | Bottle of three elements describing how the link with linkName is described in skinDynLib: the first element is the name of the frame in which the contact info is expressed in skinDynLib (tipically DH frames), the second a integer describing the skinDynLib BodyPart , and the third a integer describing the skinDynLib LinkIndex  | |
+ * | WBD_OUTPUT_EXTERNAL_WRENCH_PORTS |  -  | group             | -     | -     | Yes       |  Group describing the external forces published on a YARP port by wholeBodyDynamics. | |  |
  * |                |   portName_1   | string (name of the port opened to stream the external wrench | - | - | Yes    | Bottle of three elements describing the wrench published on the port: the first element is the link of which the published external wrench is applied. This wrench is expressed around the origin of the frame named as second paramter, and with the orientation of the third parameter.  |  |
- * |                |   ...   | | - | .. | Yes    | ..  |  |
- * |                |   portName_n   | .. | - | - | Yes    | ..  | |
- * | alwaysUpdateAllVirtualTorqueSensors | - |  bool     |  -    |      -        |  Yes      | Enforce that a virtual sensor for each estimated axes is available. | Tipically this is set to false when the device is running in the robot, while to true if it is running outside the robot. |
- *
- *
- *
+ * |                |   ...   | | - | ..                                        | Yes       | ..  |  |
+ * |                |   portName_n   | .. | - | -                               | Yes       | ..  | |
+ * | GRAVITY_COMPENSATION |  -       | group             | -     | -            | No        |  Group for providing estimates of the torque necessary to compensate gravity. | Gravity calls setImpedanceOffset when the considered joints is in COMPLIANT_INTERACTION_MODE   |
+ * |                      | enableGravityCompensation | bool | -  | -           | No        |  |  |
+ * |                      | gravityCompensationBaseLink| string | - | -         | No        | ..  | |
+ * |                      | gravityCompensationAxesNames | vector of strings | - | - | No   | Axes for which the gravity compensation is published. | |
  *
  * The axes contained in the axesNames parameter are then mapped to the wrapped controlboard in the attachAll method, using controlBoardRemapper class.
  * Furthermore are also used to match the yarp axes to the joint names found in the passed URDF file.
  *
+ * \subsection GravityCompensation
+ * This device also provides gravity compensation torques (using the IImpedanceControl::setImpedanceOffset method)
+ * for axis that are in compliant interaction mode and in position/position direct/velocity control mode.
+ * This estimates are obtained just with the model, assuming that there is a link (the gravityCompensationRootLink)
+ * at which all external forces are exerted.
+ * Tipically this estimates are provided only for the upper joints (arms and torso) of the robots, as the gravity
+ * compensation terms for the legs depends on the support state of the robot.
  *
- *
+ * \subsection Filters
  * All the filters used for the input measurements are using the iCub::ctrl::realTime::FirstOrderLowPassFilter class.
  *
+ * \subsection ConfigurationExamples
  *
  * Example onfiguration file using .ini format.
  *
@@ -340,11 +349,13 @@ private:
     void publishContacts();
     void publishExternalWrenches();
     void publishEstimatedQuantities();
+    void publishGravityCompensation();
 
     /**
      * Load settings from config.
      */
     bool loadSettingsFromConfig(yarp::os::Searchable& config);
+    bool loadGravityCompensationSettingsFromConfig(yarp::os::Searchable & config);
 
     /**
      * Class actually doing computations.
@@ -622,8 +633,12 @@ private:
      */
     iDynTree::LinkNetExternalWrenches netExternalWrenchesExertedByTheEnviroment;
 
-    // Class for computing relative transforms (useful for net external wrench frame computations)
+    // Class for computing relative transforms (useful for net external wrench frame computations and gravity compensation)
     iDynTree::KinDynComputations kinDynComp;
+
+    // Attributes for gravity compensation
+    bool m_gravityCompensationEnabled;
+    std::vector<iDynTree::JointIndex> m_gravityCompesationJoints;
 
 public:
     // CONSTRUCTOR
