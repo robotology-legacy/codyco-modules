@@ -491,6 +491,7 @@ void WholeBodyDynamicsDevice::resizeBuffers()
     this->rawSensorsMeasurements.resize(estimator.sensors());
     this->filteredSensorMeasurements.resize(estimator.sensors());
     this->estimatedJointTorques.resize(estimator.model());
+    this->estimatedJointTorquesYARP.resize(this->estimatedJointTorques.size(),0.0);
     this->estimateExternalContactWrenches.resize(estimator.model());
 
     // Resize F/T stuff
@@ -1208,6 +1209,8 @@ template <class T> void broadcastData(T& _values, yarp::os::BufferedPort<T>& _po
 
 void WholeBodyDynamicsDevice::publishTorques()
 {
+    iDynTree::toYarp(this->estimatedJointTorques,this->estimatedJointTorquesYARP);
+    this->remappedVirtualAnalogSensorsInterfaces.ivirtsens->updateMeasure(this->estimatedJointTorquesYARP);
 }
 
 void WholeBodyDynamicsDevice::publishContacts()
@@ -1298,6 +1301,7 @@ bool WholeBodyDynamicsDevice::detachAll()
 {
     yarp::os::LockGuard guard(this->deviceMutex);
 
+    // Detach remappers
     correctlyConfigured = false;
 
     if (isRunning())
@@ -1305,12 +1309,12 @@ bool WholeBodyDynamicsDevice::detachAll()
         stop();
     }
 
+    this->remappedControlBoardInterfaces.multwrap->detachAll();
+    this->remappedVirtualAnalogSensorsInterfaces.multwrap->detachAll();
+
     closeExternalWrenchesPorts();
-
     closeRPCPort();
-
     closeSettingsPort();
-
     closeSkinContactListsPorts();
 
 
@@ -1319,6 +1323,9 @@ bool WholeBodyDynamicsDevice::detachAll()
 
 bool WholeBodyDynamicsDevice::close()
 {
+    this->remappedControlBoard.close();
+    this->remappedVirtualAnalogSensors.close();
+
     correctlyConfigured = false;
 
     return true;

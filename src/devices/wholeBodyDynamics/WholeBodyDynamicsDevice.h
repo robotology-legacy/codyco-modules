@@ -365,6 +365,8 @@ private:
     iDynTree::JointDOFsDoubleArray jointAcc;
     yarp::sig::Vector              ftMeasurement;
     yarp::sig::Vector              imuMeasurement;
+    yarp::sig::Vector              estimatedJointTorquesYARP;
+
     /***
      * Buffer for raw sensors measurements.
      */
