@@ -222,9 +222,6 @@ bool WholeBodyDynamicsDevice::openRemapperVirtualSensors(os::Searchable& config)
 
     addVectorOfStringToProperty(propRemapper,"axesNames",estimationJointNames);
 
-    // Handle alwaysUpdateAllSubDevices : false on yarprobotinterface, true if the estimation is external
-    propRemapper.put("alwaysUpdateAllSubDevices",config.find("alwaysUpdateAllVirtualTorqueSensors"));
-
     ok = remappedVirtualAnalogSensors.open(propRemapper);
 
     if( !ok )
@@ -616,12 +613,6 @@ bool WholeBodyDynamicsDevice::loadSettingsFromConfig(os::Searchable& config)
         return false;
     }
 
-    if( !( prop.check("alwaysUpdateAllVirtualTorqueSensors") && prop.find("alwaysUpdateAllVirtualTorqueSensors").isBool() ) )
-    {
-        yError() << "wholeBodyDynamics : missing required bool parameter alwaysUpdateAllVirtualTorqueSensors";
-        return false;
-    }
-
     return true;
 }
 
@@ -653,7 +644,7 @@ bool WholeBodyDynamicsDevice::loadGravityCompensationSettingsFromConfig(os::Sear
             return false;
         }
 
-        if( !(propGravComp.check("gravityCompensationAxesNames") && propGravComp.find("gravityCompensationAxesNames").isBool()) )
+        if( !(propGravComp.check("gravityCompensationAxesNames") && propGravComp.find("gravityCompensationAxesNames").isList()) )
         {
             yError() << "wholeBodyDynamics: GRAVITY_COMPENSATION group found, but gravityCompensationAxesNames list parameter missing";
             return false;
@@ -1267,7 +1258,7 @@ void WholeBodyDynamicsDevice::computeCalibration()
                     computeMean(calibrationBuffers.estimationSumBuffer[ft],calibrationBuffers.nrOfSamplesUsedUntilNowForCalibration,estimationMean);
 
                     yInfo() << "wholeBodyDynamics: Offset for sensor " << estimator.sensors().getSensor(iDynTree::SIX_AXIS_FORCE_TORQUE,ft)->getName() << " " << ftProcessors[ft].offset().toString();
-                    yInfo() << "wholeBodyDynamics: obtained assuming a measurement of " << measurementMean.toString() << " and an estimated ft of " << estimationMean.toString();
+                    yInfo() << "wholeBodyDynamics: obtained assuming a measurement of " << measurementMean.asVector().toString() << " and an estimated ft of " << estimationMean.asVector().toString();
                 }
             }
 
