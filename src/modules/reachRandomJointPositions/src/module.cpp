@@ -50,25 +50,20 @@ reachRandomJointPositionsModule::reachRandomJointPositionsModule()
 
 void reachRandomJointPositionsModule::close_drivers()
 {
-    std::map<string,PolyDriver*>::iterator it;
     if(jointInitialized)
     {
         for(int jnt=0; jnt < originalPositions.size(); jnt++ )
         {
-            std::string part = controlledJoints[jnt].part_name;
-            int axis = controlledJoints[jnt].axis_number;
-            pos[part]->setRefSpeed(axis,originalRefSpeeds[jnt]);
-            calib[part]->homingSingleJoint(axis);
+            pos->setRefSpeed(jnt,originalRefSpeeds[jnt]);
+            calib->homingSingleJoint(jnt);
         }
     }
-    for(it=drivers.begin(); it!=drivers.end(); it++ )
-    {
-        if(it->second)
-        {
-            it->second->close();
-            it->second = 0;
-        }
-    }
+
+    driver->close();
+
+    delete driver;
+
+    driver = 0;
 }
 
 
@@ -107,9 +102,9 @@ bool reachRandomJointPositionsModule::configure(ResourceFinder &rf)
     }
 
     
-    if( rf.check("local") )
+    if( rf.check("localPortPrefix") )
     {
-        moduleName = rf.find("local").asString().c_str();
+        moduleName = rf.find("localPortPrefix").asString().c_str();
     }
 
     static_pose_period = rf.check("static_pose_period",1.0).asDouble();
@@ -124,6 +119,13 @@ bool reachRandomJointPositionsModule::configure(ResourceFinder &rf)
         fprintf(stderr, "Please specify the name and joints of the robot\n");
         fprintf(stderr, "--robot name (e.g. icub)\n");
         fprintf(stderr, "--joints ((part_name axis_number lower_limit upper_limit) ... )\n");
+        return false;
+    }
+
+    if( !rf.check("remoteControlBoards") || !rf.find("remoteControlBoards").isList() )
+    {
+        fprintf(stderr, "Please specify the remote controlboards of the robot\n");
+        fprintf(stderr, "--remoteControlBoards (/icubSim/left_leg,/icubSim/left_leg) \n");
         return false;
     }
 
@@ -142,6 +144,7 @@ bool reachRandomJointPositionsModule::configure(ResourceFinder &rf)
     std::cout << "Found " << nrOfControlledJoints << " joint to control" << std::endl;
 
     controlledJoints.resize(nrOfControlledJoints);
+    controlledJointNames.resize(nrOfControlledJoints);
     commandedPositions.resize(nrOfControlledJoints,0.0);
     originalPositions.resize(nrOfControlledJoints);
     originalRefSpeeds.resize(nrOfControlledJoints);
@@ -149,7 +152,7 @@ bool reachRandomJointPositionsModule::configure(ResourceFinder &rf)
     for(int jnt=0; jnt < nrOfControlledJoints; jnt++ )
     {
         yarp::os::Bottle * jnt_ptr = jnts.get(jnt+1).asList();
-        if( jnt_ptr == 0 || jnt_ptr->isNull() || !(jnt_ptr->size() == 4 || jnt_ptr->size() == 5)  )
+        if( jnt_ptr == 0 || jnt_ptr->isNull() || !(jnt_ptr->size() == 4)  )
         {
             fprintf(stderr, "Malformed configuration file (joint %d)\n",jnt);
             return false;
@@ -157,82 +160,51 @@ bool reachRandomJointPositionsModule::configure(ResourceFinder &rf)
 
         std::cout << jnt_ptr->toString() << std::endl;
 
+        controlledJointNames[jnt] = jnt_ptr->get(0).asString().c_str();
         controlledJoint new_joint;
-        new_joint.part_name = jnt_ptr->get(0).asString().c_str();
-        new_joint.axis_number = jnt_ptr->get(1).asInt();
-        new_joint.lower_limit = jnt_ptr->get(2).asDouble();
-        new_joint.upper_limit = jnt_ptr->get(3).asDouble();
-        if( mode != RANDOM ) 
-        {
-            new_joint.delta = jnt_ptr->get(4).asDouble();
-        }
+        new_joint.lower_limit = jnt_ptr->get(1).asDouble();
+        new_joint.upper_limit = jnt_ptr->get(2).asDouble();
+        new_joint.delta = jnt_ptr->get(3).asDouble();
 
         controlledJoints[jnt] = new_joint;
     }
 
-    for(int jnt=0; jnt < nrOfControlledJoints; jnt++ )
+    // Open the controlboard
+    Property options;
+    options.put("device","remotecontrolboardremapper");
+
+    Bottle axesNames;
+    Bottle & axesList = axesNames.addList();
+    for(size_t jnt=0; jnt < controlledJointNames.size(); jnt++)
     {
-        if( drivers.count(controlledJoints[jnt].part_name) == 1 )
-        {
-            //parts controlboard already opened, continue
-            continue;
-        }
-
-        std::string part_name = controlledJoints[jnt].part_name;
-
-        //Open the polydrivers
-        std::string remotePort="/";
-          remotePort+=robotName;
-          remotePort+="/";
-          remotePort+= part_name;
-
-        std::string localPort="/"+moduleName+remotePort;
-        Property options;
-        options.put("device", "remote_controlboard");
-        options.put("local", localPort.c_str());   //local port names
-        options.put("remote", remotePort.c_str());         //where we connect to
-
-       // create a device
-       PolyDriver * new_driver = new PolyDriver(options);
-       if( !new_driver->isValid() )
-       {
-           fprintf(stderr, "[ERR] Error in opening %s part\n",remotePort.c_str());
-           close_drivers();
-           return false;
-       }
-
-       bool ok = true;
-
-       IEncoders * new_encs;
-       IPositionControl * new_poss;
-       IControlLimits * new_lims;
-       IRemoteCalibrator * new_calib;
-       ok = ok && new_driver->view(new_encs);
-       ok = ok && new_driver->view(new_poss);
-       ok = ok && new_driver->view(new_lims);
-       ok = ok && new_driver->view(new_calib);
-
-       if(!ok)
-       {
-           fprintf(stderr, "Error in opening %s part\n",remotePort.c_str());
-           close_drivers();
-           return false;
-       }
-
-       drivers[part_name] = new_driver;
-       pos[part_name] = new_poss;
-       encs[part_name] = new_encs;
-       lims[part_name] = new_lims;
-       calib[part_name] = new_calib;
+        axesList.addString(controlledJointNames[jnt]);
     }
 
+    options.put("axesNames",axesNames.get(0));
+    options.put("remoteControlBoards",rf.find("remoteControlBoards"));
+    options.put("localPortPrefix",rf.find("localPortPrefix"));
+
+    driver = new PolyDriver(options);
+
+    bool ok = true;
+    ok = ok && driver->view(encs);
+    ok = ok && driver->view(pos);
+    ok = ok && driver->view(lims);
+    ok = ok && driver->view(calib);
+
+    if(!ok)
+    {
+        fprintf(stderr, "Error in opening the remote controlboards\n");
+        close_drivers();
+        return false;
+    }
+
+    encs->getEncoders(originalPositions.data());
+    pos->getRefSpeeds(originalRefSpeeds.data());
+
     for(int jnt=0; jnt < nrOfControlledJoints; jnt++ )
     {
-        std::string part = controlledJoints[jnt].part_name;
-        int axis = controlledJoints[jnt].axis_number;
-        encs[part]->getEncoder(axis,originalPositions.data()+jnt);
-        pos[part]->getRefSpeed(axis,originalRefSpeeds.data()+jnt);
-        pos[part]->setRefSpeed(axis,ref_speed);
+        pos->setRefSpeed(jnt,ref_speed);
     }
     
     jointInitialized = true;
@@ -240,7 +212,6 @@ bool reachRandomJointPositionsModule::configure(ResourceFinder &rf)
     //Configure
     if( mode == GRID_MAPPING_WITH_RETURN )
     {
-        is_desired_point_return_point = false;
         listOfDesiredPositions.resize(0,desiredPositions(yarp::sig::Vector(),0.0));
         next_desired_position = 0;
         //Generate vector of desired positions 
@@ -262,7 +233,7 @@ bool reachRandomJointPositionsModule::configure(ResourceFinder &rf)
         semi_nr_of_lines[0] = ceil((controlledJoints[0].upper_limit-center[0])/controlledJoints[0].delta);
         semi_nr_of_lines[1] = ceil((controlledJoints[1].upper_limit-center[1])/controlledJoints[1].delta);
         //Start at the center of the workspace
-        listOfDesiredPositions.push_back(desiredPositions(center,return_point_waiting_period,true));
+        listOfDesiredPositions.push_back(desiredPositions(center,return_point_waiting_period));
         
         for(int i=0; i < (int)semi_nr_of_lines[0]; i++ ) 
         {
@@ -276,7 +247,7 @@ bool reachRandomJointPositionsModule::configure(ResourceFinder &rf)
             listOfDesiredPositions.push_back(desiredPositions(row_lower,static_pose_period));
             listOfDesiredPositions.push_back(desiredPositions(row_upper,static_pose_period));
             listOfDesiredPositions.push_back(desiredPositions(row_center,static_pose_period));
-            listOfDesiredPositions.push_back(desiredPositions(center,return_point_waiting_period,true));
+            listOfDesiredPositions.push_back(desiredPositions(center,return_point_waiting_period));
 
             //Draw lower row
             row_upper[0] = row_lower[0] = row_center[0] = center[0]-i*controlledJoints[0].delta;
@@ -302,7 +273,7 @@ bool reachRandomJointPositionsModule::configure(ResourceFinder &rf)
             listOfDesiredPositions.push_back(desiredPositions(row_lower,static_pose_period));
             listOfDesiredPositions.push_back(desiredPositions(row_upper,static_pose_period));
             listOfDesiredPositions.push_back(desiredPositions(row_center,static_pose_period));
-            listOfDesiredPositions.push_back(desiredPositions(center,return_point_waiting_period,true));
+            listOfDesiredPositions.push_back(desiredPositions(center,return_point_waiting_period));
 
             //Draw lower row
             row_upper[1] = row_lower[1] = row_center[1] = center[1]-j*controlledJoints[1].delta;
@@ -313,12 +284,9 @@ bool reachRandomJointPositionsModule::configure(ResourceFinder &rf)
             listOfDesiredPositions.push_back(desiredPositions(row_lower,static_pose_period));
             listOfDesiredPositions.push_back(desiredPositions(row_upper,static_pose_period));
             listOfDesiredPositions.push_back(desiredPositions(row_center,static_pose_period));
-            listOfDesiredPositions.push_back(desiredPositions(center,return_point_waiting_period,true));
+            listOfDesiredPositions.push_back(desiredPositions(center,return_point_waiting_period));
         }
     }
-    
-    
-    isTheRobotInReturnPoint.open("/"+moduleName+"/isTheRobotInReturnPoint:o");
 
     return true;
 }
@@ -332,14 +300,13 @@ bool reachRandomJointPositionsModule::interruptModule()
 bool reachRandomJointPositionsModule::close()
 {
     close_drivers();
-    isTheRobotInReturnPoint.close();
     return true;
 }
 
 /**
  * 
  */
-bool reachRandomJointPositionsModule::getNewDesiredPosition(yarp::sig::Vector & desired_pos, double & desired_parked_time, bool & is_return_point)
+bool reachRandomJointPositionsModule::getNewDesiredPosition(yarp::sig::Vector & desired_pos, double & desired_parked_time)
 {
     switch(mode)
     {
@@ -348,7 +315,6 @@ bool reachRandomJointPositionsModule::getNewDesiredPosition(yarp::sig::Vector & 
             {
                 desired_pos = listOfDesiredPositions[next_desired_position].pos;
                 desired_parked_time = listOfDesiredPositions[next_desired_position].waiting_time;
-                is_return_point = listOfDesiredPositions[next_desired_position].is_return_point;
                 next_desired_position++;
                 return true;
             }
@@ -372,51 +338,30 @@ bool reachRandomJointPositionsModule::updateModule()
     for(int jnt=0; jnt < controlledJoints.size(); jnt++ )
     {
         bool done=true;
-        std::string part = controlledJoints[jnt].part_name;
-        int axis = controlledJoints[jnt].axis_number;
-        pos[part]->checkMotionDone(axis,&done);
+        pos->checkMotionDone(jnt,&done);
         dones = dones && done;
     }
     
     if(dones)
     {
-        //std::cout << "elapsed_time: " << elapsed_time << std::endl;
         elapsed_time += getPeriod();
-        //std::cout << "elapsed_time: " << elapsed_time << std::endl;
-        if(mode == GRID_MAPPING_WITH_RETURN)
-        {
-            isTheRobotInReturnPoint.prepare().clear();
-            if( is_desired_point_return_point )
-            {
-                 isTheRobotInReturnPoint.prepare().addInt(1);
-            }
-            else
-            {
-                 isTheRobotInReturnPoint.prepare().addInt(0);
-            }
-            isTheRobotInReturnPoint.write();
-        }
     }
     
     if( elapsed_time > desired_waiting_time )
     {
         elapsed_time = 0.0;
         //set a new position for the controlled joints
-        bool new_position_available = getNewDesiredPosition(commandedPositions,desired_waiting_time,is_desired_point_return_point);
+        bool new_position_available = getNewDesiredPosition(commandedPositions,desired_waiting_time);
         if( !new_position_available )
         {
             //no new position available, exiting
             return false;
         }
         
-        
         //Set a new position for the controlled joints
-        
         bool boring_overflow = true;
         for(int jnt=0; jnt < controlledJoints.size(); jnt++ )
         {
-            std::string part = controlledJoints[jnt].part_name;
-            int axis = controlledJoints[jnt].axis_number;
             double low = controlledJoints[jnt].lower_limit;
             double up = controlledJoints[jnt].upper_limit;
             //Set desired position, depending on the mode
@@ -439,8 +384,8 @@ bool reachRandomJointPositionsModule::updateModule()
                     }
                 }
             }
-            std::cout  << "Send new desired position: " << commandedPositions[jnt] << " to joint " << part <<  " " << axis << std::endl;
-            pos[part]->positionMove(axis,commandedPositions[jnt]);
+            std::cout  << "Send new desired position: " << commandedPositions[jnt] << " to joint " << controlledJointNames[jnt] << std::endl;
+            pos->positionMove(jnt,commandedPositions[jnt]);
         }
         boringModeInitialized = true;
     } 

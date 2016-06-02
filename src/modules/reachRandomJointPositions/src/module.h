@@ -44,8 +44,6 @@ using namespace yarp::os;
 struct controlledJoint
 {
 public:
-    std::string part_name;
-    int axis_number;
     double lower_limit;
     double upper_limit;
     double delta;
@@ -56,9 +54,8 @@ class desiredPositions
 public:
     yarp::sig::Vector pos;
     double waiting_time;
-    bool is_return_point;
-    desiredPositions(yarp::sig::Vector _pos, double _waiting_time, bool _is_return_point=false):
-    pos(_pos), waiting_time(_waiting_time), is_return_point(_is_return_point)
+    desiredPositions(yarp::sig::Vector _pos, double _waiting_time):
+    pos(_pos), waiting_time(_waiting_time)
     {}
 };
 
@@ -78,23 +75,22 @@ class reachRandomJointPositionsModule: public RFModule
     double elapsed_time; // time passed from when the desired pose was reached
     double ref_speed;
 
+    std::vector< std::string     > controlledJointNames;
     std::vector< controlledJoint > controlledJoints;
     yarp::sig::Vector commandedPositions;
     double desired_waiting_time;
     std::vector<desiredPositions> listOfDesiredPositions;
-    yarp::os::BufferedPort<yarp::os::Bottle> isTheRobotInReturnPoint;
-    bool is_desired_point_return_point;
     
     int next_desired_position;
     yarp::sig::Vector originalPositions;
     yarp::sig::Vector originalRefSpeeds;
     bool jointInitialized;
 
-    std::map<std::string,yarp::dev::PolyDriver *> drivers;
-    std::map<std::string,yarp::dev::IPositionControl *> pos;
-    std::map<std::string,yarp::dev::IEncoders *>encs;
-    std::map<std::string,yarp::dev::IControlLimits *>lims;
-    std::map<std::string,yarp::dev::IRemoteCalibrator *> calib;
+    yarp::dev::PolyDriver * driver;
+    yarp::dev::IPositionControl * pos;
+    yarp::dev::IEncoders * encs;
+    yarp::dev::IControlLimits * lims;
+    yarp::dev::IRemoteCalibrator * calib;
 
     void close_drivers();
 
@@ -105,7 +101,16 @@ public:
     bool interruptModule(); // interrupt, e.g., the ports
     bool close(); // close and shut down the module
     double getPeriod();
-    bool getNewDesiredPosition(yarp::sig::Vector & desired_pos, double & desired_parked_time, bool & is_return_point);
+
+    /**
+     * Get a new desired position.
+     *
+     * @param[out] desired_pos vector of desired position (in YARP units, i.e. deg for revolute and m for primatic joints
+     * @param[out] desired_parked_time time to spend parked in this position
+     * @return false when the position to reach have been all reached.
+     */
+    bool getNewDesiredPosition(yarp::sig::Vector & desired_pos,
+                               double & desired_parked_time);
     bool updateModule();
 
 };
