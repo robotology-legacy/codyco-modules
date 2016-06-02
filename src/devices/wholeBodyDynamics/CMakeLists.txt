@@ -14,10 +14,6 @@ yarp_configure_external_installation(codyco)
 
 yarp_prepare_device(wholebodydynamics TYPE WholeBodyDynamicsDevice INCLUDE "WholeBodyDynamicsDevice.h")
 
-set(ENABLE_codycomod_wholeBodyDynamics TRUE)
-
-if(NOT SKIP_wholeBodyDynamics)
-
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 
 include_directories(SYSTEM
@@ -26,14 +22,16 @@ include_directories(SYSTEM
                     ${skinDynLib_INCLUDE_DIRS})
 
 yarp_add_plugin(wholeBodyDynamicsDevice WholeBodyDynamicsDevice.h WholeBodyDynamicsDevice.cpp
-                                                                  SixAxisForceTorqueMeasureHelpers.cpp)
+                                        SixAxisForceTorqueMeasureHelpers.h SixAxisForceTorqueMeasureHelpers.cpp
+                                        GravityCompensationHelpers.h GravityCompensationHelpers.cpp)
+                                        
 target_link_libraries(wholeBodyDynamicsDevice wholeBodyDynamicsSettings
                                               wholeBodyDynamics_IDLServer
                                               ctrlLibRT
                                               ${YARP_LIBRARIES}
                                               skinDynLib
                                               ${iDynTree_LIBRARIES})
-											  
+
 if(MSVC)
    add_definitions(-D_USE_MATH_DEFINES)
 endif()
@@ -46,6 +44,3 @@ yarp_install(TARGETS wholeBodyDynamicsDevice
              ARCHIVE DESTINATION ${CODYCO_STATIC_PLUGINS_INSTALL_DIR})
 
 yarp_install(FILES wholebodydynamics.ini DESTINATION ${CODYCO_PLUGIN_MANIFESTS_INSTALL_DIR})
-
-
-endif()

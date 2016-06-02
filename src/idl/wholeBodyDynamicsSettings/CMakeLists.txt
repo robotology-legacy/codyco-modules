@@ -10,7 +10,6 @@ yarp_idl_to_dir(wholeBodyDynamicsSettings.thrift ${CMAKE_CURRENT_SOURCE_DIR}/aut
 
 
 add_library(wholeBodyDynamicsSettings ${WBDSETTINGS_SRC} ${WBDSETTINGS_HEADERS})
-message("Includes " ${WBDSETTINGS_INCLUDES})
 target_include_directories(wholeBodyDynamicsSettings PUBLIC ${WBDSETTINGS_INCLUDES} ${YARP_INCLUDE_DIRS})
 target_link_libraries(wholeBodyDynamicsSettings ${YARP_LIBRARIES})
 
