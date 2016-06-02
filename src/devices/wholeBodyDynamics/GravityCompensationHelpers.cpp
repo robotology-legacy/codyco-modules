@@ -51,7 +51,7 @@ void GravityCompensationHelper::freeKinematicTraversals()
     m_kinematicTraversals.resize(0);
 }
 
-bool GravityCompensationHelper::loadModel(const Model& _model, const std::__cxx11::string dynamicBase)
+bool GravityCompensationHelper::loadModel(const Model& _model, const std::string dynamicBase)
 {
     m_model = _model;
 
