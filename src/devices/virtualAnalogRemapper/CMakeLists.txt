@@ -11,10 +11,6 @@ yarp_configure_external_installation(codyco)
 
 yarp_prepare_device(virtualAnalogRemapper TYPE VirtualAnalogRemapper INCLUDE "VirtualAnalogRemapper.h")
 
-set(ENABLE_codycomod_virtualAnalogRemapper TRUE)
-
-if(NOT SKIP_virtualAnalogRemapper)
-
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 
 include_directories(SYSTEM
@@ -33,5 +29,3 @@ yarp_install(TARGETS virtualAnalogRemapper
 
 yarp_install(FILES virtualAnalogRemapper.ini DESTINATION ${CODYCO_PLUGIN_MANIFESTS_INSTALL_DIR})
 
-
-endif()

@@ -14,10 +14,6 @@ yarp_configure_external_installation(codyco)
 
 yarp_prepare_device(wholebodydynamics TYPE WholeBodyDynamicsDevice INCLUDE "WholeBodyDynamicsDevice.h")
 
-set(ENABLE_codycomod_wholeBodyDynamics TRUE)
-
-if(NOT SKIP_wholeBodyDynamics)
-
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 
 include_directories(SYSTEM
@@ -46,6 +42,3 @@ yarp_install(TARGETS wholeBodyDynamicsDevice
              ARCHIVE DESTINATION ${CODYCO_STATIC_PLUGINS_INSTALL_DIR})
 
 yarp_install(FILES wholebodydynamics.ini DESTINATION ${CODYCO_PLUGIN_MANIFESTS_INSTALL_DIR})
-
-
-endif()
