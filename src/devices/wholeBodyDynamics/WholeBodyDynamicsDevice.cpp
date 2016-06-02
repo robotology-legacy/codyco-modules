@@ -636,32 +636,31 @@ bool WholeBodyDynamicsDevice::loadGravityCompensationSettingsFromConfig(os::Sear
     }
     else
     {
-        yarp::os::Property prop;
-        prop.fromString(propAll.findGroup("GRAVITY_COMPENSATION").c_str());
+        yarp::os::Searchable & propGravComp = propAll.findGroup("GRAVITY_COMPENSATION");
 
-        if( !(prop.check("enableGravityCompensation") && prop.find("enableGravityCompensation").isBool()) )
+        if( !(propGravComp.check("enableGravityCompensation") && propGravComp.find("enableGravityCompensation").isBool()) )
         {
             yError() << "wholeBodyDynamics: GRAVITY_COMPENSATION group found, but enableGravityCompensation bool parameter missing";
             return false;
         }
 
-        if( !(prop.check("gravityCompensationBaseLink") && prop.find("gravityCompensationBaseLink").isString()) )
+        if( !(propGravComp.check("gravityCompensationBaseLink") && propGravComp.find("gravityCompensationBaseLink").isString()) )
         {
             yError() << "wholeBodyDynamics: GRAVITY_COMPENSATION group found, but gravityCompensationBaseLink string parameter missing";
             return false;
         }
 
-        if( !(prop.check("gravityCompensationAxesNames") && prop.find("gravityCompensationAxesNames").isBool()) )
+        if( !(propGravComp.check("gravityCompensationAxesNames") && propGravComp.find("gravityCompensationAxesNames").isBool()) )
         {
             yError() << "wholeBodyDynamics: GRAVITY_COMPENSATION group found, but gravityCompensationAxesNames list parameter missing";
             return false;
         }
 
-        m_gravityCompensationEnabled = prop.find("enableGravityCompensation").asBool();
+        m_gravityCompensationEnabled = propGravComp.find("enableGravityCompensation").asBool();
 
         std::vector<std::string> gravityCompesationAxes;
 
-        ret = getGravityCompensationDOFsList(prop,gravityCompesationAxes);
+        ret = getGravityCompensationDOFsList(propGravComp,gravityCompesationAxes);
 
         if( !ret) return false;
 
@@ -688,7 +687,7 @@ bool WholeBodyDynamicsDevice::loadGravityCompensationSettingsFromConfig(os::Sear
         }
 
         // We use the kinDynComp class that was opened together with the estimator
-        std::string gravityCompensationBaseLink = prop.find("gravityCompensationBaseLink").asString().c_str();
+        std::string gravityCompensationBaseLink = propGravComp.find("gravityCompensationBaseLink").asString().c_str();
 
         ret = this->kinDynComp.setFloatingBase(gravityCompensationBaseLink);
 
