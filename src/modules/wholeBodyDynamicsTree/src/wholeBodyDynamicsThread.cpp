@@ -948,6 +948,8 @@ bool wholeBodyDynamicsThread::initOdometry()
     {
         yInfo() << " SIMPLE_LEGGED_ODOMETRY group not found, odometry disabled";
         this->odometry_enabled = false;
+        this->com_streaming_enabled = false;
+        this->frames_streaming_enabled = false;
         return true;
     }
 
@@ -960,6 +962,8 @@ bool wholeBodyDynamicsThread::initOdometry()
     {
         yError() << " SIMPLE_LEGGED_ODOMETRY group found but malformed, exiting";
         this->odometry_enabled = false;
+        this->com_streaming_enabled = false;
+        this->frames_streaming_enabled = false;
         return false;
     }
 
@@ -1000,6 +1004,9 @@ bool wholeBodyDynamicsThread::initOdometry()
     if( !ok )
     {
         yError() << "Odometry initialization failed, please check your parameters";
+        this->odometry_enabled = false;
+        this->com_streaming_enabled = false;
+        this->frames_streaming_enabled = false;
         return false;
     }
 
