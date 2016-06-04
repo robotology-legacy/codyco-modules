@@ -103,6 +103,9 @@ class reachRandomJointPositionsModule: public RFModule
     yarp::os::BufferedPort<yarp::os::Bottle> useFurtherPosForFitting;
     bool is_desired_point_return_point;
     bool keep_fitting_after_desired_point;
+    yarp::os::Stamp timestamp;
+    double remoteLatchedTimestamp;
+    double localLatchedTimestamp;
 
     int next_desired_position;
     yarp::sig::Vector originalPositions;
@@ -129,12 +132,18 @@ public:
     bool updateModule();
 
 private:
-    /* Helper for generating the vector of desired positions:
+    /*
+     * Helper for generating the vector of desired positions:
      * draws a raw moving one
      * joint while the other one is fixed
      */
     bool drawRow(yarp::sig::Vector center, int movingJointIdx, int fixedJointStep,
                  bool withReturn, bool flagReturn);
+
+    /*
+     * Synchronise th timestamp with the one from iCub "State_ext:o" port envelope
+     */
+    bool latchTimestampSync();
 };
 
 

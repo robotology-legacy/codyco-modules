@@ -42,9 +42,10 @@ using namespace yarp::dev;
 
 
 
-reachRandomJointPositionsModule::reachRandomJointPositionsModule()
+reachRandomJointPositionsModule::reachRandomJointPositionsModule():
+period(1),
+timestamp()
 {
-    period = 1;
 }
 
 void reachRandomJointPositionsModule::close_drivers()
@@ -57,7 +58,10 @@ void reachRandomJointPositionsModule::close_drivers()
             std::string part = controlledJoints[jnt].part_name;
             int axis = controlledJoints[jnt].axis_number;
             pos[part]->setRefSpeed(axis,originalRefSpeeds[jnt]);
-            calib[part]->homingSingleJoint(axis);
+            if( !calib[part]->homingSingleJoint(axis) )
+            {
+                std::cerr << "[ERR] reachRandomJointPositionsModule: homing part " << part << ", axis " << axis << " failed!" << std::endl;
+            }
         }
     }
     for(it=drivers.begin(); it!=drivers.end(); it++ )
@@ -317,6 +321,9 @@ bool reachRandomJointPositionsModule::configure(ResourceFinder &rf)
         default:
             break;
     }
+
+    //Latch the remote timestamp for synchronising local one
+    this->latchTimestampSync();
     
     return true;
 }
@@ -396,11 +403,15 @@ bool reachRandomJointPositionsModule::updateModule()
         //Update elapsed time
         elapsed_time += getPeriod();
 
-        //Publish status for external modules using sensor data
+        //Update the timestamp and publish status for external modules using sensor data
+        this->timestamp.update(Time::now()
+                               - this->localLatchedTimestamp
+                               + this->remoteLatchedTimestamp);
         if( !isTheRobotInReturnPoint.isClosed() )
         {
             isTheRobotInReturnPoint.prepare().clear();
             isTheRobotInReturnPoint.prepare().addInt(int(is_desired_point_return_point));
+            isTheRobotInReturnPoint.setEnvelope(this->timestamp);
             isTheRobotInReturnPoint.write();
         }
 
@@ -408,6 +419,7 @@ bool reachRandomJointPositionsModule::updateModule()
         {
             useFurtherPosForFitting.prepare().clear();
             useFurtherPosForFitting.prepare().addInt(int(keep_fitting_after_desired_point));
+            useFurtherPosForFitting.setEnvelope(this->timestamp);
             useFurtherPosForFitting.write();
         }
     }
@@ -475,6 +487,39 @@ bool reachRandomJointPositionsModule::drawRow(yarp::sig::Vector center, int movi
     {
         this->listOfDesiredPositions.push_back(desiredPositions(center,this->return_point_waiting_period,flagReturn,desiredPositions::ROW_OUT));
     }
+
+    return true;
+}
+
+bool reachRandomJointPositionsModule::latchTimestampSync()
+{
+    //Open State_ext:o port and connect to anonymous port
+    std::string part_name = this->controlledJoints[0].part_name;
+    yarp::os::BufferedPort<yarp::os::Bottle> aReader;
+    aReader.open("/"+this->moduleName+"/"+part_name+"/latch:i");
+    std::string remotePort= "/" + robotName + "/" + part_name + "/stateExt:o";
+    if(!Network::connect(remotePort, aReader.getName()))
+    {
+        std::cerr << "[ERR] Could not connect to remote source port " + remotePort + "!";
+        return false;
+    }
+
+    //Read and latch remote timestamp
+    yarp::os::Stamp remoteTimestamp;
+    if( !aReader.read() )
+    {
+        std::cerr << "[ERR] Could not read remote source port " + remotePort + "!";
+        return false;
+    }
+    aReader.getEnvelope(remoteTimestamp);
+    this->remoteLatchedTimestamp = remoteTimestamp.getTime();
+
+    //Read and latch local current (arbitrary) timestamp
+    this->localLatchedTimestamp = Time::now();
+
+    //Disconnect and close port
+    Network::disconnect(remotePort, aReader.getName());
+    aReader.close();
 
     return true;
 }
