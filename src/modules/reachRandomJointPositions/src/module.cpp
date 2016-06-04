@@ -268,7 +268,8 @@ bool reachRandomJointPositionsModule::configure(ResourceFinder &rf)
             semi_nr_of_lines[1] = ceil((controlledJoints[1].upper_limit-center[1])/controlledJoints[1].delta);
 
             //Start at the center of the workspace
-            listOfDesiredPositions.push_back(desiredPositions(center,return_point_waiting_period,true));
+            listOfDesiredPositions.push_back(desiredPositions(center,return_point_waiting_period,
+                                                              true,desiredPositions::ROW_OUT));
             bool return2center = (mode == GRID_MAPPING_WITH_RETURN);
 
             //Draw rows moving second joint, for each step of first joint position
@@ -280,6 +281,10 @@ bool reachRandomJointPositionsModule::configure(ResourceFinder &rf)
                 this->drawRow(center, 1, -i, return2center, false); //Draw lower row
             }
 
+            //Return to center position for eventual drift checking by external module
+            listOfDesiredPositions.push_back(desiredPositions(center,return_point_waiting_period,
+                                                              true,desiredPositions::ROW_OUT));
+
             //Draw rows moving first joint, for each step of second joint position
             this->drawRow(center, 0, 0, return2center, false); //Draw center row
             for(int j = 1; j < semi_nr_of_lines[1]+1; j++ )
@@ -288,6 +293,10 @@ bool reachRandomJointPositionsModule::configure(ResourceFinder &rf)
 
                 this->drawRow(center, 0, -j, return2center, false); //Draw lower row
             }
+
+            //Return to center position for eventual drift checking by external module
+            listOfDesiredPositions.push_back(desiredPositions(center,return_point_waiting_period,
+                                                              true,desiredPositions::ROW_OUT));
 
             //Print list of desired positions
             std::cout  << "List of desired positions: " << std::endl;
