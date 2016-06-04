@@ -444,39 +444,15 @@ bool reachRandomJointPositionsModule::updateModule()
         }
 
         //Set a new position for the controlled joints
-        
-        bool boring_overflow = true;
         for(int jnt=0; jnt < int(controlledJoints.size()); jnt++ )
         {
             std::string part = controlledJoints[jnt].part_name;
             int axis = controlledJoints[jnt].axis_number;
-            double low = controlledJoints[jnt].lower_limit;
-            double up = controlledJoints[jnt].upper_limit;
-            //Set desired position, depending on the mode
-            {
-                if( !boringModeInitialized )
-                {
-                    commandedPositions[jnt] = low;
-                }
-                else
-                {
-                    if(boring_overflow)
-                    {
-                        commandedPositions[jnt]=commandedPositions[jnt]+controlledJoints[jnt].delta;
-                        boring_overflow = false;
-                        if( commandedPositions[jnt] > up )
-                        {
-                            commandedPositions[jnt] = low;
-                            boring_overflow = true;
-                        }
-                    }
-                }
-            }
+            //Set desired position
             std::cout  << "Send new desired position: " << commandedPositions[jnt] << " to joint " << part <<  " " << axis << std::endl;
             pos[part]->positionMove(axis,commandedPositions[jnt]);
         }
-        boringModeInitialized = true;
-    } 
+    }
     
     return true;
 }

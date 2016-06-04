@@ -89,7 +89,6 @@ class reachRandomJointPositionsModule: public RFModule
     double avgTime, stdDev, avgTimeUsed, stdDevUsed;
     
     enum { RANDOM, GRID_VISIT, GRID_MAPPING, GRID_MAPPING_WITH_RETURN } mode;
-    bool boringModeInitialized;
 
     double static_pose_period;
     double return_point_waiting_period;
