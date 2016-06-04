@@ -316,7 +316,7 @@ bool reachRandomJointPositionsModule::configure(ResourceFinder &rf)
     }
     
     isTheRobotInReturnPoint.open("/"+moduleName+"/isTheRobotInReturnPoint:o");
-    useSampleForFitting.open("/"+moduleName+"/useSampleForFitting:o");
+    useFurtherPosForFitting.open("/"+moduleName+"/useFurtherPosForFitting:o");
 
     return true;
 }
@@ -331,7 +331,7 @@ bool reachRandomJointPositionsModule::close()
 {
     close_drivers();
     isTheRobotInReturnPoint.close();
-    useSampleForFitting.close();
+    useFurtherPosForFitting.close();
     return true;
 }
 
@@ -339,7 +339,7 @@ bool reachRandomJointPositionsModule::close()
  * 
  */
 bool reachRandomJointPositionsModule::getNewDesiredPosition(yarp::sig::Vector & desired_pos, double & desired_parked_time,
-                                                            bool & is_return_point, desiredPositions::RowBoundary_t & rowBoundary)
+                                                            bool & is_return_point, bool & keep_fitting_after_desired_point)
 {
     switch(mode)
     {
@@ -350,7 +350,15 @@ bool reachRandomJointPositionsModule::getNewDesiredPosition(yarp::sig::Vector & 
                 desired_pos = listOfDesiredPositions[next_desired_position].pos;
                 desired_parked_time = listOfDesiredPositions[next_desired_position].waiting_time;
                 is_return_point = listOfDesiredPositions[next_desired_position].is_return_point;
-                rowBoundary = listOfDesiredPositions[next_desired_position].rowBoundary;
+                if( listOfDesiredPositions[next_desired_position].rowBoundary == desiredPositions::ROW_START
+                   || listOfDesiredPositions[next_desired_position].rowBoundary == desiredPositions::ROW_IN )
+                {
+                    keep_fitting_after_desired_point = true;
+                }
+                else
+                {
+                    keep_fitting_after_desired_point = false;
+                }
                 next_desired_position++;
                 return true;
             }
@@ -406,17 +414,16 @@ bool reachRandomJointPositionsModule::updateModule()
             }
             case GRID_MAPPING:
             {
-                useSampleForFitting.prepare().clear();
-                if( rowBoundary == desiredPositions::ROW_START
-                   || rowBoundary == desiredPositions::ROW_IN )
+                useFurtherPosForFitting.prepare().clear();
+                if( keep_fitting_after_desired_point )
                 {
-                    useSampleForFitting.prepare().addInt(1);
+                    useFurtherPosForFitting.prepare().addInt(1);
                 }
                 else
                 {
-                    useSampleForFitting.prepare().addInt(0);
+                    useFurtherPosForFitting.prepare().addInt(0);
                 }
-                useSampleForFitting.write();
+                useFurtherPosForFitting.write();
                 break;
             }
             default:
@@ -429,7 +436,7 @@ bool reachRandomJointPositionsModule::updateModule()
         elapsed_time = 0.0;
         //set a new position for the controlled joints
         bool new_position_available = getNewDesiredPosition(commandedPositions,desired_waiting_time,
-                                                            is_desired_point_return_point,rowBoundary);
+                                                            is_desired_point_return_point,keep_fitting_after_desired_point);
         if( !new_position_available )
         {
             //no new position available, exiting

@@ -101,9 +101,9 @@ class reachRandomJointPositionsModule: public RFModule
     double desired_waiting_time;
     std::vector<desiredPositions> listOfDesiredPositions;
     yarp::os::BufferedPort<yarp::os::Bottle> isTheRobotInReturnPoint;
-    yarp::os::BufferedPort<yarp::os::Bottle> useSampleForFitting;
+    yarp::os::BufferedPort<yarp::os::Bottle> useFurtherPosForFitting;
     bool is_desired_point_return_point;
-    desiredPositions::RowBoundary_t rowBoundary;
+    bool keep_fitting_after_desired_point;
 
     int next_desired_position;
     yarp::sig::Vector originalPositions;
@@ -126,7 +126,7 @@ public:
     bool close(); // close and shut down the module
     double getPeriod();
     bool getNewDesiredPosition(yarp::sig::Vector & desired_pos, double & desired_parked_time,
-                               bool & is_return_point, desiredPositions::RowBoundary_t &rowBoundary);
+                               bool & is_return_point, bool & keep_fitting_after_desired_point);
     bool updateModule();
 
 private:
