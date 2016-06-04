@@ -57,9 +57,27 @@ public:
     yarp::sig::Vector pos;
     double waiting_time;
     bool is_return_point;
-    desiredPositions(yarp::sig::Vector _pos, double _waiting_time, bool _is_return_point=false):
-    pos(_pos), waiting_time(_waiting_time), is_return_point(_is_return_point)
+    typedef enum { ROW_START, ROW_IN, ROW_STOP, ROW_OUT } RowBoundary_t;
+    RowBoundary_t rowBoundary;
+    desiredPositions(yarp::sig::Vector _pos, double _waiting_time,
+                     bool _is_return_point=false, RowBoundary_t _rowBoundary=ROW_OUT):
+    pos(_pos),
+    waiting_time(_waiting_time),
+    is_return_point(_is_return_point),
+    rowBoundary(_rowBoundary)
     {}
+    std::string toString()
+    {
+        std::stringstream ss;
+
+        ss << "pos: " << this->pos.toString()
+        << "\t wait: " << this->waiting_time
+        << "\t return: " << this->is_return_point
+        << "\t row boundary: " << this->rowBoundary
+        << std::endl;
+
+        return ss.str();
+    }
 };
 
 class reachRandomJointPositionsModule: public RFModule
@@ -70,7 +88,7 @@ class reachRandomJointPositionsModule: public RFModule
     double period;
     double avgTime, stdDev, avgTimeUsed, stdDevUsed;
     
-    enum { RANDOM, GRID_VISIT, GRID_MAPPING_WITH_RETURN } mode;
+    enum { RANDOM, GRID_VISIT, GRID_MAPPING, GRID_MAPPING_WITH_RETURN } mode;
     bool boringModeInitialized;
 
     double static_pose_period;
@@ -83,8 +101,10 @@ class reachRandomJointPositionsModule: public RFModule
     double desired_waiting_time;
     std::vector<desiredPositions> listOfDesiredPositions;
     yarp::os::BufferedPort<yarp::os::Bottle> isTheRobotInReturnPoint;
+    yarp::os::BufferedPort<yarp::os::Bottle> useSampleForFitting;
     bool is_desired_point_return_point;
-    
+    desiredPositions::RowBoundary_t rowBoundary;
+
     int next_desired_position;
     yarp::sig::Vector originalPositions;
     yarp::sig::Vector originalRefSpeeds;
@@ -105,9 +125,17 @@ public:
     bool interruptModule(); // interrupt, e.g., the ports
     bool close(); // close and shut down the module
     double getPeriod();
-    bool getNewDesiredPosition(yarp::sig::Vector & desired_pos, double & desired_parked_time, bool & is_return_point);
+    bool getNewDesiredPosition(yarp::sig::Vector & desired_pos, double & desired_parked_time,
+                               bool & is_return_point, desiredPositions::RowBoundary_t &rowBoundary);
     bool updateModule();
 
+private:
+    /* Helper for generating the vector of desired positions:
+     * draws a raw moving one
+     * joint while the other one is fixed
+     */
+    bool drawRow(yarp::sig::Vector center, int movingJointIdx, int fixedJointStep,
+                 bool withReturn, bool flagReturn);
 };
 
 

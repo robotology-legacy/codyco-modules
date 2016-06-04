@@ -53,7 +53,7 @@ void reachRandomJointPositionsModule::close_drivers()
     std::map<string,PolyDriver*>::iterator it;
     if(jointInitialized)
     {
-        for(int jnt=0; jnt < originalPositions.size(); jnt++ )
+        for(int jnt=0; jnt < int(originalPositions.size()); jnt++ )
         {
             std::string part = controlledJoints[jnt].part_name;
             int axis = controlledJoints[jnt].axis_number;
@@ -96,6 +96,10 @@ bool reachRandomJointPositionsModule::configure(ResourceFinder &rf)
     {
         mode = GRID_VISIT;
     }
+    else if( mode_cfg == "gridMapping")
+    {
+        mode = GRID_MAPPING;
+    }
     else if( mode_cfg == "gridMappingWithReturn" )
     {
         mode = GRID_MAPPING_WITH_RETURN;
@@ -103,7 +107,7 @@ bool reachRandomJointPositionsModule::configure(ResourceFinder &rf)
     else
     {
         std::cerr << "[ERR] reachRandomJointPositionsModule: mode " << mode_cfg << "is not available, exiting." << std::endl;
-        std::cerr << "[ERR] existing modes: random, gridVisit, gridMappingWithReturn" << std::endl;
+        std::cerr << "[ERR] existing modes: random, gridVisit, gridMapping, gridMappingWithReturn" << std::endl;
     }
 
     
@@ -238,87 +242,72 @@ bool reachRandomJointPositionsModule::configure(ResourceFinder &rf)
     jointInitialized = true;
 
     //Configure
-    if( mode == GRID_MAPPING_WITH_RETURN )
+    switch(mode)
     {
-        is_desired_point_return_point = false;
-        listOfDesiredPositions.resize(0,desiredPositions(yarp::sig::Vector(),0.0));
-        next_desired_position = 0;
-        //Generate vector of desired positions 
-        if( controlledJoints.size() != 2)
+        case GRID_MAPPING:
+        case GRID_MAPPING_WITH_RETURN:
         {
-            std::cerr << "GRID_MAPPING_WITH_RETURN mode available only for two controlled joints" << std::endl;
-            close_drivers();
-            return false;
-        }
-        
-        yarp::sig::Vector center(2), lower_left(2),lower_right(2),upper_left(2),upper_right(2);
-        std::vector<int> semi_nr_of_lines(2,0);
-        lower_left[0] = lower_right[0] = controlledJoints[0].lower_limit;
-        upper_left[0] = upper_right[0] = controlledJoints[0].upper_limit;
-        lower_left[1] = upper_left[1] = controlledJoints[1].lower_limit;
-        lower_right[1] = upper_right[0] = controlledJoints[1].upper_limit;
-        center[0] =  (controlledJoints[0].lower_limit+controlledJoints[0].upper_limit)/2; 
-        center[1] =  (controlledJoints[1].lower_limit+controlledJoints[1].upper_limit)/2; 
-        semi_nr_of_lines[0] = ceil((controlledJoints[0].upper_limit-center[0])/controlledJoints[0].delta);
-        semi_nr_of_lines[1] = ceil((controlledJoints[1].upper_limit-center[1])/controlledJoints[1].delta);
-        //Start at the center of the workspace
-        listOfDesiredPositions.push_back(desiredPositions(center,return_point_waiting_period,true));
-        
-        for(int i=0; i < (int)semi_nr_of_lines[0]; i++ ) 
-        {
-            //Draw upper row
-            yarp::sig::Vector row_center(2), row_lower(2), row_upper(2);
-            row_upper[0] = row_lower[0] = row_center[0] = center[0]+i*controlledJoints[0].delta;
-            row_center[1] = center[1];
-            row_lower[1] = controlledJoints[1].lower_limit;
-            row_upper[1] = controlledJoints[1].upper_limit;
-            listOfDesiredPositions.push_back(desiredPositions(row_center,static_pose_period));
-            listOfDesiredPositions.push_back(desiredPositions(row_lower,static_pose_period));
-            listOfDesiredPositions.push_back(desiredPositions(row_upper,static_pose_period));
-            listOfDesiredPositions.push_back(desiredPositions(row_center,static_pose_period));
-            listOfDesiredPositions.push_back(desiredPositions(center,return_point_waiting_period,true));
+            yarp::sig::Vector center(2), row_center(2), row_lower(2), row_upper(2);
+            std::vector<int> semi_nr_of_lines(2,0);
 
-            //Draw lower row
-            row_upper[0] = row_lower[0] = row_center[0] = center[0]-i*controlledJoints[0].delta;
-            row_center[1] = center[1];
-            row_lower[1] = controlledJoints[1].lower_limit;
-            row_upper[1] = controlledJoints[1].upper_limit;
-            listOfDesiredPositions.push_back(desiredPositions(row_center,static_pose_period));
-            listOfDesiredPositions.push_back(desiredPositions(row_lower,static_pose_period));
-            listOfDesiredPositions.push_back(desiredPositions(row_upper,static_pose_period));
-            listOfDesiredPositions.push_back(desiredPositions(row_center,static_pose_period));
-            listOfDesiredPositions.push_back(desiredPositions(center,return_point_waiting_period));
+            is_desired_point_return_point = false;
+            listOfDesiredPositions.resize(0,desiredPositions(yarp::sig::Vector(),0.0));
+            next_desired_position = 0;
 
-        }
-        for(int j=0; j < (int)semi_nr_of_lines[1]; j++ )
-        {
-            //Draw upper row
-            yarp::sig::Vector row_center(2), row_lower(2), row_upper(2);
-            row_upper[1] = row_lower[1] = row_center[1] = center[1]+j*controlledJoints[1].delta;
-            row_center[0] = center[0];
-            row_lower[0] = controlledJoints[0].lower_limit;
-            row_upper[0] = controlledJoints[0].upper_limit;
-            listOfDesiredPositions.push_back(desiredPositions(row_center,static_pose_period));
-            listOfDesiredPositions.push_back(desiredPositions(row_lower,static_pose_period));
-            listOfDesiredPositions.push_back(desiredPositions(row_upper,static_pose_period));
-            listOfDesiredPositions.push_back(desiredPositions(row_center,static_pose_period));
-            listOfDesiredPositions.push_back(desiredPositions(center,return_point_waiting_period,true));
+            //Generate vector of desired positions
+            if( controlledJoints.size() != 2)
+            {
+                std::cerr << "GRID_MAPPING_WITH_RETURN mode available only for two controlled joints" << std::endl;
+                close_drivers();
+                return false;
+            }
 
-            //Draw lower row
-            row_upper[1] = row_lower[1] = row_center[1] = center[1]-j*controlledJoints[1].delta;
-            row_center[0] = center[0];
-            row_lower[0] = controlledJoints[0].lower_limit;
-            row_upper[0] = controlledJoints[0].upper_limit;
-            listOfDesiredPositions.push_back(desiredPositions(row_center,static_pose_period));
-            listOfDesiredPositions.push_back(desiredPositions(row_lower,static_pose_period));
-            listOfDesiredPositions.push_back(desiredPositions(row_upper,static_pose_period));
-            listOfDesiredPositions.push_back(desiredPositions(row_center,static_pose_period));
+            center[0] = (controlledJoints[0].lower_limit+controlledJoints[0].upper_limit)/2;
+            center[1] = (controlledJoints[1].lower_limit+controlledJoints[1].upper_limit)/2;
+            semi_nr_of_lines[0] = ceil((controlledJoints[0].upper_limit-center[0])/controlledJoints[0].delta);
+            semi_nr_of_lines[1] = ceil((controlledJoints[1].upper_limit-center[1])/controlledJoints[1].delta);
+
+            //Start at the center of the workspace
             listOfDesiredPositions.push_back(desiredPositions(center,return_point_waiting_period,true));
+            bool return2center = (mode == GRID_MAPPING_WITH_RETURN);
+
+            //Draw rows moving second joint, for each step of first joint position
+            this->drawRow(center, 1, 0, return2center, false); //Draw center row
+            for(int i = 1; i < semi_nr_of_lines[0]+1; i++)
+            {
+                this->drawRow(center, 1, i, return2center, true); //Draw upper row
+
+                this->drawRow(center, 1, -i, return2center, false); //Draw lower row
+            }
+
+            //Draw rows moving first joint, for each step of second joint position
+            this->drawRow(center, 0, 0, return2center, false); //Draw center row
+            for(int j = 1; j < semi_nr_of_lines[1]+1; j++ )
+            {
+                this->drawRow(center, 0, j, return2center, true); //Draw upper row
+
+                this->drawRow(center, 0, -j, return2center, false); //Draw lower row
+            }
+
+            //Print list of desired positions
+            std::cout  << "List of desired positions: " << std::endl;
+            for(int i=0; i<int(listOfDesiredPositions.size()); i++)
+            {
+                std::cout << listOfDesiredPositions[i].toString() << std::endl;
+            }
+            break;
         }
+
+        case RANDOM:
+        case GRID_VISIT:
+            break;
+
+        default:
+            break;
     }
     
-    
     isTheRobotInReturnPoint.open("/"+moduleName+"/isTheRobotInReturnPoint:o");
+    useSampleForFitting.open("/"+moduleName+"/useSampleForFitting:o");
 
     return true;
 }
@@ -333,22 +322,26 @@ bool reachRandomJointPositionsModule::close()
 {
     close_drivers();
     isTheRobotInReturnPoint.close();
+    useSampleForFitting.close();
     return true;
 }
 
 /**
  * 
  */
-bool reachRandomJointPositionsModule::getNewDesiredPosition(yarp::sig::Vector & desired_pos, double & desired_parked_time, bool & is_return_point)
+bool reachRandomJointPositionsModule::getNewDesiredPosition(yarp::sig::Vector & desired_pos, double & desired_parked_time,
+                                                            bool & is_return_point, desiredPositions::RowBoundary_t & rowBoundary)
 {
     switch(mode)
     {
+        case GRID_MAPPING:
         case GRID_MAPPING_WITH_RETURN:
-            if( next_desired_position >= 0 && next_desired_position < listOfDesiredPositions.size() )
+            if( next_desired_position >= 0 && next_desired_position < int(listOfDesiredPositions.size()) )
             {
                 desired_pos = listOfDesiredPositions[next_desired_position].pos;
                 desired_parked_time = listOfDesiredPositions[next_desired_position].waiting_time;
                 is_return_point = listOfDesiredPositions[next_desired_position].is_return_point;
+                rowBoundary = listOfDesiredPositions[next_desired_position].rowBoundary;
                 next_desired_position++;
                 return true;
             }
@@ -356,11 +349,15 @@ bool reachRandomJointPositionsModule::getNewDesiredPosition(yarp::sig::Vector & 
             {
                 return false;
             }
-        break;
+
+        case RANDOM:
+        case GRID_VISIT:
+            std::cerr << "[ERR] reachRandomJointPositionsModule: mode not implemented " << mode << ", exiting" << std::endl;
+            return false;
+
         default:
             std::cerr << "[ERR] reachRandomJointPositionsModule: unknown mode " << mode << ", exiting" << std::endl;
             return false;
-        break;
     }
     
 }
@@ -369,7 +366,7 @@ bool reachRandomJointPositionsModule::updateModule()
 {
     //Check that all desired position have been reached
     bool dones=true;
-    for(int jnt=0; jnt < controlledJoints.size(); jnt++ )
+    for(int jnt=0; jnt < int(controlledJoints.size()); jnt++ )
     {
         bool done=true;
         std::string part = controlledJoints[jnt].part_name;
@@ -383,37 +380,57 @@ bool reachRandomJointPositionsModule::updateModule()
         //std::cout << "elapsed_time: " << elapsed_time << std::endl;
         elapsed_time += getPeriod();
         //std::cout << "elapsed_time: " << elapsed_time << std::endl;
-        if(mode == GRID_MAPPING_WITH_RETURN)
+        switch(mode)
         {
-            isTheRobotInReturnPoint.prepare().clear();
-            if( is_desired_point_return_point )
+            case GRID_MAPPING_WITH_RETURN:
             {
-                 isTheRobotInReturnPoint.prepare().addInt(1);
+                isTheRobotInReturnPoint.prepare().clear();
+                if( is_desired_point_return_point )
+                {
+                    isTheRobotInReturnPoint.prepare().addInt(1);
+                }
+                else
+                {
+                    isTheRobotInReturnPoint.prepare().addInt(0);
+                }
+                isTheRobotInReturnPoint.write();
             }
-            else
+            case GRID_MAPPING:
             {
-                 isTheRobotInReturnPoint.prepare().addInt(0);
+                useSampleForFitting.prepare().clear();
+                if( rowBoundary == desiredPositions::ROW_START
+                   || rowBoundary == desiredPositions::ROW_IN )
+                {
+                    useSampleForFitting.prepare().addInt(1);
+                }
+                else
+                {
+                    useSampleForFitting.prepare().addInt(0);
+                }
+                useSampleForFitting.write();
+                break;
             }
-            isTheRobotInReturnPoint.write();
+            default:
+                break;
         }
     }
-    
+
     if( elapsed_time > desired_waiting_time )
     {
         elapsed_time = 0.0;
         //set a new position for the controlled joints
-        bool new_position_available = getNewDesiredPosition(commandedPositions,desired_waiting_time,is_desired_point_return_point);
+        bool new_position_available = getNewDesiredPosition(commandedPositions,desired_waiting_time,
+                                                            is_desired_point_return_point,rowBoundary);
         if( !new_position_available )
         {
             //no new position available, exiting
             return false;
         }
-        
-        
+
         //Set a new position for the controlled joints
         
         bool boring_overflow = true;
-        for(int jnt=0; jnt < controlledJoints.size(); jnt++ )
+        for(int jnt=0; jnt < int(controlledJoints.size()); jnt++ )
         {
             std::string part = controlledJoints[jnt].part_name;
             int axis = controlledJoints[jnt].axis_number;
@@ -452,3 +469,37 @@ double reachRandomJointPositionsModule::getPeriod()
 {
     return period;
 }
+
+bool reachRandomJointPositionsModule::drawRow(yarp::sig::Vector center, int movingJointIdx, int fixedJointStep,
+                                              bool withReturn, bool flagReturn)
+{
+    yarp::sig::Vector row_upper(2), row_lower(2), row_center(2);
+
+    //only two joints supported for this function
+    if(movingJointIdx > 1)
+    {
+        std::cerr << "[ERR] Mode available only for 2 controlled joints." << std::endl;
+        return false;
+    }
+
+    int fixedJointIdx = 1 - movingJointIdx; // define fixed joint index
+
+    row_center[fixedJointIdx] = center[fixedJointIdx]+fixedJointStep*controlledJoints[fixedJointIdx].delta;
+    row_upper[fixedJointIdx] = row_lower[fixedJointIdx] = row_center[fixedJointIdx];
+
+    row_center[movingJointIdx] = center[movingJointIdx];
+    row_lower[movingJointIdx] = this->controlledJoints[movingJointIdx].lower_limit;
+    row_upper[movingJointIdx] = this->controlledJoints[movingJointIdx].upper_limit;
+
+    this->listOfDesiredPositions.push_back(desiredPositions(row_center,this->static_pose_period,false,desiredPositions::ROW_START));
+    this->listOfDesiredPositions.push_back(desiredPositions(row_lower,this->static_pose_period,false,desiredPositions::ROW_IN));
+    this->listOfDesiredPositions.push_back(desiredPositions(row_upper,this->static_pose_period,false,desiredPositions::ROW_IN));
+    this->listOfDesiredPositions.push_back(desiredPositions(row_center,this->static_pose_period,false,desiredPositions::ROW_STOP));
+    if( withReturn )
+    {
+        this->listOfDesiredPositions.push_back(desiredPositions(center,this->return_point_waiting_period,flagReturn,desiredPositions::ROW_OUT));
+    }
+
+    return true;
+}
+
