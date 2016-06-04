@@ -324,7 +324,7 @@ bool reachRandomJointPositionsModule::configure(ResourceFinder &rf)
 
 bool reachRandomJointPositionsModule::interruptModule()
 {
-    return true;
+    return this->close();
 }
 
 bool reachRandomJointPositionsModule::close()
