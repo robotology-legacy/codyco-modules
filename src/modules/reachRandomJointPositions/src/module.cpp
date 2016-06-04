@@ -45,7 +45,6 @@ using namespace yarp::dev;
 reachRandomJointPositionsModule::reachRandomJointPositionsModule()
 {
     period = 1;
-
 }
 
 void reachRandomJointPositionsModule::close_drivers()
@@ -304,6 +303,10 @@ bool reachRandomJointPositionsModule::configure(ResourceFinder &rf)
             {
                 std::cout << listOfDesiredPositions[i].toString() << std::endl;
             }
+
+            isTheRobotInReturnPoint.open("/"+moduleName+"/isTheRobotInReturnPoint:o");
+            useFurtherPosForFitting.open("/"+moduleName+"/useFurtherPosForFitting:o");
+            
             break;
         }
 
@@ -315,9 +318,6 @@ bool reachRandomJointPositionsModule::configure(ResourceFinder &rf)
             break;
     }
     
-    isTheRobotInReturnPoint.open("/"+moduleName+"/isTheRobotInReturnPoint:o");
-    useFurtherPosForFitting.open("/"+moduleName+"/useFurtherPosForFitting:o");
-
     return true;
 }
 
@@ -330,8 +330,8 @@ bool reachRandomJointPositionsModule::interruptModule()
 bool reachRandomJointPositionsModule::close()
 {
     close_drivers();
-    isTheRobotInReturnPoint.close();
-    useFurtherPosForFitting.close();
+    if( !isTheRobotInReturnPoint.isClosed() ) {isTheRobotInReturnPoint.close();}
+    if( !useFurtherPosForFitting.isClosed() ) {useFurtherPosForFitting.close();}
     return true;
 }
 
@@ -386,70 +386,54 @@ bool reachRandomJointPositionsModule::updateModule()
     for(int jnt=0; jnt < int(controlledJoints.size()); jnt++ )
     {
         bool done=true;
-        std::string part = controlledJoints[jnt].part_name;
-        int axis = controlledJoints[jnt].axis_number;
-        pos[part]->checkMotionDone(axis,&done);
+        pos[controlledJoints[jnt].part_name]->checkMotionDone(controlledJoints[jnt].axis_number,
+                                                              &done);
         dones = dones && done;
     }
     
     if(dones)
     {
-        //std::cout << "elapsed_time: " << elapsed_time << std::endl;
+        //Update elapsed time
         elapsed_time += getPeriod();
-        //std::cout << "elapsed_time: " << elapsed_time << std::endl;
-        switch(mode)
+
+        //Publish status for external modules using sensor data
+        if( !isTheRobotInReturnPoint.isClosed() )
         {
-            case GRID_MAPPING_WITH_RETURN:
-            {
-                isTheRobotInReturnPoint.prepare().clear();
-                if( is_desired_point_return_point )
-                {
-                    isTheRobotInReturnPoint.prepare().addInt(1);
-                }
-                else
-                {
-                    isTheRobotInReturnPoint.prepare().addInt(0);
-                }
-                isTheRobotInReturnPoint.write();
-            }
-            case GRID_MAPPING:
-            {
-                useFurtherPosForFitting.prepare().clear();
-                if( keep_fitting_after_desired_point )
-                {
-                    useFurtherPosForFitting.prepare().addInt(1);
-                }
-                else
-                {
-                    useFurtherPosForFitting.prepare().addInt(0);
-                }
-                useFurtherPosForFitting.write();
-                break;
-            }
-            default:
-                break;
+            isTheRobotInReturnPoint.prepare().clear();
+            isTheRobotInReturnPoint.prepare().addInt(int(is_desired_point_return_point));
+            isTheRobotInReturnPoint.write();
+        }
+
+        if( !useFurtherPosForFitting.isClosed() )
+        {
+            useFurtherPosForFitting.prepare().clear();
+            useFurtherPosForFitting.prepare().addInt(int(keep_fitting_after_desired_point));
+            useFurtherPosForFitting.write();
         }
     }
 
     if( elapsed_time > desired_waiting_time )
     {
         elapsed_time = 0.0;
-        //set a new position for the controlled joints
-        bool new_position_available = getNewDesiredPosition(commandedPositions,desired_waiting_time,
-                                                            is_desired_point_return_point,keep_fitting_after_desired_point);
-        if( !new_position_available )
+        //Get a new desired position
+        if( !getNewDesiredPosition(commandedPositions,
+                                   desired_waiting_time,
+                                   is_desired_point_return_point,
+                                   keep_fitting_after_desired_point) )
         {
             //no new position available, exiting
             return false;
         }
 
-        //Set a new position for the controlled joints
+        //Set the position for the controlled joints
         for(int jnt=0; jnt < int(controlledJoints.size()); jnt++ )
         {
             std::string part = controlledJoints[jnt].part_name;
             int axis = controlledJoints[jnt].axis_number;
-            //Set desired position
-            std::cout  << "Send new desired position: " << commandedPositions[jnt] << " to joint " << part <<  " " << axis << std::endl;
+
+            //Send desired position to robot
+            std::cout  << "Send new desired position: " << commandedPositions[jnt]
+            << " to joint " << part <<  " " << axis << std::endl;
             pos[part]->positionMove(axis,commandedPositions[jnt]);
         }
     }
