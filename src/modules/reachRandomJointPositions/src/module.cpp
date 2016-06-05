@@ -125,6 +125,15 @@ bool reachRandomJointPositionsModule::configure(ResourceFinder &rf)
     ref_speed = rf.check("ref_speed",3.0).asDouble();
     period = rf.check("period",1.0).asDouble();
 
+    //Check ports collecting position flagging data
+    if( rf.check("returnFlagPort") )
+    {
+        this->returnFlagPort = rf.find("returnFlagPort").asString();
+    }
+    if( rf.check("fittingFlagPort") )
+    {
+        this->fittingFlagPort = rf.find("fittingFlagPort").asString();
+    }
 
     if ( !rf.check("joints") )
     {
@@ -308,8 +317,8 @@ bool reachRandomJointPositionsModule::configure(ResourceFinder &rf)
                 std::cout << listOfDesiredPositions[i].toString() << std::endl;
             }
 
-            isTheRobotInReturnPoint.open("/"+moduleName+"/isTheRobotInReturnPoint:o");
-            useFurtherPosForFitting.open("/"+moduleName+"/useFurtherPosForFitting:o");
+            isTheRobotInReturnPoint.open("/"+moduleName+"/"+controlledJoints[0].part_name+"/isTheRobotInReturnPoint:o");
+            useFurtherPosForFitting.open("/"+moduleName+"/"+controlledJoints[0].part_name+"/useFurtherPosForFitting:o");
             
             break;
         }
@@ -324,7 +333,18 @@ bool reachRandomJointPositionsModule::configure(ResourceFinder &rf)
 
     //Latch the remote timestamp for synchronising local one
     this->latchTimestampSync();
-    
+
+    //Wait for "isTheRobotInReturnPoint:o" and "useFurtherPosForFitting:o" to be
+    //connected to another port
+    if( !returnFlagPort.empty() )
+    {
+        while(!Network::isConnected(isTheRobotInReturnPoint.getName(), returnFlagPort)) {};
+    }
+    if( !fittingFlagPort.empty() )
+    {
+        while(!Network::isConnected(useFurtherPosForFitting.getName(), fittingFlagPort)) {};
+    }
+
     return true;
 }
 
@@ -337,6 +357,15 @@ bool reachRandomJointPositionsModule::interruptModule()
 bool reachRandomJointPositionsModule::close()
 {
     close_drivers();
+    if( Network::isConnected(isTheRobotInReturnPoint.getName(), returnFlagPort) )
+    {
+        Network::disconnect(isTheRobotInReturnPoint.getName(), returnFlagPort);
+    }
+    if( Network::isConnected(useFurtherPosForFitting.getName(), fittingFlagPort) )
+    {
+        Network::disconnect(useFurtherPosForFitting.getName(), fittingFlagPort);
+    }
+
     if( !isTheRobotInReturnPoint.isClosed() ) {isTheRobotInReturnPoint.close();}
     if( !useFurtherPosForFitting.isClosed() ) {useFurtherPosForFitting.close();}
     return true;

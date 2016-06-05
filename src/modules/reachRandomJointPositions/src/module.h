@@ -101,6 +101,9 @@ class reachRandomJointPositionsModule: public RFModule
     std::vector<desiredPositions> listOfDesiredPositions;
     yarp::os::BufferedPort<yarp::os::Bottle> isTheRobotInReturnPoint;
     yarp::os::BufferedPort<yarp::os::Bottle> useFurtherPosForFitting;
+    std::string returnFlagPort;
+    std::string fittingFlagPort;
+
     bool is_desired_point_return_point;
     bool keep_fitting_after_desired_point;
     yarp::os::Stamp timestamp;
