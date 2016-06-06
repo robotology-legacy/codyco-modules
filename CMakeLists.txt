@@ -4,7 +4,7 @@
 
 
 #### CMake Setup
-cmake_minimum_required(VERSION 2.8.7)
+cmake_minimum_required(VERSION 2.8.11)
 
 if(COMMAND cmake_policy)
     cmake_policy(SET CMP0003 NEW)
@@ -53,14 +53,7 @@ yarp_configure_external_installation(codyco WITH_PLUGINS)
 set_property(CACHE YARP_FORCE_DYNAMIC_PLUGINS PROPERTY TYPE INTERNAL)
 
 #### Find iCub
-
 find_package(ICUB REQUIRED)
-
-# include iCub CMake modules
-set(CMAKE_MODULE_PATH ${ICUB_MODULE_PATH} ${CMAKE_MODULE_PATH})
-
-# add functionalities like icub_add_library/icub_add_executable
-include(iCubHelpers)
 
 #### Set binary dir to ${CMAKE_BINARY_DIR}/bin
 set(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR}/bin)
@@ -72,12 +65,14 @@ set(LIBRARY_OUTPUT_PATH ${CMAKE_BINARY_DIR}/lib)
 make_directory(${LIBRARY_OUTPUT_PATH})
 mark_as_advanced(LIBRARY_OUTPUT_PATH)
 
-### enable testing
-option(CODYCO_DASHBOARD_SUBMIT "Submit compile tests to cdash" FALSE)
-option(CODYCO_BUILD_TESTS "Compile tests" FALSE)
-option(CODYCO_USES_WBI_TOOLBOX "Whole Body Interface Toolbox - Simulink library" FALSE)
+### Print author warnings when a cmake_minimum_required version is higher then a given cmake version
+if(NOT CMAKE_MINIMUM_REQUIRED_VERSION VERSION_LESS 2.8.12)
+    # Just a reminder to remove some workarodunds  when we change cmake version
+    message(AUTHOR_WARNING "CMake minimum required version greater than 2.8.12 . You can now get rid of the include_directories(SYSTEM ..) and substitute them with target_include_directories(... SYSTEM ...) .")
+    message(AUTHOR_WARNING "CMake minimum required version greater than 2.8.12 . You can now get rid of the target_link_libraries(... LINK_PUBLIC ...) and substitute them with target_link_libraries(... PUBLIC ...) .")
+endif()
 
-if (CODYCO_DASHBOARD_SUBMIT OR CODYCO_BUILD_TESTS)
+if (CODYCO_BUILD_TESTS)
    include (CTest)
 endif()
 
