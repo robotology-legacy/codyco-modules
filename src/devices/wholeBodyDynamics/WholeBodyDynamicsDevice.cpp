@@ -659,7 +659,7 @@ bool WholeBodyDynamicsDevice::loadGravityCompensationSettingsFromConfig(os::Sear
         if( !ret) return false;
 
         m_gravityCompesationJoints.resize(0);
-        for(int i=0; i < gravityCompesationAxes.size(); i++)
+        for(size_t i=0; i < gravityCompesationAxes.size(); i++)
         {
             iDynTree::JointIndex dofGravityJointIndex = this->kinDynComp.getRobotModel().getJointIndex(gravityCompesationAxes[i]);
 

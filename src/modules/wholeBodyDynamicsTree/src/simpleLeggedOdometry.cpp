@@ -126,9 +126,9 @@ bool simpleLeggedOdometry::setJointsState(const KDL::JntArray& qj,
                                           const KDL::JntArray& dqj,
                                           const KDL::JntArray& ddqj)
 {
-    if( qj.rows() != odometry_model->getNrOfDOFs()  ||
-        dqj.rows() != odometry_model->getNrOfDOFs()  ||
-        ddqj.rows() != odometry_model->getNrOfDOFs() )
+    if( qj.rows() != static_cast<unsigned int>(odometry_model->getNrOfDOFs())  ||
+        dqj.rows() != static_cast<unsigned int>(odometry_model->getNrOfDOFs())  ||
+        ddqj.rows() != static_cast<unsigned int>(odometry_model->getNrOfDOFs()) )
     {
         return false;
     }
