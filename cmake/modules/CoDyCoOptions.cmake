@@ -104,10 +104,8 @@ else()
 endif()
 
 #define debug flag
-set_property(
-    DIRECTORY
-    APPEND PROPERTY COMPILE_DEFINITIONS_DEBUG DEBUG=1
-)
+set_property(DIRECTORY APPEND PROPERTY
+             COMPILE_DEFINITIONS $<$<CONFIG:Debug>:DEBUG=1>)
 
 #### Option for building tests
 option(CODYCO_BUILD_TESTS "Compile tests" FALSE)
