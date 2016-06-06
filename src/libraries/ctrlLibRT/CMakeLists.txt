@@ -17,6 +17,8 @@ add_library(${PROJECT_NAME} ${${PROJECT_NAME}_HDRS} ${${PROJECT_NAME}_SRCS})
 target_include_directories(${PROJECT_NAME} PUBLIC
                                            "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
                                            "$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/${PROJECT_NAME}>")
+
+include_directories(SYSTEM ${EIGEN3_INCLUDE_DIR})
 target_include_directories(${PROJECT_NAME} PUBLIC  ${YARP_INCLUDE_DIRS} ${EIGEN3_INCLUDE_DIR})
 target_link_libraries(${PROJECT_NAME} ${YARP_LIBRARIES})
 
