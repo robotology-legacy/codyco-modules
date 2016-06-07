@@ -19,11 +19,9 @@ SOURCE_GROUP("Header Files" FILES ${folder_header})
 
 ADD_EXECUTABLE(${PROJECTNAME} ${folder_source} ${folder_header})
 
-INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR}/src
-                    ${YARP_INCLUDE_DIRS}
-                    )
-
-TARGET_LINK_LIBRARIES(${PROJECTNAME} ${YARP_LIBRARIES})
+include_directories(SYSTEM ${YARP_INCLUDE_DIRS})
+include_directories(${PROJECT_SOURCE_DIR}/src)
+target_link_libraries(${PROJECTNAME} ${YARP_LIBRARIES})
 
 INSTALL(TARGETS ${PROJECTNAME} DESTINATION bin)
 

@@ -103,21 +103,9 @@ else()
     endif()
 endif()
 
-if(${CMAKE_MINIMUM_REQUIRED_VERSION} VERSION_GREATER "2.8.10")
-    message(AUTHOR_WARNING "CMAKE_MINIMUM_REQUIRED_VERSION is now ${CMAKE_MINIMUM_REQUIRED_VERSION}. This check can be removed.")
-endif()
-if(CMAKE_VERSION VERSION_GREATER 2.8.10)
-    #define debug flag
-    set_property(DIRECTORY APPEND PROPERTY
-      COMPILE_DEFINITIONS $<$<CONFIG:Debug>:DEBUG=1>
-    )
-else()
-    #define debug flag
-    set_property(
-        DIRECTORY
-        APPEND PROPERTY COMPILE_DEFINITIONS_DEBUG DEBUG=1
-    )
-endif()
+#define debug flag
+set_property(DIRECTORY APPEND PROPERTY
+             COMPILE_DEFINITIONS $<$<CONFIG:Debug>:DEBUG=1>)
 
 #### Option for building tests
 option(CODYCO_BUILD_TESTS "Compile tests" FALSE)

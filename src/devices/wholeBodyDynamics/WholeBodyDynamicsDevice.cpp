@@ -4,6 +4,7 @@
 #include <yarp/os/LogStream.h>
 #include <yarp/os/Property.h>
 #include <yarp/os/ResourceFinder.h>
+#include <yarp/os/Time.h>
 
 #include <yarp/dev/IAnalogSensor.h>
 #include <yarp/dev/GenericSensorInterfaces.h>
@@ -19,13 +20,16 @@ namespace yarp
 namespace dev
 {
 
+const size_t wholeBodyDynamics_nrOfChannelsOfYARPFTSensor = 6;
+const size_t wholeBodyDynamics_nrOfChannelsOfAYARPIMUSensor = 12;
+const double wholeBodyDynamics_sensorTimeoutInSeconds = 2.0;
+
 WholeBodyDynamicsDevice::WholeBodyDynamicsDevice(): RateThread(10),
                                                     portPrefix("/wholeBodyDynamics"),
                                                     correctlyConfigured(false),
                                                     sensorReadCorrectly(false),
                                                     estimationWentWell(false),
                                                     validOffsetAvailable(false),
-                                                    imuInterface(0),
                                                     settingsEditor(settings)
 {
     // Calibration quantities
@@ -92,7 +96,7 @@ bool WholeBodyDynamicsDevice::closeSkinContactListsPorts()
 {
     this->portContactsInput.close();
     this->portContactsOutput.close();
-    
+
     return true;
 }
 
@@ -144,6 +148,27 @@ bool getUsedDOFsList(os::Searchable& config, std::vector<std::string> & usedDOFs
     return true;
 }
 
+bool getGravityCompensationDOFsList(os::Searchable& config, std::vector<std::string> & gravityCompensationDOFs)
+{
+    yarp::os::Property prop;
+    prop.fromString(config.toString().c_str());
+
+    yarp::os::Bottle *propAxesNames=prop.find("gravityCompensationAxesNames").asList();
+    if(propAxesNames==0)
+    {
+       yError() <<"wholeBodyDynamics : Error parsing parameters: \"gravityCompensationAxesNames\" should be followed by a list\n";
+       return false;
+    }
+
+    gravityCompensationDOFs.resize(propAxesNames->size());
+    for(int ax=0; ax < propAxesNames->size(); ax++)
+    {
+        gravityCompensationDOFs[ax] = propAxesNames->get(ax).asString().c_str();
+    }
+
+    return true;
+}
+
 
 bool WholeBodyDynamicsDevice::openRemapperControlBoard(os::Searchable& config)
 {
@@ -165,6 +190,9 @@ bool WholeBodyDynamicsDevice::openRemapperControlBoard(os::Searchable& config)
     // View relevant interfaces for the remappedControlBoard
     ok = ok && remappedControlBoard.view(remappedControlBoardInterfaces.encs);
     ok = ok && remappedControlBoard.view(remappedControlBoardInterfaces.multwrap);
+    ok = ok && remappedControlBoard.view(remappedControlBoardInterfaces.impctrl);
+    ok = ok && remappedControlBoard.view(remappedControlBoardInterfaces.ctrlmode);
+    ok = ok && remappedControlBoard.view(remappedControlBoardInterfaces.intmode);
 
     if( !ok )
     {
@@ -178,6 +206,44 @@ bool WholeBodyDynamicsDevice::openRemapperControlBoard(os::Searchable& config)
     if( axes != (int) estimator.model().getNrOfDOFs() )
     {
         yError() << "wholeBodyDynamics : open estimator model and the remappedControlBoard has an inconsistent number of joints";
+        return false;
+    }
+
+    return true;
+}
+
+bool WholeBodyDynamicsDevice::openRemapperVirtualSensors(os::Searchable& config)
+{
+    // Pass to the remapper just the relevant parameters (axesList)
+    yarp::os::Property propRemapper;
+    propRemapper.put("device","virtualAnalogRemapper");
+    bool ok = getUsedDOFsList(config,estimationJointNames);
+    if(!ok) return false;
+
+    addVectorOfStringToProperty(propRemapper,"axesNames",estimationJointNames);
+
+    ok = remappedVirtualAnalogSensors.open(propRemapper);
+
+    if( !ok )
+    {
+        return ok;
+    }
+
+    // View relevant interfaces for the remappedVirtualAnalogSensors
+    ok = ok && remappedVirtualAnalogSensors.view(remappedVirtualAnalogSensorsInterfaces.ivirtsens);
+    ok = ok && remappedVirtualAnalogSensors.view(remappedVirtualAnalogSensorsInterfaces.multwrap);
+
+    if( !ok )
+    {
+        yError() << "wholeBodyDynamics : open impossible to use the necessary interfaces in remappedControlBoard";
+        return ok;
+    }
+
+    // Check if the controlboard and the estimator have a consistent number of joints
+    int axes = remappedVirtualAnalogSensorsInterfaces.ivirtsens->getChannels();
+    if( axes != (int) estimator.model().getNrOfDOFs() )
+    {
+        yError() << "wholeBodyDynamics : open estimator model and the remapperVirtualAnalogSensor has an inconsistent number of joints";
         return false;
     }
 
@@ -201,7 +267,6 @@ bool WholeBodyDynamicsDevice::openEstimator(os::Searchable& config)
     std::string modelFileFullPath = rf.findFileByName(modelFileName);
 
     yInfo() << "wholeBodyDynamics : Loading model from " << modelFileFullPath;
-
 
     ok = estimator.loadModelAndSensorsFromFileWithSpecifiedDOFs(modelFileFullPath,estimationJointNames);
     if( !ok )
@@ -342,8 +407,6 @@ bool WholeBodyDynamicsDevice::openExternalWrenchesPorts(os::Searchable& config)
         return true;
     }
 
-    int nr_of_output_wrench_ports = output_wrench_bot.size() - 1;
-
     for(int output_wrench_port = 1; output_wrench_port < output_wrench_bot.size(); output_wrench_port++)
     {
         outputWrenchPortInformation wrench_port_struct;
@@ -425,7 +488,7 @@ bool WholeBodyDynamicsDevice::openExternalWrenchesPorts(os::Searchable& config)
         std::string port_name = outputWrenchPorts[i].port_name;
         outputWrenchPorts[i].output_port = new yarp::os::BufferedPort<yarp::sig::Vector>;
         ok = ok && outputWrenchPorts[i].output_port->open(port_name);
-        outputWrenchPorts[i].output_vector.resize(6);
+        outputWrenchPorts[i].output_vector.resize(wholeBodyDynamics_nrOfChannelsOfYARPFTSensor);
     }
 
     if( !ok )
@@ -444,11 +507,12 @@ void WholeBodyDynamicsDevice::resizeBuffers()
     this->jointVel.resize(estimator.model());
     this->jointAcc.resize(estimator.model());
     this->measuredContactLocations.resize(estimator.model());
-    this->ftMeasurement.resize(6);
-    this->imuMeasurement.resize(12);
+    this->ftMeasurement.resize(wholeBodyDynamics_nrOfChannelsOfYARPFTSensor);
+    this->imuMeasurement.resize(wholeBodyDynamics_nrOfChannelsOfAYARPIMUSensor);
     this->rawSensorsMeasurements.resize(estimator.sensors());
     this->filteredSensorMeasurements.resize(estimator.sensors());
     this->estimatedJointTorques.resize(estimator.model());
+    this->estimatedJointTorquesYARP.resize(this->estimatedJointTorques.size(),0.0);
     this->estimateExternalContactWrenches.resize(estimator.model());
 
     // Resize F/T stuff
@@ -552,6 +616,87 @@ bool WholeBodyDynamicsDevice::loadSettingsFromConfig(os::Searchable& config)
     return true;
 }
 
+bool WholeBodyDynamicsDevice::loadGravityCompensationSettingsFromConfig(os::Searchable& config)
+{
+    bool ret = true;
+    yarp::os::Property propAll;
+    propAll.fromString(config.toString().c_str());
+
+    if( !propAll.check("GRAVITY_COMPENSATION") )
+    {
+        m_gravityCompensationEnabled = false;
+        m_gravityCompesationJoints.resize(0);
+        ret = false;
+    }
+    else
+    {
+        yarp::os::Searchable & propGravComp = propAll.findGroup("GRAVITY_COMPENSATION");
+
+        if( !(propGravComp.check("enableGravityCompensation") && propGravComp.find("enableGravityCompensation").isBool()) )
+        {
+            yError() << "wholeBodyDynamics: GRAVITY_COMPENSATION group found, but enableGravityCompensation bool parameter missing";
+            return false;
+        }
+
+        if( !(propGravComp.check("gravityCompensationBaseLink") && propGravComp.find("gravityCompensationBaseLink").isString()) )
+        {
+            yError() << "wholeBodyDynamics: GRAVITY_COMPENSATION group found, but gravityCompensationBaseLink string parameter missing";
+            return false;
+        }
+
+        if( !(propGravComp.check("gravityCompensationAxesNames") && propGravComp.find("gravityCompensationAxesNames").isList()) )
+        {
+            yError() << "wholeBodyDynamics: GRAVITY_COMPENSATION group found, but gravityCompensationAxesNames list parameter missing";
+            return false;
+        }
+
+        m_gravityCompensationEnabled = propGravComp.find("enableGravityCompensation").asBool();
+
+        std::vector<std::string> gravityCompesationAxes;
+
+        ret = getGravityCompensationDOFsList(propGravComp,gravityCompesationAxes);
+
+        if( !ret) return false;
+
+        m_gravityCompesationJoints.resize(0);
+        for(size_t i=0; i < gravityCompesationAxes.size(); i++)
+        {
+            iDynTree::JointIndex dofGravityJointIndex = this->kinDynComp.getRobotModel().getJointIndex(gravityCompesationAxes[i]);
+
+            if( !(this->kinDynComp.getRobotModel().isValidJointIndex(dofGravityJointIndex)) )
+            {
+                yError() << "wholeBodyDynamics: joint " << gravityCompesationAxes[i] << " passed as a gravityCompensationAxesNames not found in the model.";
+                return false;
+            }
+
+            if( this->kinDynComp.getRobotModel().getJoint(dofGravityJointIndex)->getNrOfDOFs() != 1 )
+            {
+                yError() << "wholeBodyDynamics: joint " << gravityCompesationAxes[i] << " passed as a gravityCompensationAxesNames is not a 1 dof joint.";
+                return false;
+            }
+
+            size_t dofOffset = this->kinDynComp.getRobotModel().getJoint(dofGravityJointIndex)->getDOFsOffset();
+
+            m_gravityCompesationJoints.push_back(dofOffset);
+        }
+
+        // We use the kinDynComp class that was opened together with the estimator
+        std::string gravityCompensationBaseLink = propGravComp.find("gravityCompensationBaseLink").asString().c_str();
+
+        ret = m_gravCompHelper.loadModel(this->estimator.model(),gravityCompensationBaseLink);
+        m_gravityCompensationTorques.resize(this->estimator.model());
+
+        if( !ret )
+        {
+            yError() << "wholeBodyDynamics: link " << gravityCompensationBaseLink << " passed as gravityCompensationBaseLink not found in the model.";
+            return false;
+        }
+    }
+
+    return ret;
+}
+
+
 bool WholeBodyDynamicsDevice::open(os::Searchable& config)
 {
     yarp::os::LockGuard guard(this->deviceMutex);
@@ -566,6 +711,9 @@ bool WholeBodyDynamicsDevice::open(os::Searchable& config)
     ok = this->openEstimator(config);
     if( !ok ) return false;
 
+    // Open settings related to gravity compensation (we need the estimator to be open)
+    ok = this->loadGravityCompensationSettingsFromConfig(config);
+
     // Open rpc port
     ok = this->openRPCPort();
     if( !ok ) return false;
@@ -578,6 +726,10 @@ bool WholeBodyDynamicsDevice::open(os::Searchable& config)
     ok = this->openRemapperControlBoard(config);
     if( !ok ) return false;
 
+     // Open the virtualsensor remapper
+    ok = this->openRemapperVirtualSensors(config);
+    if( !ok ) return false;
+
     ok = this->openDefaultContactFrames(config);
     if( !ok ) return false;
 
@@ -587,6 +739,7 @@ bool WholeBodyDynamicsDevice::open(os::Searchable& config)
 
     // Open the ports related to publishing external wrenches
     ok = this->openExternalWrenchesPorts(config);
+    if( !ok ) return false;
 
 
     return true;
@@ -618,72 +771,12 @@ bool WholeBodyDynamicsDevice::attachAllControlBoard(const PolyDriverList& p)
 
 bool WholeBodyDynamicsDevice::attachAllVirtualAnalogSensor(const PolyDriverList& p)
 {
-    // For the moment we assume that the controlboard device is the
-    // same that implements the IVirtualAnalogSensor interface (this is how things
-    // are implemented in embObjMotionControl) In general we at least assume that
-    // all the devices that implement IVirtualAnalogSensor also implement IAxisInfo
-    // to provide a name for the virtual analog axis
-    std::vector<IVirtualAnalogSensor *> virtualAnalogList;
-    std::vector<IAxisInfo *>            axisInfoList;
-    for(size_t devIdx = 0; devIdx < (size_t)p.size(); devIdx++)
+    bool ok = remappedVirtualAnalogSensorsInterfaces.multwrap->attachAll(p);
+
+    if( !ok )
     {
-        IVirtualAnalogSensor * pVirtualAnalogSens = 0;
-        IAxisInfo            * pAxisInfo          = 0;
-        if( p[devIdx]->poly->view(pVirtualAnalogSens) )
-        {
-            virtualAnalogList.push_back(pVirtualAnalogSens);
-            if( !(p[devIdx]->poly->view(pAxisInfo)) )
-            {
-                yError() << "wholeBodyDynamics : attachAll error: device "
-                         << p[devIdx]->key << " exposes a IVirtualAnalogSensor, but not a IAxisInfo interface,"
-                         << " impossible to map the list of joint names to the IVirtualAnalogSensor interface";
-                return false;
-
-            }
-            else
-            {
-                axisInfoList.push_back(pAxisInfo);
-            }
-        }
-    }
-
-    // Find the axisName ---> device , localAxis mapping
-    std::map<std::string, IVirtualAnalogSensor *> axisName2virtualAnalogSensorPtr;
-    std::map<std::string, int> axisName2localAxis;
-
-    for(size_t devIdx = 0; devIdx < virtualAnalogList.size(); devIdx++)
-    {
-        int nrOfVirtualAxes = virtualAnalogList[devIdx]->getChannels();
-        for(int localAxis=0; localAxis < nrOfVirtualAxes; localAxis++)
-        {
-            yarp::os::ConstString axisName;
-            axisInfoList[devIdx]->getAxisName(localAxis,axisName);
-
-            std::string axisNameStd = axisName.c_str();
-
-            axisName2virtualAnalogSensorPtr[axisNameStd] = virtualAnalogList[devIdx];
-            axisName2localAxis[axisNameStd] = localAxis;
-        }
-    }
-
-    // Save the axis ---> device, localAxis mapping
-    remappedVirtualAnalogSensorAxis.resize(estimationJointNames.size());
-
-    for(size_t axis = 0; axis < remappedVirtualAnalogSensorAxis.size(); axis++)
-    {
-        std::string jointName = estimationJointNames[axis];
-        // if the name is not exposed in the VirtualAnalogSensors, just save a null pointer
-        // and don't publish the torque estimated for that joint
-        if( axisName2virtualAnalogSensorPtr.find(jointName) == axisName2virtualAnalogSensorPtr.end() )
-        {
-            remappedVirtualAnalogSensorAxis[axis].dev = 0;
-            remappedVirtualAnalogSensorAxis[axis].localAxis = 0;
-        }
-        else
-        {
-            remappedVirtualAnalogSensorAxis[axis].dev = axisName2virtualAnalogSensorPtr[jointName];
-            remappedVirtualAnalogSensorAxis[axis].localAxis = axisName2localAxis[jointName];
-        }
+        yError() << " WholeBodyDynamicsDevice::attachAll: error in attachAll of the remapperVirtualAnalogSensor";
+        return false;
     }
 
     return true;
@@ -695,11 +788,15 @@ bool WholeBodyDynamicsDevice::attachAllFTs(const PolyDriverList& p)
     std::vector<std::string>     ftDeviceNames;
     for(size_t devIdx = 0; devIdx < (size_t)p.size(); devIdx++)
     {
+        // A device is considered an ft if it implements IAnalogSensor and has 6 channels
         IAnalogSensor * pAnalogSens = 0;
         if( p[devIdx]->poly->view(pAnalogSens) )
         {
-            ftList.push_back(pAnalogSens);
-            ftDeviceNames.push_back(p[devIdx]->key);
+            if( pAnalogSens->getChannels() == (int)wholeBodyDynamics_nrOfChannelsOfYARPFTSensor )
+            {
+                ftList.push_back(pAnalogSens);
+                ftDeviceNames.push_back(p[devIdx]->key);
+            }
         }
     }
 
@@ -737,7 +834,24 @@ bool WholeBodyDynamicsDevice::attachAllFTs(const PolyDriverList& p)
         ftSensors[IDTsensIdx] = ftList[deviceThatHasTheSameNameOfTheSensor];
     }
 
-    return true;
+    // We try to read for a brief moment the sensors for two reasons:
+    // so we can make sure that they actually work, and to make sure that the buffers are correctly initialized
+    bool verbose = false;
+    double tic = yarp::os::Time::now();
+    bool timeSpentTryngToReadSensors = 0.0;
+    bool readSuccessfull = false;
+    while( (timeSpentTryngToReadSensors < wholeBodyDynamics_sensorTimeoutInSeconds) && !readSuccessfull )
+    {
+        readSuccessfull = readFTSensors(verbose);
+        timeSpentTryngToReadSensors = (yarp::os::Time::now() - tic);
+    }
+
+    if( !readSuccessfull )
+    {
+       yError() << "WholeBodyDynamicsDevice was unable to correctly read from the FT sensors";
+    }
+
+    return readSuccessfull;
 }
 
 
@@ -754,16 +868,37 @@ bool WholeBodyDynamicsDevice::attachAllIMUs(const PolyDriverList& p)
         }
     }
 
-    if( imuList.size() != 1 )
+    size_t nrOfIMUDetected = imuList.size();
+
+    if( nrOfIMUDetected != 1 )
     {
-        yError() << " WholeBodyDynamicsDevice::attachAll only one IMU sensors is supported, but "
-                 << imuList.size() << " have been attached to the device";
+        yError() << "WholeBodyDynamicsDevice was expecting only one IMU, but it did not find " << nrOfIMUDetected << " in the attached devices";
         return false;
     }
 
-    this->imuInterface = imuList[0];
+    if( imuList.size() == 1 )
+    {
+        this->imuInterface = imuList[0];
+    }
 
-    return true;
+    // We try to read for a brief moment the sensors for two reasons:
+    // so we can make sure that they actually work, and to make sure that the buffers are correctly initialized
+    bool verbose = false;
+    double tic = yarp::os::Time::now();
+    bool timeSpentTryngToReadSensors = 0.0;
+    bool readSuccessfull = false;
+    while( (timeSpentTryngToReadSensors < wholeBodyDynamics_sensorTimeoutInSeconds) && !readSuccessfull )
+    {
+        readSuccessfull = readIMUSensors(verbose);
+        timeSpentTryngToReadSensors = (yarp::os::Time::now() - tic);
+    }
+
+    if( !readSuccessfull )
+    {
+       yError() << "WholeBodyDynamicsDevice was unable to correctly read from the IMU for " << wholeBodyDynamics_sensorTimeoutInSeconds << " seconds, exiting.";
+    }
+
+    return readSuccessfull;
 }
 
 bool WholeBodyDynamicsDevice::attachAll(const PolyDriverList& p)
@@ -776,7 +911,7 @@ bool WholeBodyDynamicsDevice::attachAll(const PolyDriverList& p)
     ok = ok && this->attachAllFTs(p);
     ok = ok && this->attachAllIMUs(p);
 
-    ok = this->setupCalibrationWithExternalWrenchOnOneFrame("base_link",100);
+    ok = ok && this->setupCalibrationWithExternalWrenchOnOneFrame("base_link",100);
 
     if( ok )
     {
@@ -801,6 +936,65 @@ void convertVectorFromDegreesToRadians(iDynTree::VectorDynSize & vector)
 
     return;
 }
+
+bool WholeBodyDynamicsDevice::readFTSensors(bool verbose)
+{
+    bool FTSensorsReadCorrectly = true;
+    for(size_t ft=0; ft < estimator.sensors().getNrOfSensors(iDynTree::SIX_AXIS_FORCE_TORQUE); ft++ )
+    {
+        iDynTree::Wrench bufWrench;
+        int ftRetVal = ftSensors[ft]->read(ftMeasurement);
+
+        bool ok = (ftRetVal == IAnalogSensor::AS_OK);
+
+        FTSensorsReadCorrectly = FTSensorsReadCorrectly && ok;
+
+        if( !ok && verbose )
+        {
+            std::string sensorName = estimator.sensors().getSensor(iDynTree::SIX_AXIS_FORCE_TORQUE,ft)->getName();
+            yWarning() << "wholeBodyDynamics warning : FT sensor " << sensorName << " was not readed correctly, using old measurement";
+        }
+
+        if( ok )
+        {
+            // Format of F/T measurement in YARP/iDynTree is consistent: linear/angular
+            iDynTree::toiDynTree(ftMeasurement,bufWrench);
+
+            rawSensorsMeasurements.setMeasurement(iDynTree::SIX_AXIS_FORCE_TORQUE,ft,bufWrench);
+        }
+    }
+
+    return FTSensorsReadCorrectly;
+}
+
+bool WholeBodyDynamicsDevice::readIMUSensors(bool verbose)
+{
+    rawIMUMeasurements.angularAcc.zero();
+    rawIMUMeasurements.linProperAcc.zero();
+    rawIMUMeasurements.angularVel.zero();
+
+    bool ok = imuInterface->read(imuMeasurement);
+
+    if( !ok && verbose )
+    {
+        yWarning() << "wholeBodyDynamics warning : imu sensor was not readed correctly, using old measurement";
+    }
+
+    if( ok )
+    {
+        // Check format of IMU in YARP http://wiki.icub.org/wiki/Inertial_Sensor
+        rawIMUMeasurements.angularVel(0) = deg2rad(imuMeasurement[6]);
+        rawIMUMeasurements.angularVel(1) = deg2rad(imuMeasurement[7]);
+        rawIMUMeasurements.angularVel(2) = deg2rad(imuMeasurement[8]);
+
+        rawIMUMeasurements.linProperAcc(0) = imuMeasurement[3];
+        rawIMUMeasurements.linProperAcc(1) = imuMeasurement[4];
+        rawIMUMeasurements.linProperAcc(2) = imuMeasurement[5];
+    }
+
+    return ok;
+}
+
 
 void WholeBodyDynamicsDevice::readSensors()
 {
@@ -855,52 +1049,17 @@ void WholeBodyDynamicsDevice::readSensors()
     }
 
     // Read F/T sensors
-    for(size_t ft=0; ft < estimator.sensors().getNrOfSensors(iDynTree::SIX_AXIS_FORCE_TORQUE); ft++ )
-    {
-        iDynTree::Wrench bufWrench;
-        int ftRetVal = ftSensors[ft]->read(ftMeasurement);
-
-        ok = (ftRetVal == IAnalogSensor::AS_OK);
-
-        sensorReadCorrectly = sensorReadCorrectly && ok;
-
-        if( !ok )
-        {
-            std::string sensorName = estimator.sensors().getSensor(iDynTree::SIX_AXIS_FORCE_TORQUE,ft)->getName();
-            yWarning() << "wholeBodyDynamics warning : FT sensor " << sensorName << " was not readed correctly";
-        }
-
-        // Format of F/T measurement in YARP/iDynTree is consistent: linear/angular
-        iDynTree::toiDynTree(ftMeasurement,bufWrench);
-
-        rawSensorsMeasurements.setMeasurement(iDynTree::SIX_AXIS_FORCE_TORQUE,ft,bufWrench);
-    }
+    ok = readFTSensors();
+    sensorReadCorrectly = ok && sensorReadCorrectly;
 
     // Read IMU Sensor
     if( settings.kinematicSource == IMU )
     {
-        rawIMUMeasurements.angularAcc.zero();
-        rawIMUMeasurements.linProperAcc.zero();
-        rawIMUMeasurements.angularVel.zero();
-
-        ok = imuInterface->read(imuMeasurement);
-
-        sensorReadCorrectly = sensorReadCorrectly && ok;
-
-        if( !ok )
-        {
-            yWarning() << "wholeBodyDynamics warning : imu sensor was not readed correctly";
-        }
-
-        // Check format of IMU in YARP http://wiki.icub.org/wiki/Inertial_Sensor
-        rawIMUMeasurements.angularVel(0) = deg2rad(imuMeasurement[6]);
-        rawIMUMeasurements.angularVel(1) = deg2rad(imuMeasurement[7]);
-        rawIMUMeasurements.angularVel(2) = deg2rad(imuMeasurement[8]);
-
-        rawIMUMeasurements.linProperAcc(0) = imuMeasurement[3];
-        rawIMUMeasurements.linProperAcc(1) = imuMeasurement[4];
-        rawIMUMeasurements.linProperAcc(2) = imuMeasurement[5];
+        ok = readIMUSensors();
+        sensorReadCorrectly = ok && sensorReadCorrectly;
     }
+
+
 }
 
 void WholeBodyDynamicsDevice::filterSensorsAndRemoveSensorOffsets()
@@ -978,9 +1137,16 @@ void WholeBodyDynamicsDevice::updateKinematics()
     {
         // Hardcode for the meanwhile
         iDynTree::FrameIndex imuFrameIndex = estimator.model().getFrameIndex("imu_frame");
- 
+
         estimator.updateKinematicsFromFloatingBase(jointPos,jointVel,jointAcc,imuFrameIndex,
                                                    filteredIMUMeasurements.linProperAcc,filteredIMUMeasurements.angularVel,filteredIMUMeasurements.angularAcc);
+
+        if( m_gravityCompensationEnabled )
+        {
+            m_gravCompHelper.updateKinematicsFromProperAcceleration(jointPos,
+                                                                    imuFrameIndex,
+                                                                    filteredIMUMeasurements.linProperAcc);
+        }
     }
     else
     {
@@ -994,6 +1160,13 @@ void WholeBodyDynamicsDevice::updateKinematics()
         gravity(2) = settings.fixedFrameGravity.z;
 
         estimator.updateKinematicsFromFixedBase(jointPos,jointVel,jointAcc,fixedFrameIndex,gravity);
+
+        if( m_gravityCompensationEnabled )
+        {
+            m_gravCompHelper.updateKinematicsFromGravity(jointPos,
+                                                         fixedFrameIndex,
+                                                         gravity);
+        }
     }
 }
 
@@ -1027,7 +1200,7 @@ void WholeBodyDynamicsDevice::readContactPoints()
 
 void addToSummer(iDynTree::Vector6 & buffer, const iDynTree::Wrench & addedWrench)
 {
-    for(int i=0; i < 6; i++)
+    for(size_t i=0; i < wholeBodyDynamics_nrOfChannelsOfYARPFTSensor; i++)
     {
         buffer(i) = buffer(i) + addedWrench(i);
     }
@@ -1035,7 +1208,7 @@ void addToSummer(iDynTree::Vector6 & buffer, const iDynTree::Wrench & addedWrenc
 
 void computeMean(const iDynTree::Vector6 & buffer, const size_t nrOfSamples, iDynTree::Wrench & mean)
 {
-    for(int i=0; i < 6; i++)
+    for(size_t i=0; i < wholeBodyDynamics_nrOfChannelsOfYARPFTSensor; i++)
     {
         mean(i) = buffer(i)/nrOfSamples;
     }
@@ -1046,7 +1219,7 @@ void WholeBodyDynamicsDevice::computeCalibration()
 {
     if( calibrationBuffers.ongoingCalibration )
     {
-        // Todo: Check that the model is actually still during calibration 
+        // Todo: Check that the model is actually still during calibration
 
         // Run the calibration
         estimator.computeExpectedFTSensorsMeasurements(calibrationBuffers.assumedContactLocationsForCalibration,
@@ -1085,7 +1258,7 @@ void WholeBodyDynamicsDevice::computeCalibration()
                     computeMean(calibrationBuffers.estimationSumBuffer[ft],calibrationBuffers.nrOfSamplesUsedUntilNowForCalibration,estimationMean);
 
                     yInfo() << "wholeBodyDynamics: Offset for sensor " << estimator.sensors().getSensor(iDynTree::SIX_AXIS_FORCE_TORQUE,ft)->getName() << " " << ftProcessors[ft].offset().toString();
-                    yInfo() << "wholeBodyDynamics: obtained assuming a measurement of " << measurementMean.toString() << " and an estimated ft of " << estimationMean.toString();
+                    yInfo() << "wholeBodyDynamics: obtained assuming a measurement of " << measurementMean.asVector().toString() << " and an estimated ft of " << estimationMean.asVector().toString();
                 }
             }
 
@@ -1124,8 +1297,8 @@ void WholeBodyDynamicsDevice::publishEstimatedQuantities()
             //Send external wrench estimates
             publishExternalWrenches();
 
-            //Compute odometry
-            //publishOdometry();
+            // Send gravity compensation torques
+            publishGravityCompensation();
 
             //Send base information to iCubGui
             //publishBaseToGui();
@@ -1139,6 +1312,71 @@ void WholeBodyDynamicsDevice::publishEstimatedQuantities()
     }
 }
 
+void WholeBodyDynamicsDevice::publishGravityCompensation()
+{
+    if( m_gravityCompensationEnabled )
+    {
+        this->m_gravCompHelper.getGravityCompensationTorques(this->m_gravityCompensationTorques);
+        // Publish torques only in joints that are in compliant mode that they need it
+
+        for(size_t ii=0; ii < m_gravityCompesationJoints.size(); ii++)
+        {
+            size_t dof = m_gravityCompesationJoints[ii];
+
+            int ctrl_mode=0;
+            yarp::dev::InteractionModeEnum int_mode;
+            remappedControlBoardInterfaces.ctrlmode->getControlMode(dof,&ctrl_mode);
+            remappedControlBoardInterfaces.intmode->getInteractionMode(dof,&int_mode);
+
+            switch(ctrl_mode)
+            {
+                //for all this control modes do nothing
+                case VOCAB_CM_OPENLOOP:
+                case VOCAB_CM_IDLE:
+                case VOCAB_CM_UNKNOWN:
+                case VOCAB_CM_HW_FAULT:
+                    break;
+
+                case VOCAB_CM_TORQUE:
+                    // We don't do anything in torque mode, differently from the
+                    // old gravity compensation : because otherwise we interfere
+                    // with any torque control loop
+                    break;
+
+                case VOCAB_CM_POSITION:
+                case VOCAB_CM_POSITION_DIRECT:
+                case VOCAB_CM_MIXED:
+                case VOCAB_CM_VELOCITY:
+                     if (int_mode == VOCAB_IM_COMPLIANT)
+                     {
+                         remappedControlBoardInterfaces.impctrl->setImpedanceOffset((int)dof,this->m_gravityCompensationTorques(dof));
+                     }
+                     else
+                     {
+                         //stiff or unknown mode, nothing to do
+                     }
+                     break;
+            }
+        }
+    }
+}
+
+void WholeBodyDynamicsDevice::resetGravityCompensation()
+{
+    if( m_gravityCompensationEnabled )
+    {
+        for(size_t ii=0; ii < m_gravityCompesationJoints.size(); ii++)
+        {
+            size_t dof = m_gravityCompesationJoints[ii];
+
+            // Regardless of the controlmode, we reset the setImpedanceOffset
+            remappedControlBoardInterfaces.impctrl->setImpedanceOffset((int)dof,0.0);
+        }
+    }
+}
+
+
+
 template <class T> void broadcastData(T& _values, yarp::os::BufferedPort<T>& _port)
 {
     if (_port.getOutputCount()>0 )
@@ -1150,14 +1388,8 @@ template <class T> void broadcastData(T& _values, yarp::os::BufferedPort<T>& _po
 
 void WholeBodyDynamicsDevice::publishTorques()
 {
-
-    for(size_t axis=0; axis < remappedVirtualAnalogSensorAxis.size(); axis++)
-    {
-        if( remappedVirtualAnalogSensorAxis[axis].dev )
-        {
-            remappedVirtualAnalogSensorAxis[axis].dev->updateMeasure(remappedVirtualAnalogSensorAxis[axis].localAxis,estimatedJointTorques(axis));
-        }
-    }
+    iDynTree::toYarp(this->estimatedJointTorques,this->estimatedJointTorquesYARP);
+    this->remappedVirtualAnalogSensorsInterfaces.ivirtsens->updateMeasure(this->estimatedJointTorquesYARP);
 }
 
 void WholeBodyDynamicsDevice::publishContacts()
@@ -1194,7 +1426,7 @@ void WholeBodyDynamicsDevice::publishExternalWrenches()
 
 
     // Get wrenches from the estimator and publish it on the port
-    for(int i=0; i < this->outputWrenchPorts.size(); i++ )
+    for(size_t i=0; i < this->outputWrenchPorts.size(); i++ )
     {
         // Get the wrench in the link frame
         iDynTree::LinkIndex link = this->outputWrenchPorts[i].link_index;
@@ -1251,20 +1483,30 @@ bool WholeBodyDynamicsDevice::detachAll()
     correctlyConfigured = false;
 
     if (isRunning())
+    {
         stop();
+    }
 
+    // If gravity compensation was enabled, reset the offsets
+    this->resetGravityCompensation();
+
+
+    this->remappedControlBoardInterfaces.multwrap->detachAll();
+    this->remappedVirtualAnalogSensorsInterfaces.multwrap->detachAll();
+
+    closeExternalWrenchesPorts();
     closeRPCPort();
     closeSettingsPort();
     closeSkinContactListsPorts();
-    closeExternalWrenchesPorts();
+
 
     return true;
 }
 
 bool WholeBodyDynamicsDevice::close()
 {
-    // Uncommenting this will result in a deadlock when closing the wbd interface
-    //yarp::os::LockGuard guard(this->deviceMutex);
+    this->remappedControlBoard.close();
+    this->remappedVirtualAnalogSensors.close();
 
     correctlyConfigured = false;
 
@@ -1571,12 +1813,6 @@ std::string WholeBodyDynamicsDevice::getCurrentSettingsString()
    return settings.toString();
 }
 
-
-
-
-
-
-
 bool WholeBodyDynamicsDevice::resetSimpleLeggedOdometry(const std::string& /*initial_world_frame*/, const std::string& /*initial_fixed_link*/)
 {
     yError() << " wholeBodyDynamics : resetSimpleLeggedOdometry method not implemented";
@@ -1683,7 +1919,7 @@ void wholeBodyDynamicsDeviceFilters::fini()
         imuAngularVelocityFilter = 0;
     }
 
-    for(int ft_numeric = 0; ft_numeric < forcetorqueFilters.size(); ft_numeric++ )
+    for(size_t ft_numeric = 0; ft_numeric < forcetorqueFilters.size(); ft_numeric++ )
     {
         delete forcetorqueFilters[ft_numeric];
         forcetorqueFilters[ft_numeric] = 0;
@@ -1708,10 +1944,6 @@ wholeBodyDynamicsDeviceFilters::~wholeBodyDynamicsDeviceFilters()
 {
     fini();
 }
-
-
-
-
 
 
 

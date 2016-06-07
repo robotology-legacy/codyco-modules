@@ -1,4 +1,5 @@
 add_subdirectory(wholeBodyDynamicsTree)
+add_subdirectory(wholeBodyDynamics3)
 add_subdirectory(torqueGraspManager)
 add_subdirectory(eventRepeater)
 add_subdirectory(torqueBalancing)
