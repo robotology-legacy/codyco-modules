@@ -44,6 +44,8 @@ using namespace yarp::dev;
 
 reachRandomJointPositionsModule::reachRandomJointPositionsModule():
 period(1),
+waitingForConnToReturnFlagPort(false),
+waitingForConnToFittingFlagPort(false),
 timestamp()
 {
 }
@@ -334,16 +336,10 @@ bool reachRandomJointPositionsModule::configure(ResourceFinder &rf)
     //Latch the remote timestamp for synchronising local one
     this->latchTimestampSync();
 
-    //Wait for "isTheRobotInReturnPoint:o" and "useFurtherPosForFitting:o" to be
-    //connected to another port
-    if( !returnFlagPort.empty() )
-    {
-        while(!Network::isConnected(isTheRobotInReturnPoint.getName(), returnFlagPort)) {};
-    }
-    if( !fittingFlagPort.empty() )
-    {
-        while(!Network::isConnected(useFurtherPosForFitting.getName(), fittingFlagPort)) {};
-    }
+    //If input ports have been specified for sending the status data to, we will wait for the
+    //port connections
+    this->waitingForConnToReturnFlagPort = !returnFlagPort.empty();
+    this->waitingForConnToFittingFlagPort = !fittingFlagPort.empty();
 
     return true;
 }
@@ -417,6 +413,21 @@ bool reachRandomJointPositionsModule::getNewDesiredPosition(yarp::sig::Vector & 
 
 bool reachRandomJointPositionsModule::updateModule()
 {
+    //Before starting the first trajectory, wait for "isTheRobotInReturnPoint:o" and
+    //"useFurtherPosForFitting:o" to be connected to another port
+    if( this->waitingForConnToReturnFlagPort )
+    {
+        this->waitingForConnToReturnFlagPort = !Network::isConnected(isTheRobotInReturnPoint.getName(),
+                                                                     returnFlagPort);
+        return true;
+    }
+    if( this->waitingForConnToFittingFlagPort )
+    {
+        this->waitingForConnToFittingFlagPort = !Network::isConnected(useFurtherPosForFitting.getName(),
+                                                                      fittingFlagPort);
+        return true;
+    }
+
     //Check that all desired position have been reached
     bool dones=true;
     for(int jnt=0; jnt < int(controlledJoints.size()); jnt++ )

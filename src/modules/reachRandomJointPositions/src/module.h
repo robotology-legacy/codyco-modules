@@ -94,6 +94,8 @@ class reachRandomJointPositionsModule: public RFModule
     double return_point_waiting_period;
     double elapsed_time; // time passed from when the desired pose was reached
     double ref_speed;
+    bool waitingForConnToReturnFlagPort;
+    bool waitingForConnToFittingFlagPort;
 
     std::vector< controlledJoint > controlledJoints;
     yarp::sig::Vector commandedPositions;
