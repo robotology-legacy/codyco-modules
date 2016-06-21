@@ -16,7 +16,6 @@ namespace kinematics {
     class InverseKinematicsData;
 }
 
-
 class kinematics::InverseKinematicsNLP : public Ipopt::TNLP {
 
     struct FrameInfo {
@@ -40,6 +39,8 @@ class kinematics::InverseKinematicsNLP : public Ipopt::TNLP {
 
     FrameInfoMap constraintsInfo;
     FrameInfoMap targetsInfo;
+
+    double jointCostWeight;
 
     void initializeInternalData(Ipopt::Index n, Ipopt::Index m);
 

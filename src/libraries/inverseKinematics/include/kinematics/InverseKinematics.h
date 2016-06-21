@@ -33,7 +33,6 @@ namespace kinematics {
 }
 
 //TODO: how to handle conflicting requirements
-
 class kinematics::InverseKinematics
 {
 

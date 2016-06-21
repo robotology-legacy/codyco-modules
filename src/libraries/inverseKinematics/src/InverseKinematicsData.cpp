@@ -37,14 +37,6 @@ namespace kinematics {
         m_jointsConfiguration.resize(m_dofs);
         m_jointsConfiguration.zero();
 
-        //TODO: Fill limits from URDF
-        m_lowerJointLimit.resize(m_dofs);
-        m_upperJointLimit.resize(m_dofs);
-        for (unsigned i = 0; i < m_dofs; ++i) {
-            m_lowerJointLimit(i) = -2e+19;
-            m_upperJointLimit(i) =  2e+19;
-        }
-
         std::vector<std::string> emptyVector;
         this->setOptimizationVariablesToJointsMapping(emptyVector);
 
@@ -84,6 +76,13 @@ namespace kinematics {
                 m_variablesToJointsMapping.push_back(jointIndex);
             }
             optimizationVariablesSize = variableToDoFMapping.size();
+        }
+
+        m_jointLimits.clear();
+        m_jointLimits.resize(m_variablesToJointsMapping.size());
+        for (int i = 0; i < m_variablesToJointsMapping.size(); i++) {
+            std::pair<double, double> &limits = m_jointLimits[i];
+            m_dynamics.getJointLimits(m_variablesToJointsMapping[i], limits.first, limits.second);
         }
 
         //resize optimization variable

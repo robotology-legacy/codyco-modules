@@ -37,10 +37,7 @@ class kinematics::InverseKinematicsData {
 
     //Joint - variables mapping. By default they match the Dofs
     std::vector<int> m_variablesToJointsMapping;
-
-    //Joint limit (size dofs)
-    iDynTree::VectorDynSize m_lowerJointLimit;
-    iDynTree::VectorDynSize m_upperJointLimit;
+    std::vector<std::pair<double, double> > m_jointLimits;
 
     //Constraints
     TransformMap m_constraints;

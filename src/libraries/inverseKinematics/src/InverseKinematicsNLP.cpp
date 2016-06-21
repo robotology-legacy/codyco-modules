@@ -11,6 +11,7 @@ namespace kinematics {
 
     InverseKinematicsNLP::InverseKinematicsNLP(InverseKinematicsData& data)
     : m_data(data)
+    , jointCostWeight(1e-2)
     { }
 
     InverseKinematicsNLP::~InverseKinematicsNLP() {}
@@ -227,9 +228,12 @@ namespace kinematics {
 
         //for joints use the limits
         for (Ipopt::Index i = baseSize; i < n; ++i) {
-            x_l[i] = m_data.m_lowerJointLimit(m_data.m_variablesToJointsMapping[i - baseSize]);
-            x_u[i] = m_data.m_upperJointLimit(m_data.m_variablesToJointsMapping[i - baseSize]);
+            const std::pair<double, double> &limits = m_data.m_jointLimits[i - baseSize];
+            x_l[i] = limits.first;
+            x_u[i] = limits.second;
         }
+
+
 
         //Equality constraints
         Ipopt::Index constraintIndex = 0;
@@ -331,14 +335,12 @@ namespace kinematics {
 
         //Cost function
         //J = Sum_i^#targets  Error on rotation   + ||q - q_des ||^2 (as regularization term)
-        //TODO: define these weights somewhere else
-        const double regularizationWeight = 1e-2;
 
         Eigen::Map<Eigen::VectorXd> qj_desired = iDynTree::toEigen(m_data.m_preferredJointsConfiguration);
         Eigen::Map<Eigen::VectorXd> jointError = iDynTree::toEigen(m_data.m_optimizedRobotDofs);
         jointError -= qj_desired;
 
-        obj_value = 0.5 * regularizationWeight * jointError.squaredNorm();
+        obj_value = 0.5 * jointCostWeight * jointError.squaredNorm();
 
         //compute errors on rotation
         for (TransformMap::const_iterator target = m_data.m_targets.begin();
@@ -366,9 +368,6 @@ namespace kinematics {
     bool InverseKinematicsNLP::eval_grad_f(Ipopt::Index n, const Ipopt::Number* x, bool new_x,
                                            Ipopt::Number* grad_f)
     {
-        //TODO: define these weights somewhere else
-        const double regularizationWeight = 1e-2;
-
         if (new_x) {
             if (!updateState(x))
                 return false;
@@ -382,7 +381,7 @@ namespace kinematics {
 
         Ipopt::Index baseSize = 3 + sizeOfRotationParametrization(m_data.m_rotationParametrization);
         //last n - baseSize elements are the ones corresponding to qj
-        gradient.tail(n - baseSize) = regularizationWeight * (qj - iDynTree::toEigen(m_data.m_preferredJointsConfiguration)).transpose();
+        gradient.tail(n - baseSize) = jointCostWeight * (qj - iDynTree::toEigen(m_data.m_preferredJointsConfiguration)).transpose();
 
         //Second part of the gradient: this part depends on all q, i.e. x
         //compute errors on rotation
