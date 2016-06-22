@@ -19,6 +19,8 @@ namespace kinematics {
 
     void InverseKinematicsNLP::initializeInternalData(Ipopt::Index n, Ipopt::Index m)
     {
+        UNUSED_VARIABLE(m);
+        
         jointsConfiguration.resize(n - (3 + sizeOfRotationParametrization(m_data.m_rotationParametrization)));
         //resize some buffers
         transformWithQuaternionJacobianBuffer.resize(7, m_data.m_dofs + 7); //used only for quaternion
@@ -65,10 +67,10 @@ namespace kinematics {
         }
 
         //Update robot state and state-dependent variables
-        iDynTree::Rotation baseOrientation;
+        iDynTree::Rotation baseOrientationRotation;
 
         if (m_data.m_rotationParametrization == InverseKinematicsRotationParametrizationQuaternion) {
-            baseOrientation.fromQuaternion(this->baseOrientation);
+            baseOrientationRotation.fromQuaternion(this->baseOrientation);
 
             iDynTree::Vector4 normQuaternioniDyn = this->baseOrientation;
             iDynTree::toEigen(normQuaternioniDyn).normalize();
@@ -94,9 +96,9 @@ namespace kinematics {
             inverseMap *= normalizedQuaternionDerivative;
 
         } else if (m_data.m_rotationParametrization == InverseKinematicsRotationParametrizationRollPitchYaw) {
-            baseOrientation = iDynTree::Rotation::RPY(this->baseOrientation(0), this->baseOrientation(1), this->baseOrientation(2));
+            baseOrientationRotation = iDynTree::Rotation::RPY(this->baseOrientation(0), this->baseOrientation(1), this->baseOrientation(2));
         }
-        iDynTree::Transform basePose(baseOrientation, basePosition);
+        iDynTree::Transform basePose(baseOrientationRotation, basePosition);
 
         if (!m_data.m_dynamics.setRobotState(this->jointsConfiguration,
                                              m_data.m_state.jointsVelocityAndAcceleration,
@@ -134,7 +136,7 @@ namespace kinematics {
         for (TransformMap::const_iterator constraint = m_data.m_constraints.begin();
              constraint != m_data.m_constraints.end(); ++constraint) {
 
-            FrameInfo &frameInfo = targetsInfo[constraint->first];
+            FrameInfo &frameInfo = constraintsInfo[constraint->first];
             frameInfo.transform = m_data.m_dynamics.getWorldTransform(constraint->first);
             m_data.m_dynamics.getFrameJacobian(constraint->first, frameInfo.jacobian);
 
@@ -297,6 +299,11 @@ namespace kinematics {
                                                   bool init_z, Ipopt::Number* z_L, Ipopt::Number* z_U,
                                                   Ipopt::Index m, bool init_lambda, Ipopt::Number* lambda)
     {
+        UNUSED_VARIABLE(z_L);
+        UNUSED_VARIABLE(z_U);
+        UNUSED_VARIABLE(m);
+        UNUSED_VARIABLE(lambda);
+        
         //initial conditions
         if (init_x) {
             for (Ipopt::Index i = 0; i < 3; ++i) {
@@ -323,6 +330,7 @@ namespace kinematics {
     bool InverseKinematicsNLP::eval_f(Ipopt::Index n, const Ipopt::Number* x,
                                       bool new_x, Ipopt::Number& obj_value)
     {
+        UNUSED_VARIABLE(n);
         if (new_x) {
             if (!updateState(x))
                 return false;
@@ -411,6 +419,7 @@ namespace kinematics {
     bool InverseKinematicsNLP::eval_g(Ipopt::Index n, const Ipopt::Number* x,
                                       bool new_x, Ipopt::Index m, Ipopt::Number* g)
     {
+        UNUSED_VARIABLE(n);
         if (new_x) {
             if (!updateState(x))
                 return false;
@@ -497,6 +506,8 @@ namespace kinematics {
                 jCol[index] = 6;
                 index++;
             }
+
+            assert(nele_jac == index);
             
         } else {
             if (new_x) {
@@ -630,13 +641,13 @@ namespace kinematics {
     }
 
     void InverseKinematicsNLP::computeConstraintJacobian(const iDynTree::MatrixDynSize& transformJacobianBuffer,
-                                                         const iDynTree::MatrixFixSize<4, 3>& quaternionDerivativeMapBuffer,
-                                                         const iDynTree::MatrixFixSize<3, 4>& quaternionDerivativeInverseMapBuffer,
+                                                         const iDynTree::MatrixFixSize<4, 3>& _quaternionDerivativeMap,
+                                                         const iDynTree::MatrixFixSize<3, 4>& _quaternionDerivativeInverseMap,
                                                          const int computationOption,
                                                          iDynTree::MatrixDynSize& constraintJacobianBuffer)
     {
-        Eigen::Map<const Eigen::Matrix<double, 4, 3, Eigen::RowMajor> > quaternionDerivativeMap = iDynTree::toEigen(quaternionDerivativeMapBuffer);
-        Eigen::Map<const Eigen::Matrix<double, 3, 4, Eigen::RowMajor> > quaternionDerivativeInverseMap = iDynTree::toEigen(quaternionDerivativeInverseMapBuffer);
+        Eigen::Map<const Eigen::Matrix<double, 4, 3, Eigen::RowMajor> > quaternionDerivativeMap = iDynTree::toEigen(_quaternionDerivativeMap);
+        Eigen::Map<const Eigen::Matrix<double, 3, 4, Eigen::RowMajor> > quaternionDerivativeInverseMap = iDynTree::toEigen(_quaternionDerivativeInverseMap);
 
         unsigned n = constraintJacobianBuffer.cols() - 7;
 
