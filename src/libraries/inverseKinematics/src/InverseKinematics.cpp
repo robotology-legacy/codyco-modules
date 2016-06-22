@@ -46,10 +46,22 @@ namespace kinematics {
         m_pimpl->clearProblem();
     }
 
-    bool InverseKinematics::setRobotConfiguration(const iDynTree::VectorDynSize& robotConfiguration)
+    bool InverseKinematics::setFloatingBaseOnFrameNamed(const std::string &floatingBaseFrameName)
     {
         assert(m_pimpl);
-        return m_pimpl->setRobotConfiguration(robotConfiguration);
+        return m_pimpl->dynamics().setFloatingBase(floatingBaseFrameName);
+    }
+
+    bool InverseKinematics::setRobotConfiguration(const iDynTree::Transform& baseConfiguration, const iDynTree::VectorDynSize& jointConfiguration)
+    {
+        assert(m_pimpl);
+        return m_pimpl->setRobotConfiguration(baseConfiguration, jointConfiguration);
+    }
+
+    bool InverseKinematics::setJointConfiguration(const std::string& jointName, const double jointConfiguration)
+    {
+        assert(m_pimpl);
+        return m_pimpl->setJointConfiguration(jointName, jointConfiguration);
     }
 
     bool InverseKinematics::setOptimizationVariablesToJointsMapping(const std::vector<std::string> &variableToDoFMapping)
@@ -137,11 +149,12 @@ namespace kinematics {
         return m_pimpl->addTarget(Transform::rotationConstraint(frameName,  constraintValue.getRotation()));
     }
 
-    bool InverseKinematics::setInitialCondition(const iDynTree::VectorDynSize& initialCondition)
+    bool InverseKinematics::setInitialCondition(const iDynTree::Transform* baseTransform, const iDynTree::VectorDynSize* initialCondition)
     {
         assert(m_pimpl);
-        return m_pimpl->setInitialCondition(initialCondition);
+        return m_pimpl->setInitialCondition(baseTransform, initialCondition);
     }
+
 
     bool InverseKinematics::solve()
     {
@@ -155,7 +168,6 @@ namespace kinematics {
 
             //TODO: set options
             m_pimpl->solver->Options()->SetStringValue("hessian_approximation", "limited-memory");
-            m_pimpl->solver->Options()->SetIntegerValue("max_iter", 1);
 #ifndef NDEBUG
             m_pimpl->solver->Options()->SetStringValue("derivative_test", "first-order");
 #endif
@@ -166,34 +178,12 @@ namespace kinematics {
             }
         }
 
+        m_pimpl->prepareForOptimization();
+
         //instantiate the IpOpt problem
         InverseKinematicsNLP *iKin = new InverseKinematicsNLP(*m_pimpl);
         //Do something (if necessary)
         Ipopt::SmartPtr<Ipopt::TNLP> problem(iKin);
-
-
-        //Test derivatives
-//        iDynTree::VectorDynSize point(m_pimpl->dynamics().getNrOfDegreesOfFreedom() + 6);
-//        int index = m_pimpl->dynamics().getFrameIndex("base");
-//
-//        //First test: derivative in zero (and identity rotation)
-//        for (int i = 0; i < 10; i++) {
-//            point.zero();
-//            iDynTree::Rotation R = iDynTree::Rotation::RotZ(M_PI/4);
-//            R.getRPY(iDynTree::toEigen(point)(3), iDynTree::toEigen(point)(4), iDynTree::toEigen(point)(5));
-//
-//            //        iDynTree::toEigen(point).segment<4>(3).setRandom();
-//            //        iDynTree::toEigen(point)(3) = std::abs(iDynTree::toEigen(point)(3));
-//            //        iDynTree::toEigen(point).segment<4>(3).normalize();
-//            //        = iDynTree::toEigen(R.asQuaternion());
-//            iKin->testDerivatives(point, index, 1e-6, 1e-5, InverseKinematicsRotationParametrizationRollPitchYaw);
-//        }
-
-        //Second test: random
-//        point.zero();
-//        iDynTree::toEigen(point).setRandom();
-//        iDynTree::toEigen(point).segment<4>(3).normalize();
-//        iKin->testDerivatives(point, index, 0.5, 1e-5);
 
 
         // Ask Ipopt to solve the problem
@@ -205,6 +195,14 @@ namespace kinematics {
         } else {
             return false;
         }
+    }
+
+    bool InverseKinematics::getPoseForFrame(const std::string& frameName, iDynTree::Transform& transform)
+    {
+        assert(m_pimpl);
+        transform = m_pimpl->dynamics().getWorldTransform(frameName);
+        return true;
+
     }
 
 }

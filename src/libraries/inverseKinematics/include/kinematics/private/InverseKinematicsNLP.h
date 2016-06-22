@@ -27,20 +27,22 @@ class kinematics::InverseKinematicsNLP : public Ipopt::TNLP {
 
     InverseKinematicsData& m_data;
 
-    bool updateState(const Ipopt::Number * x);
-
     //Buffers and variables used in the optimization
     iDynTree::MatrixDynSize transformWithQuaternionJacobianBuffer;
-    iDynTree::VectorDynSize dofsSizeZero;
-    iDynTree::Twist baseZeroVelocity;
-    iDynTree::ClassicalAcc baseZeroAcceleration;
     iDynTree::MatrixFixSize<4, 3> quaternionDerivativeMapBuffer;
     iDynTree::MatrixFixSize<3, 4> quaternionDerivativeInverseMapBuffer;
 
     FrameInfoMap constraintsInfo;
     FrameInfoMap targetsInfo;
 
+    //Temporary optimized variables
+    iDynTree::Position basePosition;
+    iDynTree::Vector4 baseOrientation;
+    iDynTree::VectorDynSize jointsConfiguration;
+
     double jointCostWeight;
+
+    bool updateState(const Ipopt::Number * x);
 
     void initializeInternalData(Ipopt::Index n, Ipopt::Index m);
 

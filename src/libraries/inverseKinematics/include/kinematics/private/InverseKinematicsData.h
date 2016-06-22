@@ -6,6 +6,8 @@
 #include <iDynTree/Core/MatrixDynSize.h>
 #include <iDynTree/Core/Transform.h>
 #include <iDynTree/Core/SpatialAcc.h>
+#include <iDynTree/Core/Twist.h>
+#include <iDynTree/Core/ClassicalAcc.h>
 #include <vector>
 #include <map>
 #include <IpIpoptApplication.hpp>
@@ -25,19 +27,35 @@ class kinematics::InverseKinematicsData {
 //    InverseKinematicsData(const InverseKinematicsData&);
 //    InverseKinematicsData& operator=(const InverseKinematicsData&);
 
+    //!!!: I have to divide variables between the optimized one (buffers inside the Solver, but results and I/O variables here)
+    // and the "model" variables.
+
+    //Model section
     iDynTree::HighLevel::DynamicsComputations m_dynamics;
 
-    //Joint configuration. Size dofs
-    iDynTree::VectorDynSize m_jointsConfiguration;
+    //Initial robot state
+    struct {
+        iDynTree::VectorDynSize jointsConfiguration; //Size dofs
+        iDynTree::Transform basePose;
+        iDynTree::VectorDynSize jointsVelocityAndAcceleration; //Size dofs - set to zero
+        iDynTree::Twist baseTwist;
+        iDynTree::ClassicalAcc baseAcceleration;
+        iDynTree::SpatialAcc worldGravity;
+    } m_state;
 
     //Number of Dofs in the model
     unsigned m_dofs;
+
+    std::vector<std::pair<double, double> > m_jointLimits; //limits for joints (Dofs)
+
+    //END model section
+
+    //Optimization section
 
     enum InverseKinematicsRotationParametrization m_rotationParametrization;
 
     //Joint - variables mapping. By default they match the Dofs
     std::vector<int> m_variablesToJointsMapping;
-    std::vector<std::pair<double, double> > m_jointLimits;
 
     //Constraints
     TransformMap m_constraints;
@@ -47,15 +65,16 @@ class kinematics::InverseKinematicsData {
     //Size #size of optimization variables
     iDynTree::VectorDynSize m_preferredJointsConfiguration;
 
-    //Optimization buffers & variables
-    //TODO: move buffer in NLP variables
-    //This class should contain only "shared" data
+    bool areInitialConditionsSet;
+
+    //Result of optimization
     iDynTree::VectorDynSize m_optimizedRobotDofs;
     iDynTree::Position m_optimizedBasePosition;
     iDynTree::Vector4 m_optimizedBaseOrientation;
-    iDynTree::SpatialAcc m_worldGravity;
-    
 
+    //END Optimization section
+
+    void updateRobotConfiguration();
 public:
     InverseKinematicsData();
     
@@ -74,12 +93,19 @@ public:
     bool addFrameConstraint(const kinematics::Transform& frameTransform);
     bool addTarget(const kinematics::Transform& frameTransform, double weight = 1);
 
+    bool setRobotConfiguration(const iDynTree::Transform& baseConfiguration, const iDynTree::VectorDynSize& jointConfiguration);
+    bool setJointConfiguration(const std::string& jointName, const double jointConfiguration);
+
     bool setDesiredJointConfiguration(const iDynTree::VectorDynSize& desiredJointConfiguration);
+
+    
     bool setRobotConfiguration(const iDynTree::VectorDynSize& robotConfiguration);
-    bool setInitialCondition(const iDynTree::VectorDynSize& initialCondition);
+    bool setInitialCondition(const iDynTree::Transform* baseTransform, const iDynTree::VectorDynSize* initialCondition);
 
     void setRotationParametrization(enum InverseKinematicsRotationParametrization parametrization);
     enum InverseKinematicsRotationParametrization rotationParametrization();
+
+    void prepareForOptimization();
 
     friend class InverseKinematicsNLP;
 

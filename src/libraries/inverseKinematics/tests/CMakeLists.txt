@@ -7,6 +7,7 @@ project(InverseKinematicsTest)
 # find_package(RTF)
 # find_package(RTF COMPONENTS DLL YARP)
 find_package(YARP REQUIRED)
+find_package(ICUB REQUIRED)
 
 # add include directories
 # include_directories(${CMAKE_SOURCE_DIR}
@@ -20,7 +21,7 @@ find_package(YARP REQUIRED)
 # add the source codes to build the plugin library
 add_executable(${PROJECT_NAME} iKinVersusLegacyTest.cpp)
 
-target_link_libraries(${PROJECT_NAME} SYSTEM inverseKinematics ${YARP_LIBRARIES})
+target_link_libraries(${PROJECT_NAME} SYSTEM inverseKinematics ${YARP_LIBRARIES} iKin)
 
 
 # set the installation options

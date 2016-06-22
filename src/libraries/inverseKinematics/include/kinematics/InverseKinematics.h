@@ -33,6 +33,15 @@ namespace kinematics {
 }
 
 //TODO: how to handle conflicting requirements
+/**
+ *
+ * @note all the cartesian frames must be specified w.r.t. the same world frame.
+ * This library does not assume any particular world frame
+ *
+ *
+ * \code
+ *
+ */
 class kinematics::InverseKinematics
 {
 
@@ -62,16 +71,28 @@ public:
      */
     void clearProblem();
 
+    bool setFloatingBaseOnFrameNamed(const std::string &floatingBaseFrameName);
+
     /**
      * Sets the robot configuration
      *
      *
-     *
+     * @param baseConfiguration  transformation identifying the base pose with respect to the world frame
      * @param robotConfiguration the robot configuration
      *
      * @return true if successful, false otherwise.
      */
-    bool setRobotConfiguration(const iDynTree::VectorDynSize& robotConfiguration);
+    bool setRobotConfiguration(const iDynTree::Transform& baseConfiguration, const iDynTree::VectorDynSize& jointConfiguration);
+
+    /**
+     * Set configuration for the specified joint
+     *
+     * @param jointName          name of the joint
+     * @param jointConfiguration new value for the joint
+     *
+     * @return true if successful, false otherwise.
+     */
+    bool setJointConfiguration(const std::string& jointName, const double jointConfiguration);
 
     /**
      * Sets which joints are considered as optimization variables
@@ -98,6 +119,8 @@ public:
      * The constraint is
      * \f$ {}^w_X_{frame}(q) = {}^w_X_{frame}(q^0) \f$
      * where the robot configuration \f$q\f$ is the one specified with setRobotConfiguration
+     * @note you should specify first the robot configuration. Otherwise call the versions
+     * with explicit constraint value
      * @param frameName the frame name
      *
      * @return true if successful, false otherwise.
@@ -175,12 +198,40 @@ public:
     bool addRotationTarget(const std::string& frameName, const iDynTree::Rotation& constraintValue);
     bool addRotationTarget(const std::string& frameName, const iDynTree::Transform& constraintValue);
 
+    /**
+     * Sets a desired final configuration for the joints.
+     *
+     * The solver will try to obtain solutions as similar to the specified configuration as possible
+     *
+     * @param desiredJointConfiguration configuration for the joints
+     *
+     * @return true if successful, false otherwise.
+     */
     bool setDesiredJointConfiguration(const iDynTree::VectorDynSize& desiredJointConfiguration);
 
-    bool setInitialCondition(const iDynTree::VectorDynSize& initialCondition);
+    /**
+     * Initial guess for the solution
+     *
+     * @param baseTransform     initial base pose
+     * @param initialCondition  initial joints configuration
+     * @return
+     */
+    bool setInitialCondition(const iDynTree::Transform* baseTransform, const iDynTree::VectorDynSize* initialCondition);
 
     bool solve();
 
+    bool getPoseForFrame(const std::string& frameName, iDynTree::Transform& transform);
+
+    /*
+     Other iKin features:
+     - set joint limits for each joint (different from the one loaded)
+     - block joint
+     - Select different solutions for the target
+     */
+
+    /* other todos:
+     - add check on modelLoaded, and other stuff if needed
+     */
 
 private:
     

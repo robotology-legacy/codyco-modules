@@ -1,5 +1,8 @@
 #include "InverseKinematicsData.h"
 #include "Transform.h"
+#include <iDynTree/Core/Twist.h>
+#include <iDynTree/Core/ClassicalAcc.h>
+#include <iDynTree/Core/SpatialAcc.h>
 
 #include <cassert>
 
@@ -11,10 +14,15 @@ namespace kinematics {
     InverseKinematicsData::InverseKinematicsData()
     : m_dofs(0)
     , m_rotationParametrization(InverseKinematicsRotationParametrizationQuaternion)
+    , areInitialConditionsSet(false)
     , solver(NULL)
     {
-        m_worldGravity.zero();
-        m_worldGravity.setLinearVec3(iDynTree::LinearMotionVector3(0, 0, -9.81));
+        //These variables are touched only once.
+        m_state.worldGravity.zero();
+        m_state.worldGravity.setLinearVec3(iDynTree::LinearMotionVector3(0, 0, -9.81));
+
+        m_state.baseTwist.zero();
+        m_state.baseAcceleration.zero();
     }
 
     bool InverseKinematicsData::setupFromURDFModelWithFilePath(std::string urdfFilePath)
@@ -26,7 +34,17 @@ namespace kinematics {
         }
         m_dofs = m_dynamics.getNrOfDegreesOfFreedom();
 
+        m_jointLimits.clear();
+        m_jointLimits.reserve(m_dofs);
+        for (int i = 0; i < m_dofs; i++) {
+            std::pair<double, double> limits;
+            m_dynamics.getJointLimits(i, limits.first, limits.second);
+            m_jointLimits.push_back(limits);
+        }
+
         clearProblem();
+
+        updateRobotConfiguration();
 
         return true;
     }
@@ -34,14 +52,22 @@ namespace kinematics {
     void InverseKinematicsData::clearProblem()
     {
         //resize vectors
-        m_jointsConfiguration.resize(m_dofs);
-        m_jointsConfiguration.zero();
+        m_state.jointsConfiguration.resize(m_dofs);
+        m_state.jointsConfiguration.zero();
+
+        m_state.jointsVelocityAndAcceleration.resize(m_dofs);
+        m_state.jointsVelocityAndAcceleration.zero();
+
+        m_state.basePose.setPosition(iDynTree::Position(0, 0, 0));
+        m_state.basePose.setRotation(iDynTree::Rotation::Identity());
 
         std::vector<std::string> emptyVector;
         this->setOptimizationVariablesToJointsMapping(emptyVector);
 
         m_constraints.clear();
         m_targets.clear();
+
+        areInitialConditionsSet = false;
     }
 
     bool InverseKinematicsData::setOptimizationVariablesToJointsMapping(const std::vector<std::string> &variableToDoFMapping)
@@ -78,12 +104,6 @@ namespace kinematics {
             optimizationVariablesSize = variableToDoFMapping.size();
         }
 
-        m_jointLimits.clear();
-        m_jointLimits.resize(m_variablesToJointsMapping.size());
-        for (int i = 0; i < m_variablesToJointsMapping.size(); i++) {
-            std::pair<double, double> &limits = m_jointLimits[i];
-            m_dynamics.getJointLimits(m_variablesToJointsMapping[i], limits.first, limits.second);
-        }
 
         //resize optimization variable
         m_optimizedRobotDofs.resize(optimizationVariablesSize);
@@ -117,18 +137,34 @@ namespace kinematics {
 
     iDynTree::HighLevel::DynamicsComputations& InverseKinematicsData::dynamics() { return m_dynamics; }
 
-    bool InverseKinematicsData::setInitialCondition(const iDynTree::VectorDynSize& initialCondition)
+    bool InverseKinematicsData::setInitialCondition(const iDynTree::Transform* baseTransform, const iDynTree::VectorDynSize* initialCondition)
     {
-        //TODO: same function to initialize the base?
-//        assert(initialCondition.size() == m_optimizationVariable.size());
-//        m_optimizationVariable = initialCondition;
+        if (baseTransform != NULL) {
+            m_optimizedBasePosition = baseTransform->getPosition();
+            //if quaternion
+            baseTransform->getRotation().getQuaternion(m_optimizedBaseOrientation);
+        }
+        if (initialCondition != NULL) {
+            m_optimizedRobotDofs = *initialCondition;
+        }
         return true;
     }
 
-    bool InverseKinematicsData::setRobotConfiguration(const iDynTree::VectorDynSize& robotConfiguration)
+    bool InverseKinematicsData::setRobotConfiguration(const iDynTree::Transform& baseConfiguration, const iDynTree::VectorDynSize& jointConfiguration)
     {
-        assert(m_jointsConfiguration.size() == robotConfiguration.size());
-        m_jointsConfiguration = robotConfiguration;
+        assert(m_state.jointsConfiguration.size() == jointConfiguration.size());
+        m_state.jointsConfiguration = jointConfiguration;
+        m_state.basePose = baseConfiguration;
+        updateRobotConfiguration();
+        return true;
+    }
+
+    bool InverseKinematicsData::setJointConfiguration(const std::string& jointName, const double jointConfiguration)
+    {
+        int jointIndex = m_dynamics.getJointIndex(jointName);
+        if (jointIndex < 0) return false;
+        m_state.jointsConfiguration(jointIndex) = jointConfiguration;
+        updateRobotConfiguration();
         return true;
     }
 
@@ -136,6 +172,7 @@ namespace kinematics {
     {
         assert(m_optimizedRobotDofs.size() == desiredJointConfiguration.size());
         m_preferredJointsConfiguration = desiredJointConfiguration;
+        updateRobotConfiguration();
         return true;
     }
 
@@ -145,5 +182,43 @@ namespace kinematics {
     }
 
     enum InverseKinematicsRotationParametrization InverseKinematicsData::rotationParametrization() { return m_rotationParametrization; }
+
+    void InverseKinematicsData::updateRobotConfiguration()
+    {
+
+        m_dynamics.setRobotState(m_state.jointsConfiguration,
+                                 m_state.jointsVelocityAndAcceleration,
+                                 m_state.jointsVelocityAndAcceleration,
+                                 m_state.basePose,
+                                 m_state.baseTwist,
+                                 m_state.baseAcceleration,
+                                 m_state.worldGravity);
+    }
+
+    void InverseKinematicsData::prepareForOptimization()
+    {
+        //Do all stuff needed before starting an optimization problem
+        //1) prepare initial condition if not explicitly set
+        if (!areInitialConditionsSet) {
+            for (int i = 0; i < m_optimizedRobotDofs.size(); ++i) {
+                //check joint to be inside limit
+                double jointValue = m_state.jointsConfiguration(m_variablesToJointsMapping[i]);
+                if (jointValue < m_jointLimits[i].first || jointValue > m_jointLimits[i].second) {
+                    jointValue = (m_jointLimits[i].second + m_jointLimits[i].first) / 2.0;
+                }
+
+                m_optimizedRobotDofs(i) = jointValue;
+
+            }
+
+            m_optimizedBasePosition = m_state.basePose.getPosition();
+            if (m_rotationParametrization == InverseKinematicsRotationParametrizationQuaternion) {
+                m_state.basePose.getRotation().getQuaternion(m_optimizedBaseOrientation);
+            } else if (m_rotationParametrization == InverseKinematicsRotationParametrizationRollPitchYaw) {
+                m_state.basePose.getRotation().getRPY(m_optimizedBaseOrientation(0), m_optimizedBaseOrientation(1), m_optimizedBaseOrientation(2));
+            }
+        }
+
+    }
 
 }
