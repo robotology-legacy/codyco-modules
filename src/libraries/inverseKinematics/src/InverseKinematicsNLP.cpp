@@ -744,7 +744,7 @@ namespace kinematics {
 
         //joints
         for (unsigned index = 0; index < m_data.m_variablesToJointsMapping.size(); ++index) {
-            m_data.m_optimizedRobotDofs = x[3 + sizeOfRotationParametrization(m_data.m_rotationParametrization) + index];
+            m_data.m_optimizedRobotDofs(index) = x[3 + sizeOfRotationParametrization(m_data.m_rotationParametrization) + index];
         }
 
 

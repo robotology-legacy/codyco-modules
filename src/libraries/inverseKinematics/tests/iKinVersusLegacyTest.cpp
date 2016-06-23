@@ -121,7 +121,7 @@ int main(int argc, char **argv) {
     map.push_back("r_wrist_prosup");
     map.push_back("r_wrist_pitch");
     map.push_back("r_wrist_yaw");
-    robotIKin.setOptimizationVariablesToJointsMapping(map);
+//    robotIKin.setOptimizationVariablesToJointsMapping(map);
 
     //add constraints on links
     //two versions: one with name of the frame and homogeneous transformation
