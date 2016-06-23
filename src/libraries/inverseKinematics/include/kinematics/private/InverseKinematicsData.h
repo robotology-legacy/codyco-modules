@@ -66,6 +66,7 @@ class kinematics::InverseKinematicsData {
     iDynTree::VectorDynSize m_preferredJointsConfiguration;
 
     bool areInitialConditionsSet;
+    enum InverseKinematicsTargetResolutionMode targetResolutionMode;
 
     //Result of optimization
     iDynTree::VectorDynSize m_optimizedRobotDofs;
@@ -104,6 +105,8 @@ public:
 
     void setRotationParametrization(enum InverseKinematicsRotationParametrization parametrization);
     enum InverseKinematicsRotationParametrization rotationParametrization();
+
+    void setTargetResolutionMode(enum InverseKinematicsTargetResolutionMode mode);
 
     void prepareForOptimization();
 

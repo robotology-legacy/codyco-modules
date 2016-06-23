@@ -13,6 +13,9 @@ using namespace iCub::iKin;
 using namespace yarp::sig;
 using namespace yarp::math;
 
+#include <Eigen/Core>
+#include <iDynTree/Core/EigenHelpers.h>
+
 int main(int argc, char **argv) {
 
     ResourceFinder finder = ResourceFinder::getResourceFinderSingleton();
@@ -76,7 +79,8 @@ int main(int argc, char **argv) {
     //robotIKin.setJointLimit();
 
     std::cerr << "--------- FloatingKin -----------\n\n";
-std::cerr << "Initial configuration\n";
+    
+    std::cerr << "Initial configuration\n";
     iDynTree::Transform pose;
     robotIKin.getPoseForFrame("r_hand", pose);
     std::cerr << "Pose: " << pose.getPosition().toString() << "\n";
@@ -96,10 +100,10 @@ std::cerr << "Initial configuration\n";
 
     robotIKin.getPoseForFrame("r_hand", pose);
     std::cerr << "Pose: " << pose.getPosition().toString() << "\n";
+    std::cerr << "Rot: " << pose.getRotation().toString() << "\n";
 
     robotIKin.getPoseForFrame("root_link", pose);
     std::cerr << "Root: " << pose.toString() << "\n";
-
 
     
     //Set initial configuration for the robot
@@ -109,7 +113,15 @@ std::cerr << "Initial configuration\n";
     //Optionally: set joint map.
     //This is used to specify the optimization variables.
     //Joints not present in this list are not optimized
-    //robotIKin.setOptimizationVariablesToJointsMap();
+    std::vector<std::string> map;
+    map.push_back("r_shoulder_pitch");
+    map.push_back("r_shoulder_roll");
+    map.push_back("r_shoulder_yaw");
+    map.push_back("r_elbow");
+    map.push_back("r_wrist_prosup");
+    map.push_back("r_wrist_pitch");
+    map.push_back("r_wrist_yaw");
+    robotIKin.setOptimizationVariablesToJointsMapping(map);
 
     //add constraints on links
     //two versions: one with name of the frame and homogeneous transformation
@@ -120,10 +132,12 @@ std::cerr << "Initial configuration\n";
 //    robotIKin.addFrameConstraint("base");
 
     //Specify the target (or more than one?) frames
+    robotIKin.getPoseForFrame("r_hand", pose);
+
     iDynTree::Position w_p_lh(0.3, 0.1, 0.1);
     iDynTree::Rotation w_R_lh = iDynTree::Rotation::Identity();
     iDynTree::Transform w_X_lh(w_R_lh, w_p_lh);
-    robotIKin.addTarget("r_hand", w_X_lh);
+    robotIKin.addTarget("r_hand", pose);
 
     //robotIKin.setInitialCondition(x0);
 
@@ -132,6 +146,7 @@ std::cerr << "Initial configuration\n";
 //    robotIKin.setRotationParametrization(kinematics::InverseKinematicsRotationParametrizationRollPitchYaw);
 
     robotIKin.solve();
+
 
     return 0;
     

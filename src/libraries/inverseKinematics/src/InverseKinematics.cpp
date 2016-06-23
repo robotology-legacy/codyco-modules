@@ -155,6 +155,12 @@ namespace kinematics {
         return m_pimpl->setInitialCondition(baseTransform, initialCondition);
     }
 
+    void InverseKinematics::setTargetResolutionMode(enum InverseKinematicsTargetResolutionMode mode)
+    {
+        assert(m_pimpl);
+        
+    }
+
 
     bool InverseKinematics::solve()
     {
@@ -168,6 +174,7 @@ namespace kinematics {
 
             //TODO: set options
             m_pimpl->solver->Options()->SetStringValue("hessian_approximation", "limited-memory");
+//            m_pimpl->solver->Options()->SetIntegerValue("max_iter", 1);
 #ifndef NDEBUG
             m_pimpl->solver->Options()->SetStringValue("derivative_test", "first-order");
 #endif

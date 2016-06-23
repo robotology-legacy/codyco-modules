@@ -30,6 +30,13 @@ namespace kinematics {
                 return 3;
         }
     }
+
+    enum InverseKinematicsTargetResolutionMode {
+        InverseKinematicsTargetResolutionModeNone = 0, //both as costs
+        InverseKinematicsTargetResolutionModePositionOnly = 1, //position as constraint, rotation as cost
+        InverseKinematicsTargetResolutionModeRotationOnly = 1 << 1, //rotation as constraint, position as cost
+        InverseKinematicsTargetResolutionModeFull = InverseKinematicsTargetResolutionModePositionOnly | InverseKinematicsTargetResolutionModeRotationOnly, //both as constraints
+    };
 }
 
 //TODO: how to handle conflicting requirements
@@ -218,7 +225,11 @@ public:
      */
     bool setInitialCondition(const iDynTree::Transform* baseTransform, const iDynTree::VectorDynSize* initialCondition);
 
+    void setTargetResolutionMode(enum InverseKinematicsTargetResolutionMode mode);
+
     bool solve();
+
+
 
     bool getPoseForFrame(const std::string& frameName, iDynTree::Transform& transform);
 

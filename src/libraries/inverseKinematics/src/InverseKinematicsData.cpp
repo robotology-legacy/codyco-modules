@@ -15,6 +15,7 @@ namespace kinematics {
     : m_dofs(0)
     , m_rotationParametrization(InverseKinematicsRotationParametrizationQuaternion)
     , areInitialConditionsSet(false)
+    , targetResolutionMode(InverseKinematicsTargetResolutionModeFull)
     , solver(NULL)
     {
         //These variables are touched only once.
@@ -72,14 +73,14 @@ namespace kinematics {
 
     bool InverseKinematicsData::setOptimizationVariablesToJointsMapping(const std::vector<std::string> &variableToDoFMapping)
     {
-        //reset base
-        m_optimizedBasePosition.zero();
-        if (m_rotationParametrization == InverseKinematicsRotationParametrizationQuaternion) {
-            m_optimizedBaseOrientation = iDynTree::Rotation::Identity().asQuaternion();
-        } else if (m_rotationParametrization == InverseKinematicsRotationParametrizationRollPitchYaw) {
-            m_optimizedBaseOrientation.zero();
-            iDynTree::Rotation::Identity().getRPY(m_optimizedBaseOrientation(0), m_optimizedBaseOrientation(1), m_optimizedBaseOrientation(2));
-        }
+//        //reset base
+//        m_optimizedBasePosition.zero();
+//        if (m_rotationParametrization == InverseKinematicsRotationParametrizationQuaternion) {
+//            m_optimizedBaseOrientation = iDynTree::Rotation::Identity().asQuaternion();
+//        } else if (m_rotationParametrization == InverseKinematicsRotationParametrizationRollPitchYaw) {
+//            m_optimizedBaseOrientation.zero();
+//            iDynTree::Rotation::Identity().getRPY(m_optimizedBaseOrientation(0), m_optimizedBaseOrientation(1), m_optimizedBaseOrientation(2));
+//        }
 
         unsigned optimizationVariablesSize = m_dofs;
 
@@ -91,6 +92,7 @@ namespace kinematics {
                 m_variablesToJointsMapping.push_back(i);
             }
         } else {
+            m_variablesToJointsMapping.clear();
             m_variablesToJointsMapping.reserve(variableToDoFMapping.size());
             for (std::vector<std::string>::const_iterator it = variableToDoFMapping.begin();
                  it != variableToDoFMapping.end(); ++it) {
@@ -219,6 +221,11 @@ namespace kinematics {
             }
         }
 
+    }
+
+    void InverseKinematicsData::setTargetResolutionMode(enum InverseKinematicsTargetResolutionMode mode)
+    {
+        targetResolutionMode = mode;
     }
 
 }
