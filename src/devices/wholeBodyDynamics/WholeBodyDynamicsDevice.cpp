@@ -286,18 +286,23 @@ bool WholeBodyDynamicsDevice::openEstimator(os::Searchable& config)
     return true;
 }
 
-bool WholeBodyDynamicsDevice::openDefaultContactFrames(os::Searchable& /*config*/)
+bool WholeBodyDynamicsDevice::openDefaultContactFrames(os::Searchable& config)
 {
-    // For now we hardcode this info
-    defaultContactFrames.push_back("l_hand");
-    defaultContactFrames.push_back("r_hand");
-    defaultContactFrames.push_back("root_link");
-    defaultContactFrames.push_back("l_lower_leg");
-    defaultContactFrames.push_back("r_lower_leg");
-    defaultContactFrames.push_back("l_sole");
-    defaultContactFrames.push_back("r_sole");
-    defaultContactFrames.push_back("l_elbow_1");
-    defaultContactFrames.push_back("r_elbow_1");
+    yarp::os::Property prop;
+    prop.fromString(config.toString().c_str());
+
+    yarp::os::Bottle *propContactFrames=prop.find("defaultContactFrames").asList();
+    if(propContactFrames==0)
+    {
+       yError() <<"wholeBodyDynamics : Error parsing parameters: \"defaultContactFrames\" should be followed by a list\n";
+       return false;
+    }
+
+    defaultContactFrames.resize(propContactFrames->size());
+    for(int ax=0; ax < propContactFrames->size(); ax++)
+    {
+        defaultContactFrames[ax] = propContactFrames->get(ax).asString().c_str();
+    }
 
     // We build the defaultContactFramesIdx vector
     std::vector<iDynTree::FrameIndex> defaultContactFramesIdx;
