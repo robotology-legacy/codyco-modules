@@ -150,6 +150,38 @@ class wholeBodyDynamicsDeviceFilters
  * Tipically this estimates are provided only for the upper joints (arms and torso) of the robots, as the gravity
  * compensation terms for the legs depends on the support state of the robot.
  *
+ * \subsection SecondaryCalibrationMatrix
+ * This device support to specify a secondary calibration matrix to apply on the top of the (already calibrated) measure coming from the F/T sensors.
+ * This feature is meant to be experimental, and will be removed at any time.
+ *
+ * The group of options that regolated this group is the following:
+ * | Parameter name | SubParameter   | Type              | Units | Default Value | Required |   Description                                                     | Notes |
+ * |:--------------:|:--------------:|:-----------------:|:-----:|:-------------:|:--------:|:-----------------------------------------------------------------:|:-----:|
+ * | FT_SECONDARY_CALIBRATION |  -       | group         | -     | -             | No       |  Group for providing secondary calibration matrix for FT sensors. |   |
+ * |                          | ftSensorName_1 | vector of 36 doubles| Unitless, 1/m or m depending on the element. | Identity matrix   | No  | Elements of the  6x6 secondary calibration matrix, specified in row-major order. | The messages coming from the sensor will be *multiplied* by the specified matrix to get the actual measurement used.  |
+ * |                          | ...            | vector of 36 doubles| Unitless, 1/m or m depending on the element. | Identity matrix   | No  | Elements of the  6x6 secondary calibration matrix, specified in row-major order. | The messages coming from the sensor will be *multiplied* by the specified matrix to get the actual measurement used.  |
+ * |                          | ftSensorName_n | vector of 36 doubles| Unitless, 1/m or m depending on the element. | Identity matrix   | No  | Elements of the  6x6 secondary calibration matrix, specified in row-major order. | The messages coming from the sensor will be *multiplied* by the specified matrix to get the actual measurement used.  |
+ *
+ * All sensors not specified will use a 6x6 identity as a secondary calibration matrix.
+ *
+ * Example of part of a configuration file using .xml yarprobotinterface format (remember to put the fractional dot!).
+ * \code{.xml}
+ *      <group name="FT_SECONDARY_CALIBRATION">
+ *             <param name="l_arm_ft_sensor">(1.0,0.0,0.0,0.0,0.0,0.0,
+ *                                            0.0,1.0,0.0,0.0,0.0,0.0,
+ *                                            0.0,0.0,1.0,0.0,0.0,0.0,
+ *                                            0.0,0.0,0.0,1.0,0.0,0.0,
+ *                                            0.0,0.0,0.0,0.0,1.0,0.0,
+ *                                            0.0,0.0,0.0,0.0,0.0,1.0)</param>
+ *             <param name="r_arm_ft_sensor">(1.0,0.0,0.0,0.0,0.0,0.0,
+ *                                            0.0,1.0,0.0,0.0,0.0,0.0,
+ *                                            0.0,0.0,1.0,0.0,0.0,0.0,
+ *                                            0.0,0.0,0.0,0.001,0.0,0.0,
+ *                                            0.0,0.0,0.0,0.0,0.001,0.0,
+ *                                            0.0,0.0,0.0,0.0,0.0,0.001)</param>
+ *      </group>
+ * \endcode
+ *
  * \subsection Filters
  * All the filters used for the input measurements are using the iCub::ctrl::realTime::FirstOrderLowPassFilter class.
  *
@@ -419,6 +451,7 @@ private:
      * Load settings from config.
      */
     bool loadSettingsFromConfig(yarp::os::Searchable& config);
+    bool loadSecondaryCalibrationSettingsFromConfig(yarp::os::Searchable& config);
     bool loadGravityCompensationSettingsFromConfig(yarp::os::Searchable & config);
 
     /**
