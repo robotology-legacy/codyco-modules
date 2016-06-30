@@ -1236,6 +1236,10 @@ void WholeBodyDynamicsDevice::computeCalibration()
                 iDynTree::Wrench measuredRawFT;
                 calibrationBuffers.predictedSensorMeasurementsForCalibration.getMeasurement(iDynTree::SIX_AXIS_FORCE_TORQUE,ft,estimatedFT);
                 rawSensorsMeasurements.getMeasurement(iDynTree::SIX_AXIS_FORCE_TORQUE,ft,measuredRawFT);
+
+                // We apply only the secondary calibration matrix because we are actually computing the offset right now
+                measuredRawFT = ftProcessors[ft].applySecondaryCalibrationMatrix(measuredRawFT);
+
                 addToSummer(calibrationBuffers.offsetSumBuffer[ft],measuredRawFT-estimatedFT);
                 addToSummer(calibrationBuffers.measurementSumBuffer[ft],measuredRawFT);
                 addToSummer(calibrationBuffers.estimationSumBuffer[ft],estimatedFT);

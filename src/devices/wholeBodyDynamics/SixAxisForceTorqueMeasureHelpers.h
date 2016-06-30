@@ -63,6 +63,11 @@ public:
      * Returns secondaryCalibrationMatrix*input + offset .
      */
     iDynTree::Wrench filt(const iDynTree::Wrench & input) const;
+
+    /**
+     * Process the input F/T by only applyng the calibration matrix.
+     */
+    iDynTree::Wrench applySecondaryCalibrationMatrix(const iDynTree::Wrench & input) const;
 };
 
 }
