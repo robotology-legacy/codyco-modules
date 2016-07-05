@@ -1,0 +1,11 @@
+ts 0.010000
+z_c 0.505000
+n_strides 6
+T_stride 12
+T_switch 5.000000e-01
+step_width 1.400000e-01
+step_length 5.000000e-02
+step_height 4.000000e-02
+g 9.810000e+00
+zmp_tol 5.000000e-02
+n_samples 8401
