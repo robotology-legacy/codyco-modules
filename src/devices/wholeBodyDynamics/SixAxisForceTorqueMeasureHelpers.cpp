@@ -42,6 +42,16 @@ iDynTree::Wrench SixAxisForceTorqueMeasureProcessor::filt(const iDynTree::Wrench
     return ret;
 }
 
+iDynTree::Wrench SixAxisForceTorqueMeasureProcessor::applySecondaryCalibrationMatrix(const iDynTree::Wrench& input) const
+{
+    Eigen::Matrix<double,6,1> retEig = toEigen(m_secondaryCalibrationMatrix)*toEigen(input);
+
+    iDynTree::Wrench ret;
+    fromEigen(ret,retEig);
+
+    return ret;
+}
+
 }
 
 

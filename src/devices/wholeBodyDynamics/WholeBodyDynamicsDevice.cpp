@@ -286,18 +286,23 @@ bool WholeBodyDynamicsDevice::openEstimator(os::Searchable& config)
     return true;
 }
 
-bool WholeBodyDynamicsDevice::openDefaultContactFrames(os::Searchable& /*config*/)
+bool WholeBodyDynamicsDevice::openDefaultContactFrames(os::Searchable& config)
 {
-    // For now we hardcode this info
-    defaultContactFrames.push_back("l_hand");
-    defaultContactFrames.push_back("r_hand");
-    defaultContactFrames.push_back("root_link");
-    defaultContactFrames.push_back("l_lower_leg");
-    defaultContactFrames.push_back("r_lower_leg");
-    defaultContactFrames.push_back("l_sole");
-    defaultContactFrames.push_back("r_sole");
-    defaultContactFrames.push_back("l_elbow_1");
-    defaultContactFrames.push_back("r_elbow_1");
+    yarp::os::Property prop;
+    prop.fromString(config.toString().c_str());
+
+    yarp::os::Bottle *propContactFrames=prop.find("defaultContactFrames").asList();
+    if(propContactFrames==0)
+    {
+       yError() <<"wholeBodyDynamics : Error parsing parameters: \"defaultContactFrames\" should be followed by a list\n";
+       return false;
+    }
+
+    defaultContactFrames.resize(propContactFrames->size());
+    for(int ax=0; ax < propContactFrames->size(); ax++)
+    {
+        defaultContactFrames[ax] = propContactFrames->get(ax).asString().c_str();
+    }
 
     // We build the defaultContactFramesIdx vector
     std::vector<iDynTree::FrameIndex> defaultContactFramesIdx;
@@ -616,6 +621,70 @@ bool WholeBodyDynamicsDevice::loadSettingsFromConfig(os::Searchable& config)
     return true;
 }
 
+bool WholeBodyDynamicsDevice::loadSecondaryCalibrationSettingsFromConfig(os::Searchable& config)
+{
+   bool ret;
+   yarp::os::Property propAll;
+   propAll.fromString(config.toString().c_str());
+
+    if( !propAll.check("FT_SECONDARY_CALIBRATION") )
+    {
+        ret = true;
+    }
+    else
+    {
+        yarp::os::Bottle & propSecondCalib = propAll.findGroup("FT_SECONDARY_CALIBRATION");
+        for(int i=1; i < propSecondCalib.size(); i++ )
+        {
+            yarp::os::Bottle * map_bot = propSecondCalib.get(i).asList();
+            if( map_bot->size() != 2 || map_bot->get(1).asList() == NULL ||
+                map_bot->get(1).asList()->size() != 36 )
+            {
+                yError() << "wholeBodyDynamics: FT_SECONDARY_CALIBRATION group is malformed (" << map_bot->toString() << "). ";
+                return false;
+            }
+
+            std::string iDynTree_sensorName = map_bot->get(0).asString();
+            iDynTree::Matrix6x6 secondaryCalibMat;
+
+            for(int r=0; r < 6; r++)
+            {
+                for(int c=0; c < 6; c++)
+                {
+                    int rowMajorIndex = 6*r+c;
+                    secondaryCalibMat(r,c) = map_bot->get(1).asList()->get(rowMajorIndex).asDouble();
+                }
+            }
+
+            // Linearly search for the specified sensor
+            bool sensorFound = false;
+            for(int ft=0; ft < estimator.sensors().getNrOfSensors(iDynTree::SIX_AXIS_FORCE_TORQUE); ft++ )
+            {
+                if( estimator.sensors().getSensor(iDynTree::SIX_AXIS_FORCE_TORQUE,ft)->getName() == iDynTree_sensorName )
+                {
+                    yDebug() << "wholeBodyDynamics: using secondary calibration matrix for sensor " << iDynTree_sensorName;
+
+                    ftProcessors[ft].secondaryCalibrationMatrix() = secondaryCalibMat;
+                    sensorFound = true;
+                }
+            }
+
+            // If a specified sensor was not found, give an error
+            if( !sensorFound )
+            {
+                yError() << "wholeBodyDynamics: secondary calibration matrix specified for FT sensor " << iDynTree_sensorName
+                          << " but no sensor with that name found in the model";
+                return false;
+            }
+        }
+        ret = true;
+    }
+
+    return ret;
+
+}
+
+
 bool WholeBodyDynamicsDevice::loadGravityCompensationSettingsFromConfig(os::Searchable& config)
 {
     bool ret = true;
@@ -713,6 +782,11 @@ bool WholeBodyDynamicsDevice::open(os::Searchable& config)
 
     // Open settings related to gravity compensation (we need the estimator to be open)
     ok = this->loadGravityCompensationSettingsFromConfig(config);
+    if( !ok ) return false;
+
+    // Open settings related to gravity compensation (we need the estimator to be open)
+    ok = this->loadSecondaryCalibrationSettingsFromConfig(config);
+    if( !ok ) return false;
 
     // Open rpc port
     ok = this->openRPCPort();
@@ -1236,6 +1310,10 @@ void WholeBodyDynamicsDevice::computeCalibration()
                 iDynTree::Wrench measuredRawFT;
                 calibrationBuffers.predictedSensorMeasurementsForCalibration.getMeasurement(iDynTree::SIX_AXIS_FORCE_TORQUE,ft,estimatedFT);
                 rawSensorsMeasurements.getMeasurement(iDynTree::SIX_AXIS_FORCE_TORQUE,ft,measuredRawFT);
+
+                // We apply only the secondary calibration matrix because we are actually computing the offset right now
+                measuredRawFT = ftProcessors[ft].applySecondaryCalibrationMatrix(measuredRawFT);
+
                 addToSummer(calibrationBuffers.offsetSumBuffer[ft],measuredRawFT-estimatedFT);
                 addToSummer(calibrationBuffers.measurementSumBuffer[ft],measuredRawFT);
                 addToSummer(calibrationBuffers.estimationSumBuffer[ft],estimatedFT);
