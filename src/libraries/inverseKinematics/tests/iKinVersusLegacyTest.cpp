@@ -22,23 +22,34 @@ int main(int argc, char **argv) {
     finder.configure(argc, argv);
     finder.setVerbose(false);
 
-
     //Configure iKin Solver
-    iCubArm arm("right");
-    iKinChain *chain = arm.asChain();
+    iCubLeg leg("left");
+    iKinChain *chain = leg.asChain();
+
+    for (int i = 0; i < 6; i++) {
+        chain->setAng(i, 0);
+    }
+
+    std::cerr << "Initial " << chain->EndEffPose().toString() << "\n";
+
 
     std::cerr << "------------ iKin ------------ \n";
     std::cerr << "Initial joint configurations\n" << chain->getAng().toString() << "\n";
     Vector xhat = chain->EndEffPose().subVector(0, 2);
     std::cerr << "Initial pose\n" << xhat.toString() << "\n";
 
-    iKinIpOptMin slv(*chain, IKINCTRL_POSE_XYZ, 1e-3, 1e-6, 100);
+    iKinIpOptMin slv(*chain, IKINCTRL_POSE_FULL, 1e-3, 1e-6, 100);
     slv.setUserScaling(true, 100.0, 100.0, 100.0);
 
     Vector xf(7,0.0);
-    xf[0]=-0.3;
-    xf[1]=+0.1;
-    xf[2]=+0.1;
+    xf[0]= -0.4e-5;
+    xf[1]= -0.068097;
+    xf[2]= -0.5935;
+    xf[3]= 0.4e-5;
+    xf[4]= -1;
+    xf[5]= 0.3e-5;
+    xf[6]= M_PI;
+
 
     Vector solution = slv.solve(chain->getAng(), xf);
     xhat = chain->EndEffPose().subVector(0, 2);
@@ -52,6 +63,40 @@ int main(int argc, char **argv) {
 
     std::cerr << "Final joints\n" << solution.toString() << "\n";
     std::cerr << "------------ END iKin ------------ \n\n\n";
+
+
+    return 0;
+
+
+//    //Configure iKin Solver
+//    iCubArm arm("right");
+//    iKinChain *chain = arm.asChain();
+//
+//    std::cerr << "------------ iKin ------------ \n";
+//    std::cerr << "Initial joint configurations\n" << chain->getAng().toString() << "\n";
+//    Vector xhat = chain->EndEffPose().subVector(0, 2);
+//    std::cerr << "Initial pose\n" << xhat.toString() << "\n";
+//
+//    iKinIpOptMin slv(*chain, IKINCTRL_POSE_XYZ, 1e-3, 1e-6, 100);
+//    slv.setUserScaling(true, 100.0, 100.0, 100.0);
+//
+//    Vector xf(7,0.0);
+//    xf[0]=-0.3;
+//    xf[1]=+0.1;
+//    xf[2]=+0.1;
+//
+//    Vector solution = slv.solve(chain->getAng(), xf);
+//    xhat = chain->EndEffPose().subVector(0, 2);
+//    xf = xf.subVector(0, 2);
+//    double dist = norm(xf - xhat);
+//
+//    printf("target position = (%s) [m]\n",xf.toString(5,5).c_str());
+//    printf("solved position = (%s) [m]\n",xhat.toString(5,5).c_str());
+//    printf("distance to target = %g [m] ...\n",dist);
+//
+//
+//    std::cerr << "Final joints\n" << solution.toString() << "\n";
+//    std::cerr << "------------ END iKin ------------ \n\n\n";
 
 
 

@@ -737,6 +737,8 @@ namespace kinematics {
         m_data.m_optimizedBasePosition(1) = x[1];
         m_data.m_optimizedBasePosition(2) = x[2];
 
+        Ipopt::SUCCESS;
+
         //orientation
         for (unsigned i = 0; i < sizeOfRotationParametrization(m_data.m_rotationParametrization); ++i) {
             m_data.m_optimizedBaseOrientation(i) = x[3 + i];
