@@ -11,7 +11,7 @@
 
 **To run:**
 
-- Put in home position.
+- Put in home position. (e.g. `yarpmotorgui --from homePoseWalking.ini`)
 - walkPlayer --robot icub --period 10 --refSpeedMinJerk 0 --filename icub_walk_seq --execute --torqueBalancingSequence torqueBalancing
 - Dump all the ports: remember the `com:o` port. Dump with envelope if using `yarp read` or datadumper to dump the timestamp
 
