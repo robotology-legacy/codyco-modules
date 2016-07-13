@@ -8,11 +8,8 @@
 #include <Eigen/SVD>
 #include <Eigen/Geometry>
 #include <iCub/iDynTree/DynTree.h>
-<<<<<<< a441e415eb4af2e84c49d16ed99e3cb8ea344968
 #include <iDynTree/Estimation/simpleLeggedOdometryKDL.h>
-=======
-#include <iDynTree/Estimation/simpleLeggedOdometry.h>
->>>>>>> minor edits on impedance walk
+
 #include <cmath>
 
 //using namespace qpOASES;

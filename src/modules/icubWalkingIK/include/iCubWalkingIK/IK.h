@@ -1,8 +1,4 @@
 #include <iostream>
-<<<<<<< a441e415eb4af2e84c49d16ed99e3cb8ea344968
-=======
-//#include <boost/concept_check.hpp>
->>>>>>> minor edits on impedance walk
 #include <yarpWholeBodyInterface/yarpWholeBodyModel.h>
 #include <yarpWholeBodyInterface/yarpWholeBodyStates.h>
 #include "floatingBaseOdometry.h"
