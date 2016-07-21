@@ -191,6 +191,10 @@ private:
     std::string initialWorldFrame;
     std::string initialFixedFrame;
 
+    // RPC methods
+    virtual bool resetSimpleLeggedOdometry(const std::string& initial_world_frame, const std::string& initial_fixed_frame);
+    virtual bool changeFixedLinkSimpleLeggedOdometry(const std::string& new_fixed_frame);
+    virtual std::string getCurrentSettingsString();
 
 public:
     // CONSTRUCTOR

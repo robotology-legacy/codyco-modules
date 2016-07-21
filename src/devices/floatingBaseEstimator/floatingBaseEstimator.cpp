@@ -128,6 +128,7 @@ bool floatingBaseEstimator::openRemapperControlBoard(os::Searchable& config)
 
     // View relevant interfaces for the remappedControlBoard
     ok = ok && remappedControlBoard.view(remappedControlBoardInterfaces.encs);
+    ok = ok && remappedControlBoard.view(remappedControlBoardInterfaces.multwrap);
 
     if( !ok )
     {
@@ -243,7 +244,7 @@ bool floatingBaseEstimator::open(os::Searchable& config)
 }
 
 bool floatingBaseEstimator::attachAllControlBoard(const PolyDriverList& p)
-{
+{    
     PolyDriverList controlBoardList;
     for(size_t devIdx = 0; devIdx < (size_t) p.size(); devIdx++)
     {
@@ -275,7 +276,6 @@ bool floatingBaseEstimator::attachAll(const PolyDriverList& p)
 
     if( ok )
     {
-        correctlyConfigured = true;
         this->start();
     }
 
@@ -310,10 +310,8 @@ void floatingBaseEstimator::readSensors()
 
 void floatingBaseEstimator::updateKinematics()
 {
-    estimator.updateKinematics(jointPos);
+    estimationWentWell = estimator.updateKinematics(jointPos);
 }
-
-
 
 void floatingBaseEstimator::publishEstimatedQuantities()
 {
@@ -400,9 +398,8 @@ void floatingBaseEstimator::run()
         if( !correctlyConfigured )
         {
             // first run, configure the estimator
-            this->estimator.init(initialFixedFrame,initialWorldFrame);
-
-            correctlyConfigured = true;
+            this->updateKinematics();
+            correctlyConfigured = this->estimator.init(initialFixedFrame,initialWorldFrame);
         }
 
         if( correctlyConfigured )
@@ -413,6 +410,10 @@ void floatingBaseEstimator::run()
             // Publish estimated quantities
             this->publishEstimatedQuantities();
         }
+    }
+    else
+    {
+        yError() << "floatingBaseEstimator : Error in sensors readings, no estimates will be published.";
     }
 }
 
@@ -443,7 +444,35 @@ bool floatingBaseEstimator::close()
     return true;
 }
 
-}
+//////////////////////////
+/// RPC methods
+/////////////////////////
+
+bool floatingBaseEstimator::resetSimpleLeggedOdometry(const std::string& initial_world_frame,
+                                                              const std::string& initial_fixed_frame)
+{
+    yarp::os::LockGuard guard(this->deviceMutex);
+    return this->estimator.init(initial_fixed_frame,initial_world_frame);
 }
 
+bool floatingBaseEstimator::changeFixedLinkSimpleLeggedOdometry(const std::string& new_fixed_frame)
+{
+    yarp::os::LockGuard guard(this->deviceMutex);
+    return this->estimator.changeFixedFrame(new_fixed_frame);
+}
+
+std::string floatingBaseEstimator::getCurrentSettingsString()
+{
+    yarp::os::LockGuard guard(this->deviceMutex);
+    std::stringstream ss;
+    ss << "Current settings for floatingBaseEstimator\n";
+    ss << "Used estimator: simpleLeggedOdometry\n";
+    ss << "Current fixedLink: " << this->estimator.getCurrentFixedLink() << "\n";
+    ss << "Current world_H_fixedLink: " << this->estimator.getWorldLinkTransform(this->estimator.model().getLinkIndex(this->estimator.getCurrentFixedLink())).toString() << "\n";
+    return ss.str();
+}
+
+}
+
+}
 
