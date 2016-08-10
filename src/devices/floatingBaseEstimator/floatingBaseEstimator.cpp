@@ -38,7 +38,7 @@ floatingBaseEstimator::~floatingBaseEstimator()
 
 bool floatingBaseEstimator::openPorts()
 {
-    this->floatingBaseEstimator_IDLServer::yarp().attachAsServer(rpcPort);
+    this->floatingBaseEstimatorRPC::yarp().attachAsServer(rpcPort);
 
     bool ok = rpcPort.open(portPrefix+"/rpc");
 

@@ -32,11 +32,11 @@ struct HomTransform
 }
 
 /**
- * floatingBaseEstimator_IDLServer
+ * floatingBaseEstimatorRPC
  *
  * Interface.
  */
-service floatingBaseEstimator_IDLServer
+service floatingBaseEstimatorRPC
 {
   /**
    * Reset the odometry world to be (initially) a frame specified in the robot model,

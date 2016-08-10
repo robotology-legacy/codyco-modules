@@ -13,7 +13,7 @@
 // iDynTree includes
 #include <iDynTree/Estimation/SimpleLeggedOdometry.h>
 
-#include <codyco/floatingBaseEstimator_IDLServer.h>
+#include <codyco/floatingBaseEstimatorRPC.h>
 
 
 #include <vector>
@@ -57,7 +57,7 @@ namespace dev {
 class floatingBaseEstimator :  public yarp::dev::DeviceDriver,
                                public yarp::dev::IMultipleWrapper,
                                public yarp::os::RateThread,
-                               public codyco::floatingBaseEstimator_IDLServer
+                               public codyco::floatingBaseEstimatorRPC
 {
 private:
     /**

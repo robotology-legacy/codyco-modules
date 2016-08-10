@@ -1,13 +1,13 @@
 // This is an automatically-generated file.
 // It could get re-generated if the ALLOW_IDL_GENERATION flag is on.
 
-#include <codyco/floatingBaseEstimator_IDLServer.h>
+#include <codyco/floatingBaseEstimatorRPC.h>
 #include <yarp/os/idl/WireTypes.h>
 
 namespace codyco {
 
 
-class floatingBaseEstimator_IDLServer_resetSimpleLeggedOdometry : public yarp::os::Portable {
+class floatingBaseEstimatorRPC_resetSimpleLeggedOdometry : public yarp::os::Portable {
 public:
   std::string initial_world_frame;
   std::string initial_fixed_frame;
@@ -17,7 +17,7 @@ public:
   virtual bool read(yarp::os::ConnectionReader& connection);
 };
 
-class floatingBaseEstimator_IDLServer_resetSimpleLeggedOdometryToArbitraryFrame : public yarp::os::Portable {
+class floatingBaseEstimatorRPC_resetSimpleLeggedOdometryToArbitraryFrame : public yarp::os::Portable {
 public:
   std::string initial_reference_frame;
   HomTransform initial_reference_frame_H_world;
@@ -28,7 +28,7 @@ public:
   virtual bool read(yarp::os::ConnectionReader& connection);
 };
 
-class floatingBaseEstimator_IDLServer_changeFixedLinkSimpleLeggedOdometry : public yarp::os::Portable {
+class floatingBaseEstimatorRPC_changeFixedLinkSimpleLeggedOdometry : public yarp::os::Portable {
 public:
   std::string new_fixed_frame;
   bool _return;
@@ -37,7 +37,7 @@ public:
   virtual bool read(yarp::os::ConnectionReader& connection);
 };
 
-class floatingBaseEstimator_IDLServer_getCurrentSettingsString : public yarp::os::Portable {
+class floatingBaseEstimatorRPC_getCurrentSettingsString : public yarp::os::Portable {
 public:
   std::string _return;
   void init();
@@ -45,7 +45,7 @@ public:
   virtual bool read(yarp::os::ConnectionReader& connection);
 };
 
-bool floatingBaseEstimator_IDLServer_resetSimpleLeggedOdometry::write(yarp::os::ConnectionWriter& connection) {
+bool floatingBaseEstimatorRPC_resetSimpleLeggedOdometry::write(yarp::os::ConnectionWriter& connection) {
   yarp::os::idl::WireWriter writer(connection);
   if (!writer.writeListHeader(3)) return false;
   if (!writer.writeTag("resetSimpleLeggedOdometry",1,1)) return false;
@@ -54,7 +54,7 @@ bool floatingBaseEstimator_IDLServer_resetSimpleLeggedOdometry::write(yarp::os::
   return true;
 }
 
-bool floatingBaseEstimator_IDLServer_resetSimpleLeggedOdometry::read(yarp::os::ConnectionReader& connection) {
+bool floatingBaseEstimatorRPC_resetSimpleLeggedOdometry::read(yarp::os::ConnectionReader& connection) {
   yarp::os::idl::WireReader reader(connection);
   if (!reader.readListReturn()) return false;
   if (!reader.readBool(_return)) {
@@ -64,13 +64,13 @@ bool floatingBaseEstimator_IDLServer_resetSimpleLeggedOdometry::read(yarp::os::C
   return true;
 }
 
-void floatingBaseEstimator_IDLServer_resetSimpleLeggedOdometry::init(const std::string& initial_world_frame, const std::string& initial_fixed_frame) {
+void floatingBaseEstimatorRPC_resetSimpleLeggedOdometry::init(const std::string& initial_world_frame, const std::string& initial_fixed_frame) {
   _return = false;
   this->initial_world_frame = initial_world_frame;
   this->initial_fixed_frame = initial_fixed_frame;
 }
 
-bool floatingBaseEstimator_IDLServer_resetSimpleLeggedOdometryToArbitraryFrame::write(yarp::os::ConnectionWriter& connection) {
+bool floatingBaseEstimatorRPC_resetSimpleLeggedOdometryToArbitraryFrame::write(yarp::os::ConnectionWriter& connection) {
   yarp::os::idl::WireWriter writer(connection);
   if (!writer.writeListHeader(15)) return false;
   if (!writer.writeTag("resetSimpleLeggedOdometryToArbitraryFrame",1,1)) return false;
@@ -80,7 +80,7 @@ bool floatingBaseEstimator_IDLServer_resetSimpleLeggedOdometryToArbitraryFrame::
   return true;
 }
 
-bool floatingBaseEstimator_IDLServer_resetSimpleLeggedOdometryToArbitraryFrame::read(yarp::os::ConnectionReader& connection) {
+bool floatingBaseEstimatorRPC_resetSimpleLeggedOdometryToArbitraryFrame::read(yarp::os::ConnectionReader& connection) {
   yarp::os::idl::WireReader reader(connection);
   if (!reader.readListReturn()) return false;
   if (!reader.readBool(_return)) {
@@ -90,14 +90,14 @@ bool floatingBaseEstimator_IDLServer_resetSimpleLeggedOdometryToArbitraryFrame::
   return true;
 }
 
-void floatingBaseEstimator_IDLServer_resetSimpleLeggedOdometryToArbitraryFrame::init(const std::string& initial_reference_frame, const HomTransform& initial_reference_frame_H_world, const std::string& initial_fixed_frame) {
+void floatingBaseEstimatorRPC_resetSimpleLeggedOdometryToArbitraryFrame::init(const std::string& initial_reference_frame, const HomTransform& initial_reference_frame_H_world, const std::string& initial_fixed_frame) {
   _return = false;
   this->initial_reference_frame = initial_reference_frame;
   this->initial_reference_frame_H_world = initial_reference_frame_H_world;
   this->initial_fixed_frame = initial_fixed_frame;
 }
 
-bool floatingBaseEstimator_IDLServer_changeFixedLinkSimpleLeggedOdometry::write(yarp::os::ConnectionWriter& connection) {
+bool floatingBaseEstimatorRPC_changeFixedLinkSimpleLeggedOdometry::write(yarp::os::ConnectionWriter& connection) {
   yarp::os::idl::WireWriter writer(connection);
   if (!writer.writeListHeader(2)) return false;
   if (!writer.writeTag("changeFixedLinkSimpleLeggedOdometry",1,1)) return false;
@@ -105,7 +105,7 @@ bool floatingBaseEstimator_IDLServer_changeFixedLinkSimpleLeggedOdometry::write(
   return true;
 }
 
-bool floatingBaseEstimator_IDLServer_changeFixedLinkSimpleLeggedOdometry::read(yarp::os::ConnectionReader& connection) {
+bool floatingBaseEstimatorRPC_changeFixedLinkSimpleLeggedOdometry::read(yarp::os::ConnectionReader& connection) {
   yarp::os::idl::WireReader reader(connection);
   if (!reader.readListReturn()) return false;
   if (!reader.readBool(_return)) {
@@ -115,19 +115,19 @@ bool floatingBaseEstimator_IDLServer_changeFixedLinkSimpleLeggedOdometry::read(y
   return true;
 }
 
-void floatingBaseEstimator_IDLServer_changeFixedLinkSimpleLeggedOdometry::init(const std::string& new_fixed_frame) {
+void floatingBaseEstimatorRPC_changeFixedLinkSimpleLeggedOdometry::init(const std::string& new_fixed_frame) {
   _return = false;
   this->new_fixed_frame = new_fixed_frame;
 }
 
-bool floatingBaseEstimator_IDLServer_getCurrentSettingsString::write(yarp::os::ConnectionWriter& connection) {
+bool floatingBaseEstimatorRPC_getCurrentSettingsString::write(yarp::os::ConnectionWriter& connection) {
   yarp::os::idl::WireWriter writer(connection);
   if (!writer.writeListHeader(1)) return false;
   if (!writer.writeTag("getCurrentSettingsString",1,1)) return false;
   return true;
 }
 
-bool floatingBaseEstimator_IDLServer_getCurrentSettingsString::read(yarp::os::ConnectionReader& connection) {
+bool floatingBaseEstimatorRPC_getCurrentSettingsString::read(yarp::os::ConnectionReader& connection) {
   yarp::os::idl::WireReader reader(connection);
   if (!reader.readListReturn()) return false;
   if (!reader.readString(_return)) {
@@ -137,55 +137,55 @@ bool floatingBaseEstimator_IDLServer_getCurrentSettingsString::read(yarp::os::Co
   return true;
 }
 
-void floatingBaseEstimator_IDLServer_getCurrentSettingsString::init() {
+void floatingBaseEstimatorRPC_getCurrentSettingsString::init() {
   _return = "";
 }
 
-floatingBaseEstimator_IDLServer::floatingBaseEstimator_IDLServer() {
+floatingBaseEstimatorRPC::floatingBaseEstimatorRPC() {
   yarp().setOwner(*this);
 }
-bool floatingBaseEstimator_IDLServer::resetSimpleLeggedOdometry(const std::string& initial_world_frame, const std::string& initial_fixed_frame) {
+bool floatingBaseEstimatorRPC::resetSimpleLeggedOdometry(const std::string& initial_world_frame, const std::string& initial_fixed_frame) {
   bool _return = false;
-  floatingBaseEstimator_IDLServer_resetSimpleLeggedOdometry helper;
+  floatingBaseEstimatorRPC_resetSimpleLeggedOdometry helper;
   helper.init(initial_world_frame,initial_fixed_frame);
   if (!yarp().canWrite()) {
-    yError("Missing server method '%s'?","bool floatingBaseEstimator_IDLServer::resetSimpleLeggedOdometry(const std::string& initial_world_frame, const std::string& initial_fixed_frame)");
+    yError("Missing server method '%s'?","bool floatingBaseEstimatorRPC::resetSimpleLeggedOdometry(const std::string& initial_world_frame, const std::string& initial_fixed_frame)");
   }
   bool ok = yarp().write(helper,helper);
   return ok?helper._return:_return;
 }
-bool floatingBaseEstimator_IDLServer::resetSimpleLeggedOdometryToArbitraryFrame(const std::string& initial_reference_frame, const HomTransform& initial_reference_frame_H_world, const std::string& initial_fixed_frame) {
+bool floatingBaseEstimatorRPC::resetSimpleLeggedOdometryToArbitraryFrame(const std::string& initial_reference_frame, const HomTransform& initial_reference_frame_H_world, const std::string& initial_fixed_frame) {
   bool _return = false;
-  floatingBaseEstimator_IDLServer_resetSimpleLeggedOdometryToArbitraryFrame helper;
+  floatingBaseEstimatorRPC_resetSimpleLeggedOdometryToArbitraryFrame helper;
   helper.init(initial_reference_frame,initial_reference_frame_H_world,initial_fixed_frame);
   if (!yarp().canWrite()) {
-    yError("Missing server method '%s'?","bool floatingBaseEstimator_IDLServer::resetSimpleLeggedOdometryToArbitraryFrame(const std::string& initial_reference_frame, const HomTransform& initial_reference_frame_H_world, const std::string& initial_fixed_frame)");
+    yError("Missing server method '%s'?","bool floatingBaseEstimatorRPC::resetSimpleLeggedOdometryToArbitraryFrame(const std::string& initial_reference_frame, const HomTransform& initial_reference_frame_H_world, const std::string& initial_fixed_frame)");
   }
   bool ok = yarp().write(helper,helper);
   return ok?helper._return:_return;
 }
-bool floatingBaseEstimator_IDLServer::changeFixedLinkSimpleLeggedOdometry(const std::string& new_fixed_frame) {
+bool floatingBaseEstimatorRPC::changeFixedLinkSimpleLeggedOdometry(const std::string& new_fixed_frame) {
   bool _return = false;
-  floatingBaseEstimator_IDLServer_changeFixedLinkSimpleLeggedOdometry helper;
+  floatingBaseEstimatorRPC_changeFixedLinkSimpleLeggedOdometry helper;
   helper.init(new_fixed_frame);
   if (!yarp().canWrite()) {
-    yError("Missing server method '%s'?","bool floatingBaseEstimator_IDLServer::changeFixedLinkSimpleLeggedOdometry(const std::string& new_fixed_frame)");
+    yError("Missing server method '%s'?","bool floatingBaseEstimatorRPC::changeFixedLinkSimpleLeggedOdometry(const std::string& new_fixed_frame)");
   }
   bool ok = yarp().write(helper,helper);
   return ok?helper._return:_return;
 }
-std::string floatingBaseEstimator_IDLServer::getCurrentSettingsString() {
+std::string floatingBaseEstimatorRPC::getCurrentSettingsString() {
   std::string _return = "";
-  floatingBaseEstimator_IDLServer_getCurrentSettingsString helper;
+  floatingBaseEstimatorRPC_getCurrentSettingsString helper;
   helper.init();
   if (!yarp().canWrite()) {
-    yError("Missing server method '%s'?","std::string floatingBaseEstimator_IDLServer::getCurrentSettingsString()");
+    yError("Missing server method '%s'?","std::string floatingBaseEstimatorRPC::getCurrentSettingsString()");
   }
   bool ok = yarp().write(helper,helper);
   return ok?helper._return:_return;
 }
 
-bool floatingBaseEstimator_IDLServer::read(yarp::os::ConnectionReader& connection) {
+bool floatingBaseEstimatorRPC::read(yarp::os::ConnectionReader& connection) {
   yarp::os::idl::WireReader reader(connection);
   reader.expectAccept();
   if (!reader.readListHeader()) { reader.fail(); return false; }
@@ -297,7 +297,7 @@ bool floatingBaseEstimator_IDLServer::read(yarp::os::ConnectionReader& connectio
   return false;
 }
 
-std::vector<std::string> floatingBaseEstimator_IDLServer::help(const std::string& functionName) {
+std::vector<std::string> floatingBaseEstimatorRPC::help(const std::string& functionName) {
   bool showAll=(functionName=="--all");
   std::vector<std::string> helpString;
   if(showAll) {

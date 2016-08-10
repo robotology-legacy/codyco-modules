@@ -1,25 +1,25 @@
 // This is an automatically-generated file.
 // It could get re-generated if the ALLOW_IDL_GENERATION flag is on.
 
-#ifndef YARP_THRIFT_GENERATOR_floatingBaseEstimator_IDLServer
-#define YARP_THRIFT_GENERATOR_floatingBaseEstimator_IDLServer
+#ifndef YARP_THRIFT_GENERATOR_floatingBaseEstimatorRPC
+#define YARP_THRIFT_GENERATOR_floatingBaseEstimatorRPC
 
 #include <yarp/os/Wire.h>
 #include <yarp/os/idl/WireTypes.h>
 #include <codyco/HomTransform.h>
 
 namespace codyco {
-  class floatingBaseEstimator_IDLServer;
+  class floatingBaseEstimatorRPC;
 }
 
 
 /**
- * floatingBaseEstimator_IDLServer
+ * floatingBaseEstimatorRPC
  * Interface.
  */
-class codyco::floatingBaseEstimator_IDLServer : public yarp::os::Wire {
+class codyco::floatingBaseEstimatorRPC : public yarp::os::Wire {
 public:
-  floatingBaseEstimator_IDLServer();
+  floatingBaseEstimatorRPC();
   /**
    * Reset the odometry world to be (initially) a frame specified in the robot model,
    * and specify a frame that is assumed to be fixed in the odometry.
