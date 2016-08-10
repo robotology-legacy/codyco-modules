@@ -20,7 +20,7 @@ include_directories(SYSTEM
 
 yarp_add_plugin(floatingBaseEstimator floatingBaseEstimator.h floatingBaseEstimator.cpp)
 
-target_link_libraries(floatingBaseEstimator floatingBaseEstimator_IDLServer
+target_link_libraries(floatingBaseEstimator floatingBaseEstimatorRPC
                                             ctrlLibRT
                                             ${YARP_LIBRARIES}
                                             ${iDynTree_LIBRARIES})
