@@ -449,11 +449,48 @@ bool floatingBaseEstimator::close()
 /////////////////////////
 
 bool floatingBaseEstimator::resetSimpleLeggedOdometry(const std::string& initial_world_frame,
-                                                              const std::string& initial_fixed_frame)
+                                                      const std::string& initial_fixed_frame)
 {
     yarp::os::LockGuard guard(this->deviceMutex);
     return this->estimator.init(initial_fixed_frame,initial_world_frame);
 }
+
+iDynTree::Transform thrift2iDynTree(const codyco::HomTransform& thriftTrans)
+{
+    iDynTree::Transform iDynTreeTrans;
+
+    iDynTree::Position iDynTreePos;
+    iDynTree::Rotation iDynTreeRot;
+
+    iDynTreePos(0) = thriftTrans.x;
+    iDynTreePos(1) = thriftTrans.y;
+    iDynTreePos(2) = thriftTrans.z;
+
+    iDynTreeRot(0,0) = thriftTrans.xx;
+    iDynTreeRot(0,1) = thriftTrans.xy;
+    iDynTreeRot(0,2) = thriftTrans.xz;
+    iDynTreeRot(1,0) = thriftTrans.yx;
+    iDynTreeRot(1,1) = thriftTrans.yy;
+    iDynTreeRot(1,2) = thriftTrans.yz;
+    iDynTreeRot(2,0) = thriftTrans.zx;
+    iDynTreeRot(2,1) = thriftTrans.zy;
+    iDynTreeRot(2,2) = thriftTrans.zz;
+
+    iDynTreeTrans.setPosition(iDynTreePos);
+    iDynTreeTrans.setRotation(iDynTreeRot);
+
+    return iDynTreeTrans;
+}
+
+bool floatingBaseEstimator::resetSimpleLeggedOdometryToArbitraryFrame(const std::string& initial_reference_frame,
+                                                                      const codyco::HomTransform& initial_reference_frame_H_world_thrift,
+                                                                      const std::string& initial_fixed_frame)
+{
+    iDynTree::Transform initial_reference_frame_H_world = thrift2iDynTree(initial_reference_frame_H_world_thrift);
+    yarp::os::LockGuard guard(this->deviceMutex);
+    return this->estimator.init(initial_fixed_frame,initial_reference_frame,initial_reference_frame_H_world);
+}
+
 
 bool floatingBaseEstimator::changeFixedLinkSimpleLeggedOdometry(const std::string& new_fixed_frame)
 {

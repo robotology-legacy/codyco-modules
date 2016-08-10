@@ -6,15 +6,18 @@
 
 #include <yarp/os/Wire.h>
 #include <yarp/os/idl/WireTypes.h>
+#include <codyco/HomTransform.h>
 
-class floatingBaseEstimator_IDLServer;
+namespace codyco {
+  class floatingBaseEstimator_IDLServer;
+}
 
 
 /**
  * floatingBaseEstimator_IDLServer
  * Interface.
  */
-class floatingBaseEstimator_IDLServer : public yarp::os::Wire {
+class codyco::floatingBaseEstimator_IDLServer : public yarp::os::Wire {
 public:
   floatingBaseEstimator_IDLServer();
   /**
@@ -26,6 +29,15 @@ public:
    * @return true/false on success/failure (typically if the frame/link names are wrong)
    */
   virtual bool resetSimpleLeggedOdometry(const std::string& initial_world_frame, const std::string& initial_fixed_frame);
+  /**
+   * Reset the odometry world to be (initially) a frame specified in the robot model,
+   * and specify a frame that is assumed to be fixed in the odometry.
+   * @param initial_reference_frame the frame of the robot model with respect to which we expressed the location of the world.
+   * @param initial_reference_frame_H_world the initial location of the world w.r.t. the initial_reference_frame.
+   * @param new_fixed_frame the name of a frame attached to the link that should be considered fixed.
+   * @return true/false on success/failure (typically if the frame/link names are wrong)
+   */
+  virtual bool resetSimpleLeggedOdometryToArbitraryFrame(const std::string& initial_reference_frame, const HomTransform& initial_reference_frame_H_world, const std::string& initial_fixed_frame);
   /**
    * Change the link that is considered fixed by the odometry.
    * @param new_fixed_frame the name of a frame attached to the link that should be considered fixed

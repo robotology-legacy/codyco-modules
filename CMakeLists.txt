@@ -15,10 +15,11 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_SOURCE_DIR}/cmake/modules)
 #### CoDyCo Setup
 project(codyco-modules)
 
-set(CODYCO_VERSION_MAJOR "0")
-set(CODYCO_VERSION_MINOR "2")
-set(CODYCO_VERSION_PATCH "0")
-set(CODYCO_VERSION "${CODYCO_VERSION_MAJOR}.${CODYCO_VERSION_MINOR}.${CODYCO_VERSION_PATCH}")
+set(VARS_PREFIX ${PROJECT_NAME})
+set(${PROJECT_NAME}_VERSION_MAJOR "0")
+set(${PROJECT_NAME}_VERSION_MINOR "2")
+set(${PROJECT_NAME}_VERSION_PATCH "0")
+set(${PROJECT_NAME}_VERSION "${${PROJECT_NAME}_VERSION_MAJOR}.${${PROJECT_NAME}_VERSION_MINOR}.${${PROJECT_NAME}_VERSION_PATCH}")
 
 find_package(YARP 2.3.63.1 REQUIRED)
 message(STATUS "YARP is version: ${YARP_VERSION}")
@@ -77,6 +78,14 @@ if (CODYCO_BUILD_TESTS)
 endif()
 
 add_subdirectory(src)
+
+# Export IDL libraries to simplify RPC communication
+include(InstallBasicPackageFiles)
+install_basic_package_files(${PROJECT_NAME} VARS_PREFIX ${VARS_PREFIX}
+                                            VERSION ${${VARS_PREFIX}_VERSION}
+                                            COMPATIBILITY SameMajorVersion
+                                            TARGETS_PROPERTY ${VARS_PREFIX}_TARGETS
+                                            NO_CHECK_REQUIRED_COMPONENTS_MACRO)
 
 #### add the "uninstall" target
 include(AddUninstallTarget)

@@ -1,9 +1,10 @@
 // This is an automatically-generated file.
 // It could get re-generated if the ALLOW_IDL_GENERATION flag is on.
 
-#include <floatingBaseEstimator_IDLServer.h>
+#include <codyco/floatingBaseEstimator_IDLServer.h>
 #include <yarp/os/idl/WireTypes.h>
 
+namespace codyco {
 
 
 class floatingBaseEstimator_IDLServer_resetSimpleLeggedOdometry : public yarp::os::Portable {
@@ -12,6 +13,17 @@ public:
   std::string initial_fixed_frame;
   bool _return;
   void init(const std::string& initial_world_frame, const std::string& initial_fixed_frame);
+  virtual bool write(yarp::os::ConnectionWriter& connection);
+  virtual bool read(yarp::os::ConnectionReader& connection);
+};
+
+class floatingBaseEstimator_IDLServer_resetSimpleLeggedOdometryToArbitraryFrame : public yarp::os::Portable {
+public:
+  std::string initial_reference_frame;
+  HomTransform initial_reference_frame_H_world;
+  std::string initial_fixed_frame;
+  bool _return;
+  void init(const std::string& initial_reference_frame, const HomTransform& initial_reference_frame_H_world, const std::string& initial_fixed_frame);
   virtual bool write(yarp::os::ConnectionWriter& connection);
   virtual bool read(yarp::os::ConnectionReader& connection);
 };
@@ -55,6 +67,33 @@ bool floatingBaseEstimator_IDLServer_resetSimpleLeggedOdometry::read(yarp::os::C
 void floatingBaseEstimator_IDLServer_resetSimpleLeggedOdometry::init(const std::string& initial_world_frame, const std::string& initial_fixed_frame) {
   _return = false;
   this->initial_world_frame = initial_world_frame;
+  this->initial_fixed_frame = initial_fixed_frame;
+}
+
+bool floatingBaseEstimator_IDLServer_resetSimpleLeggedOdometryToArbitraryFrame::write(yarp::os::ConnectionWriter& connection) {
+  yarp::os::idl::WireWriter writer(connection);
+  if (!writer.writeListHeader(15)) return false;
+  if (!writer.writeTag("resetSimpleLeggedOdometryToArbitraryFrame",1,1)) return false;
+  if (!writer.writeString(initial_reference_frame)) return false;
+  if (!writer.write(initial_reference_frame_H_world)) return false;
+  if (!writer.writeString(initial_fixed_frame)) return false;
+  return true;
+}
+
+bool floatingBaseEstimator_IDLServer_resetSimpleLeggedOdometryToArbitraryFrame::read(yarp::os::ConnectionReader& connection) {
+  yarp::os::idl::WireReader reader(connection);
+  if (!reader.readListReturn()) return false;
+  if (!reader.readBool(_return)) {
+    reader.fail();
+    return false;
+  }
+  return true;
+}
+
+void floatingBaseEstimator_IDLServer_resetSimpleLeggedOdometryToArbitraryFrame::init(const std::string& initial_reference_frame, const HomTransform& initial_reference_frame_H_world, const std::string& initial_fixed_frame) {
+  _return = false;
+  this->initial_reference_frame = initial_reference_frame;
+  this->initial_reference_frame_H_world = initial_reference_frame_H_world;
   this->initial_fixed_frame = initial_fixed_frame;
 }
 
@@ -115,6 +154,16 @@ bool floatingBaseEstimator_IDLServer::resetSimpleLeggedOdometry(const std::strin
   bool ok = yarp().write(helper,helper);
   return ok?helper._return:_return;
 }
+bool floatingBaseEstimator_IDLServer::resetSimpleLeggedOdometryToArbitraryFrame(const std::string& initial_reference_frame, const HomTransform& initial_reference_frame_H_world, const std::string& initial_fixed_frame) {
+  bool _return = false;
+  floatingBaseEstimator_IDLServer_resetSimpleLeggedOdometryToArbitraryFrame helper;
+  helper.init(initial_reference_frame,initial_reference_frame_H_world,initial_fixed_frame);
+  if (!yarp().canWrite()) {
+    yError("Missing server method '%s'?","bool floatingBaseEstimator_IDLServer::resetSimpleLeggedOdometryToArbitraryFrame(const std::string& initial_reference_frame, const HomTransform& initial_reference_frame_H_world, const std::string& initial_fixed_frame)");
+  }
+  bool ok = yarp().write(helper,helper);
+  return ok?helper._return:_return;
+}
 bool floatingBaseEstimator_IDLServer::changeFixedLinkSimpleLeggedOdometry(const std::string& new_fixed_frame) {
   bool _return = false;
   floatingBaseEstimator_IDLServer_changeFixedLinkSimpleLeggedOdometry helper;
@@ -158,6 +207,32 @@ bool floatingBaseEstimator_IDLServer::read(yarp::os::ConnectionReader& connectio
       }
       bool _return;
       _return = resetSimpleLeggedOdometry(initial_world_frame,initial_fixed_frame);
+      yarp::os::idl::WireWriter writer(reader);
+      if (!writer.isNull()) {
+        if (!writer.writeListHeader(1)) return false;
+        if (!writer.writeBool(_return)) return false;
+      }
+      reader.accept();
+      return true;
+    }
+    if (tag == "resetSimpleLeggedOdometryToArbitraryFrame") {
+      std::string initial_reference_frame;
+      HomTransform initial_reference_frame_H_world;
+      std::string initial_fixed_frame;
+      if (!reader.readString(initial_reference_frame)) {
+        reader.fail();
+        return false;
+      }
+      if (!reader.read(initial_reference_frame_H_world)) {
+        reader.fail();
+        return false;
+      }
+      if (!reader.readString(initial_fixed_frame)) {
+        reader.fail();
+        return false;
+      }
+      bool _return;
+      _return = resetSimpleLeggedOdometryToArbitraryFrame(initial_reference_frame,initial_reference_frame_H_world,initial_fixed_frame);
       yarp::os::idl::WireWriter writer(reader);
       if (!writer.isNull()) {
         if (!writer.writeListHeader(1)) return false;
@@ -228,6 +303,7 @@ std::vector<std::string> floatingBaseEstimator_IDLServer::help(const std::string
   if(showAll) {
     helpString.push_back("*** Available commands:");
     helpString.push_back("resetSimpleLeggedOdometry");
+    helpString.push_back("resetSimpleLeggedOdometryToArbitraryFrame");
     helpString.push_back("changeFixedLinkSimpleLeggedOdometry");
     helpString.push_back("getCurrentSettingsString");
     helpString.push_back("help");
@@ -240,6 +316,15 @@ std::vector<std::string> floatingBaseEstimator_IDLServer::help(const std::string
       helpString.push_back("@param initial_world_frame the frame of the robot model that is assume to be initially ");
       helpString.push_back("       coincident with the world/inertial frame. ");
       helpString.push_back("@param new_fixed_frame the name of a frame attached to the link that should be considered fixed ");
+      helpString.push_back("@return true/false on success/failure (typically if the frame/link names are wrong) ");
+    }
+    if (functionName=="resetSimpleLeggedOdometryToArbitraryFrame") {
+      helpString.push_back("bool resetSimpleLeggedOdometryToArbitraryFrame(const std::string& initial_reference_frame, const HomTransform& initial_reference_frame_H_world, const std::string& initial_fixed_frame) ");
+      helpString.push_back("Reset the odometry world to be (initially) a frame specified in the robot model, ");
+      helpString.push_back("and specify a frame that is assumed to be fixed in the odometry. ");
+      helpString.push_back("@param initial_reference_frame the frame of the robot model with respect to which we expressed the location of the world. ");
+      helpString.push_back("@param initial_reference_frame_H_world the initial location of the world w.r.t. the initial_reference_frame. ");
+      helpString.push_back("@param new_fixed_frame the name of a frame attached to the link that should be considered fixed. ");
       helpString.push_back("@return true/false on success/failure (typically if the frame/link names are wrong) ");
     }
     if (functionName=="changeFixedLinkSimpleLeggedOdometry") {
@@ -263,5 +348,6 @@ std::vector<std::string> floatingBaseEstimator_IDLServer::help(const std::string
   if ( helpString.empty()) helpString.push_back("Command not found");
   return helpString;
 }
+} // namespace
 
 

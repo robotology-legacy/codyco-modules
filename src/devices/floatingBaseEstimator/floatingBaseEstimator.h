@@ -13,7 +13,7 @@
 // iDynTree includes
 #include <iDynTree/Estimation/SimpleLeggedOdometry.h>
 
-#include <floatingBaseEstimator_IDLServer.h>
+#include <codyco/floatingBaseEstimator_IDLServer.h>
 
 
 #include <vector>
@@ -57,7 +57,7 @@ namespace dev {
 class floatingBaseEstimator :  public yarp::dev::DeviceDriver,
                                public yarp::dev::IMultipleWrapper,
                                public yarp::os::RateThread,
-                               public floatingBaseEstimator_IDLServer
+                               public codyco::floatingBaseEstimator_IDLServer
 {
 private:
     /**
@@ -193,6 +193,10 @@ private:
 
     // RPC methods
     virtual bool resetSimpleLeggedOdometry(const std::string& initial_world_frame, const std::string& initial_fixed_frame);
+    virtual bool resetSimpleLeggedOdometryToArbitraryFrame(const std::string& initial_reference_frame,
+                                                           const codyco::HomTransform& initial_reference_frame_H_world,
+                                                           const std::string& initial_fixed_frame);
+
     virtual bool changeFixedLinkSimpleLeggedOdometry(const std::string& new_fixed_frame);
     virtual std::string getCurrentSettingsString();
 
