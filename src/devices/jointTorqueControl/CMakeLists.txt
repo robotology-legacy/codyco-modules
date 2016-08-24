@@ -26,12 +26,12 @@ if(NOT SKIP_jointTorqueControl)
                         ${EIGEN3_INCLUDE_DIR}
                         ${skinDynLib_INCLUDE_DIRS})
 
+    yarp_add_plugin(jointTorqueControl JointTorqueControl.h JointTorqueControl.cpp PassThroughControlBoard.h  PassThroughControlBoard.cpp)
+    target_link_libraries(jointTorqueControl ${YARP_LIBRARIES})
 
     yarp_add_plugin(passThroughControlBoard PassThroughControlBoard.h PassThroughControlBoard.cpp)
     target_link_libraries(passThroughControlBoard ${YARP_LIBRARIES})
 
-    yarp_add_plugin(jointTorqueControl JointTorqueControl.h JointTorqueControl.cpp PassThroughControlBoard.h  PassThroughControlBoard.cpp)
-    target_link_libraries(jointTorqueControl ${YARP_LIBRARIES})
 
     if(MSVC)
        add_definitions(-D_USE_MATH_DEFINES)
@@ -50,6 +50,8 @@ if(NOT SKIP_jointTorqueControl)
                  ARCHIVE DESTINATION ${CODYCO_STATIC_PLUGINS_INSTALL_DIR})
 
     add_subdirectory(app)
-
+    
+    yarp_install(FILES jointTorqueControl.ini DESTINATION ${CODYCO_PLUGIN_MANIFESTS_INSTALL_DIR})
+    
 endif()
 
