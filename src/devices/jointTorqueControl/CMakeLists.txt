@@ -6,6 +6,8 @@ find_package(YARP REQUIRED)
 # ICUB is required for skinDynLib
 find_package(ICUB REQUIRED)
 find_package(Eigen3 REQUIRED)
+find_package(Boost REQUIRED COMPONENTS system filesystem)
+
 
 list(APPEND CMAKE_MODULE_PATH "${YARP_MODULE_PATH}")
 include(YarpInstallationHelpers)
@@ -24,10 +26,12 @@ if(NOT SKIP_jointTorqueControl)
                         ${EIGEN3_INCLUDE_DIR}
                         ${YARP_INCLUDE_DIRS}
                         ${EIGEN3_INCLUDE_DIR}
-                        ${skinDynLib_INCLUDE_DIRS})
+                        ${skinDynLib_INCLUDE_DIRS}
+                        ${Boost_INCLUDE_DIRS}
+                        )
 
     yarp_add_plugin(jointTorqueControl JointTorqueControl.h JointTorqueControl.cpp PassThroughControlBoard.h  PassThroughControlBoard.cpp)
-    target_link_libraries(jointTorqueControl ${YARP_LIBRARIES})
+    target_link_libraries(jointTorqueControl ${YARP_LIBRARIES} ${Boost_LIBRARIES})
 
     yarp_add_plugin(passThroughControlBoard PassThroughControlBoard.h PassThroughControlBoard.cpp)
     target_link_libraries(passThroughControlBoard ${YARP_LIBRARIES})
@@ -50,8 +54,7 @@ if(NOT SKIP_jointTorqueControl)
                  ARCHIVE DESTINATION ${CODYCO_STATIC_PLUGINS_INSTALL_DIR})
 
     add_subdirectory(app)
-    
-    yarp_install(FILES jointTorqueControl.ini DESTINATION ${CODYCO_PLUGIN_MANIFESTS_INSTALL_DIR})
-    
-endif()
 
+    yarp_install(FILES jointTorqueControl.ini DESTINATION ${CODYCO_PLUGIN_MANIFESTS_INSTALL_DIR})
+
+endif()

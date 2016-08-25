@@ -20,6 +20,281 @@
 
 #include <yarp/os/all.h>
 
+RpcServerCallback::RpcServerCallback(yarp::dev::JointTorqueControl* jtcPtr)
+: jtc(jtcPtr)
+{
+}
+
+RpcServerCallback::~RpcServerCallback()
+{
+   if(jtc != NULL){
+       delete jtc;
+   }
+}
+
+bool RpcServerCallback::read(yarp::os::ConnectionReader& connection)
+{
+     yarp::os::Bottle request, reply;
+     bool ok = request.read(connection);
+     if (!ok) return false;
+     // process data "request", prepare "reply"
+     parseRequestAndWriteReply(request, reply);
+     yarp::os::ConnectionWriter *returnToSender = connection.getWriter();
+     if (returnToSender!=NULL) {
+         reply.write(*returnToSender);
+     }
+     return true;
+}
+
+void RpcServerCallback::parseRequestAndWriteReply(yarp::os::Bottle& request, yarp::os::Bottle& reply)
+{
+    if(request.size()>0) {
+        std::string keyword = request.get(0).asString();
+
+        if (keyword=="help") {
+            generateHelpResponse(reply);
+        } else if (keyword=="save") {
+            saveParametersToFile(request, reply);
+        } else if (keyword=="set") {
+            setParameterValues(request, reply);
+        } else if (keyword=="get") {
+            std::string secondKeyword = request.get(1).asString();
+
+            if (secondKeyword == "joint_list") {
+                for(int j=0; j < jtc->axesNames.size(); j++) {
+                    reply.addString(jtc->axesNames[j]);
+                }
+            } else if (secondKeyword == "no_joints") {
+                reply.addInt(jtc->axes);
+            } else if (secondKeyword == "params") {
+                int joint_index = request.get(2).asInt();
+                addAllJointParamsToReply(joint_index, reply);
+            } else {
+                getParameterValues(request, reply);
+            }
+
+        } else {
+            reply.addString("Type [help] for valid commands.");
+        }
+    }else {
+        reply.addString("Type [help] for valid commands.");
+    }
+
+}
+
+void RpcServerCallback::generateHelpResponse(yarp::os::Bottle& reply)
+{
+    std::string replyString = "===============\nValid Commands\n===============\nNote: Omit the brackets [] when writing your commands.\n\n";
+    replyString += "[save] [location] - saves all current parameters to a txt file at the specified [location] (defaults to ./).\n";
+    replyString += "[get] [joint_list] - returns a list of strings with the joint labels.\n";
+    replyString += "[get] [no_joints] - returns the number of joints in the part.\n";
+    replyString += "[get] [params] [joint_index] - get all parameter values for a joint index.\n";
+    replyString += "[get] [param_id] [joint_index] - get the parameter value for a joint index.\n";
+    replyString += "[set] [joint_index] [param_id] [param_value] [param_id] [param_value] ... - set the parameter value(s) for a joint index.\n";
+    replyString += "\n  Valid [param_id] values:\n";
+    replyString += "  --> kp - proportional gain (Joint Torque Loop)\n";
+    replyString += "  --> ki - integral gain (Joint Torque Loop)\n";
+    replyString += "  --> kd - proportional gain (Joint Torque Loop)\n";
+    replyString += "  --> max_int - ??? (Joint Torque Loop)\n";
+    replyString += "  --> max_pwm - ??? (Joint Torque Loop)\n";
+    replyString += "  --> kv - proportional gain ??? (Motor Parameters)\n";
+    replyString += "  --> kcp - ??? (Motor Parameters)\n";
+    replyString += "  --> kcn - ??? (Motor Parameters)\n";
+    replyString += "  --> coulombVelThr - ??? (Motor Parameters)\n";
+    replyString += "  --> kff - feed-forward gain for gravity compensation torque (Motor Parameters)\n";
+    replyString += "  --> frictionCompensation - coefficient of friction compensation (0-1) (Motor Parameters)\n";
+
+    std::cout << replyString << std::endl;
+    reply.addString(replyString);
+}
+
+void RpcServerCallback::saveParametersToFile(yarp::os::Bottle& request, yarp::os::Bottle& reply)
+{
+    std::string filePath;
+    if (request.size()>1) {
+        filePath = request.get(1).asString();
+    } else {
+        filePath = "./";
+    }
+    filePath += "/jtc_parameters/";
+    std::string fileName = jtc->simplePartName + "_params.txt";
+    boost::filesystem::create_directory(filePath);
+    filePath += fileName;
+
+    std::ofstream saveFile;
+    saveFile.open(filePath.c_str());
+
+    for(int j=0; j<jtc->axes; ++j) {
+        yarp::os::Bottle fakeBottle;
+        addAllJointParamsToReply(j, fakeBottle);
+        saveFile << "joint_index" << " " << j << " " << fakeBottle.toString() << "\n";
+    }
+
+    saveFile.close();
+
+    std::string replyString("Parameters saved to: " + boost::filesystem::canonical(filePath).string());
+    std::cout << replyString << std::endl;
+    reply.addString(replyString);
+}
+
+
+void RpcServerCallback::setParameterValues(yarp::os::Bottle& request, yarp::os::Bottle& reply)
+{
+    int joint_index = request.get(1).asInt();
+    for(int i=2; i<request.size(); ++i)
+    {
+        std::string key = request.get(i).asString();
+        if(key == "kp") {
+            jtc->jointTorqueLoopGains[joint_index].kp = request.get(++i).asDouble();
+            reply.addString(key);
+            reply.addDouble(jtc->jointTorqueLoopGains[joint_index].kp);
+        }
+        else if(key == "ki") {
+            jtc->jointTorqueLoopGains[joint_index].ki = request.get(++i).asDouble();
+            reply.addString(key);
+            reply.addDouble(jtc->jointTorqueLoopGains[joint_index].ki);
+        }
+        else if(key == "kd") {
+            jtc->jointTorqueLoopGains[joint_index].kd = request.get(++i).asDouble();
+            reply.addString(key);
+            reply.addDouble(jtc->jointTorqueLoopGains[joint_index].kd);
+        }
+        else if(key == "max_int") {
+            jtc->jointTorqueLoopGains[joint_index].max_int = request.get(++i).asInt();
+            reply.addString(key);
+            reply.addInt(jtc->jointTorqueLoopGains[joint_index].max_int);
+        }
+        else if(key == "max_pwm") {
+            jtc->jointTorqueLoopGains[joint_index].max_pwm = request.get(++i).asInt();
+            reply.addString(key);
+            reply.addInt(jtc->jointTorqueLoopGains[joint_index].max_pwm);
+        }
+        else if(key == "kv") {
+            jtc->motorParameters[joint_index].kv = request.get(++i).asDouble();
+            reply.addString(key);
+            reply.addDouble(jtc->motorParameters[joint_index].kv);
+        }
+        else if(key == "kcp") {
+            jtc->motorParameters[joint_index].kcp = request.get(++i).asDouble();
+            reply.addString(key);
+            reply.addDouble(jtc->motorParameters[joint_index].kcp);
+        }
+        else if(key == "kcn") {
+            jtc->motorParameters[joint_index].kcn = request.get(++i).asDouble();
+            reply.addString(key);
+            reply.addDouble(jtc->motorParameters[joint_index].kcn);
+        }
+        else if(key == "coulombVelThr") {
+            jtc->motorParameters[joint_index].coulombVelThr = request.get(++i).asDouble();
+            reply.addString(key);
+            reply.addDouble(jtc->motorParameters[joint_index].coulombVelThr);
+        }
+        else if(key == "kff") {
+            jtc->motorParameters[joint_index].kff = request.get(++i).asDouble();
+            reply.addString(key);
+            reply.addDouble(jtc->motorParameters[joint_index].kff);
+        }
+        else if(key == "frictionCompensation") {
+            jtc->motorParameters[joint_index].frictionCompensation = request.get(++i).asDouble();
+            reply.addString(key);
+            reply.addDouble(jtc->motorParameters[joint_index].frictionCompensation);
+        }
+        else {
+            reply.addString(key);
+            reply.addDouble(0.0);
+        }
+
+    }
+}
+
+void RpcServerCallback::getParameterValues(yarp::os::Bottle& request, yarp::os::Bottle& reply)
+{
+    for(int i=1; i<request.size(); ++i)
+    {
+        std::string key = request.get(i).asString();
+        int joint_index = request.get(++i).asInt();
+        if(key == "kp") {
+            reply.addString(key);
+            reply.addDouble(jtc->jointTorqueLoopGains[joint_index].kp);
+        }
+        else if(key == "ki") {
+            reply.addString(key);
+            reply.addDouble(jtc->jointTorqueLoopGains[joint_index].ki);
+        }
+        else if(key == "kd") {
+            reply.addString(key);
+            reply.addDouble(jtc->jointTorqueLoopGains[joint_index].kd);
+        }
+        else if(key == "max_int") {
+            reply.addString(key);
+            reply.addInt(jtc->jointTorqueLoopGains[joint_index].max_int);
+        }
+        else if(key == "max_pwm") {
+            reply.addString(key);
+            reply.addInt(jtc->jointTorqueLoopGains[joint_index].max_pwm);
+        }
+        else if(key == "kv") {
+            reply.addString(key);
+            reply.addDouble(jtc->motorParameters[joint_index].kv);
+        }
+        else if(key == "kcp") {
+            reply.addString(key);
+            reply.addDouble(jtc->motorParameters[joint_index].kcp);
+        }
+        else if(key == "kcn") {
+            reply.addString(key);
+            reply.addDouble(jtc->motorParameters[joint_index].kcn);
+        }
+        else if(key == "coulombVelThr") {
+            reply.addString(key);
+            reply.addDouble(jtc->motorParameters[joint_index].coulombVelThr);
+        }
+        else if(key == "kff") {
+            reply.addString(key);
+            reply.addDouble(jtc->motorParameters[joint_index].kff);
+        }
+        else if(key == "frictionCompensation") {
+            reply.addString(key);
+            reply.addDouble(jtc->motorParameters[joint_index].frictionCompensation);
+        }
+        else {
+            reply.addString(key);
+            reply.addDouble(0.0);
+        }
+
+    }
+}
+
+void RpcServerCallback::addAllJointParamsToReply(int joint_index, yarp::os::Bottle& reply)
+{
+        reply.addString("kp");
+        reply.addDouble(jtc->jointTorqueLoopGains[joint_index].kp);
+        reply.addString("ki");
+        reply.addDouble(jtc->jointTorqueLoopGains[joint_index].ki);
+        reply.addString("kd");
+        reply.addDouble(jtc->jointTorqueLoopGains[joint_index].kd);
+        reply.addString("max_int");
+        reply.addInt(jtc->jointTorqueLoopGains[joint_index].max_int);
+        reply.addString("max_pwm");
+        reply.addInt(jtc->jointTorqueLoopGains[joint_index].max_pwm);
+        reply.addString("kv");
+        reply.addDouble(jtc->motorParameters[joint_index].kv);
+        reply.addString("kcp");
+        reply.addDouble(jtc->motorParameters[joint_index].kcp);
+        reply.addString("kcn");
+        reply.addDouble(jtc->motorParameters[joint_index].kcn);
+        reply.addString("coulombVelThr");
+        reply.addDouble(jtc->motorParameters[joint_index].coulombVelThr);
+        reply.addString("kff");
+        reply.addDouble(jtc->motorParameters[joint_index].kff);
+        reply.addString("frictionCompensation");
+        reply.addDouble(jtc->motorParameters[joint_index].frictionCompensation);
+}
+
+
+
+
+
 using namespace std;
 using namespace yarp::os;
 
@@ -178,7 +453,10 @@ bool JointTorqueControl::loadCouplingMatrix(yarp::os::Searchable& config,
         }
 
         std::vector<std::string> motorNames(this->axes);
-        std::vector<std::string> axesNames(this->axes);
+
+        // Made axesNames a class variable for use with the params port.
+        axesNames.resize(this->axes);
+
         for(int j=0; j < this->axes; j++)
         {
             motorNames[j] = couplings_bot.find("motorNames").asList()->get(j).asString();
@@ -318,15 +596,29 @@ bool JointTorqueControl::open(yarp::os::Searchable& config)
     streamingOutput = config.check("streamingOutput");
     std::cerr << "streamingOutput = " << streamingOutput << std::endl;
 
+    partName = config.find("name").asString();
+    paramsRpcPort.open(partName+"/params:i");
+    paramsRpcCallback = new RpcServerCallback(this);
+    paramsRpcPort.setReader(*paramsRpcCallback);
+
+    simplePartName = "";
+    // get simple part name:
+    for (std::string::reverse_iterator rit=partName.rbegin(); rit!=partName.rend(); ++rit) {
+        if(*rit == '/') {
+            break;
+        } else {
+            std::cout << "\n\n" << *rit << std::endl;
+            simplePartName.insert(simplePartName.begin(), *rit);
+        }
+    }
+
     if (streamingOutput)
     {
         ret = ret && config.check("name");
         ret = ret && config.find("name").isString();
-        partName = config.find("name").asString();
         portForStreamingPWM.open(partName + "/output_pwms");
         portForReadingRefTorques.open(partName +"/input_torques");
     }
-
 
     if( ret )
     {
@@ -341,6 +633,7 @@ bool JointTorqueControl::open(yarp::os::Searchable& config)
 bool JointTorqueControl::close()
 {
     this->RateThread::stop();
+    paramsRpcPort.close();
     return PassThroughControlBoard::close();
 }
 
@@ -362,10 +655,10 @@ bool JointTorqueControl::getControlMode(int j, int *mode)
     {
         return false;
     }
-    
+
     yarp::os::LockGuard lock(globalMutex);
 
-    
+
     if( isHijackingTorqueControl(j) )
     {
         *mode = VOCAB_CM_TORQUE;
@@ -388,9 +681,9 @@ bool JointTorqueControl::getControlModes(int *modes)
     {
         return false;
     }
-    
+
     yarp::os::LockGuard lock(globalMutex);
-    
+
     bool ret = proxyIControlMode2->getControlModes(modes);
     for(int j=0; j < this->axes; j++ )
     {
@@ -427,7 +720,7 @@ bool JointTorqueControl::getControlModes(const int n_joint, const int *joints, i
     {
         return false;
     }
-    
+
     yarp::os::LockGuard lock(globalMutex);
 
     bool ret = proxyIControlMode2->getControlModes(n_joint,joints,modes);
@@ -537,7 +830,7 @@ bool JointTorqueControl::setControlModes(int *modes)
     {
         return false;
     }
-    
+
     yarp::os::LockGuard lock(globalMutex);
 
     for(int j=0; j < this->axes; j++ )

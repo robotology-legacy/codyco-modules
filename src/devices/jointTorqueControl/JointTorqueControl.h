@@ -11,12 +11,21 @@
 
 #include <yarp/os/Mutex.h>
 #include <yarp/os/RateThread.h>
+#include <yarp/os/RpcServer.h>
+#include <yarp/os/PortReader.h>
+#include <yarp/os/Bottle.h>
+#include <yarp/os/ConnectionReader.h>
+#include <yarp/os/ConnectionWriter.h>
 
 #include <yarp/sig/Vector.h>
 
 #include "PassThroughControlBoard.h"
 #include <Eigen/Core>
 #include <vector>
+#include <fstream>
+#include <boost/filesystem.hpp>
+
+
 
 namespace yarp {
     namespace dev {
@@ -134,17 +143,52 @@ struct JointTorqueLoopGains
     }
 };
 
+class RpcServerCallback : public yarp::os::PortReader
+{
+
+public:
+     RpcServerCallback(yarp::dev::JointTorqueControl* jtcPtr);
+     virtual ~RpcServerCallback();
+     virtual bool read(yarp::os::ConnectionReader& connection);
+
+private:
+     void parseRequestAndWriteReply(yarp::os::Bottle& request, yarp::os::Bottle& reply);
+     void generateHelpResponse(yarp::os::Bottle& reply);
+     void saveParametersToFile(yarp::os::Bottle& request, yarp::os::Bottle& reply);
+     void setParameterValues(yarp::os::Bottle& request, yarp::os::Bottle& reply);
+     void getParameterValues(yarp::os::Bottle& request, yarp::os::Bottle& reply);
+     void addAllJointParamsToReply(int joint_index, yarp::os::Bottle& reply);
+
+ private:
+     yarp::dev::JointTorqueControl* jtc;
+
+};
+
+
+
 class yarp::dev::JointTorqueControl :  public yarp::dev::PassThroughControlBoard,
                                        public yarp::os::RateThread
 {
+public:
+    std::vector<JointTorqueLoopGains>                jointTorqueLoopGains;
+    std::vector<MotorParameters> 		             motorParameters;
+    int axes;
+    std::vector<std::string> axesNames;
+    std::string simplePartName;
+
 private:
+
+
+    yarp::os::RpcServer paramsRpcPort;
+    RpcServerCallback* paramsRpcCallback;
+
+
     /**
      *  vector of getAxes() size.
      *  For each axis contains true if we are hijacking the torque control
      *  for this joint, or false otherwise.
      */
     std::vector<bool> hijackingTorqueControl;
-    int axes;
 
     std::vector<int>  controlModesBuffer;
 
@@ -167,8 +211,6 @@ private:
     //joint torque loop methods & attributes
     yarp::os::Mutex globalMutex; ///< mutex protecting control variables & proxy interface methods
 
-    std::vector<JointTorqueLoopGains>                jointTorqueLoopGains;
-    std::vector<MotorParameters> 		             motorParameters;
     yarp::sig::Vector                                desiredJointTorques;
     yarp::sig::Vector                                measuredJointTorques;
     yarp::sig::Vector                                measuredJointPositionsTimestamps;
