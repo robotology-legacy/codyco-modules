@@ -13,6 +13,8 @@ PassThroughControlBoard::PassThroughControlBoard()
     , proxyIOpenLoopControl(0)
     , proxyIControlLimits2(0)
     , proxyIInteractionMode(0)
+    , proxyIAxisInfo(0)
+    , proxyIPidControl(0)
 {
 }
 

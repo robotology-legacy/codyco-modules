@@ -22,7 +22,7 @@ namespace yarp {
 class yarp::dev::PassThroughControlBoard :  public DeviceDriver,
                                             public IEncodersTimed,
                                             public IPositionControl2,
-                                            public IVelocityControl,
+                                            public IVelocityControl2,
                                             public IControlMode2,
                                             public ITorqueControl,
                                             public IControlLimits2,
