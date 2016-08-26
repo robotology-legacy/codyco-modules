@@ -607,7 +607,6 @@ bool JointTorqueControl::open(yarp::os::Searchable& config)
         if(*rit == '/') {
             break;
         } else {
-            std::cout << "\n\n" << *rit << std::endl;
             simplePartName.insert(simplePartName.begin(), *rit);
         }
     }
