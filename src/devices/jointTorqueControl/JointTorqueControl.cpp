@@ -139,57 +139,79 @@ void RpcServerCallback::setParameterValues(yarp::os::Bottle& request, yarp::os::
     {
         std::string key = request.get(i).asString();
         if(key == "kp") {
+            std::cout << "Changing param: " << "kp" <<" --- OLD: " << jtc->jointTorqueLoopGains[joint_index].kp;
             jtc->jointTorqueLoopGains[joint_index].kp = request.get(++i).asDouble();
+            std::cout << "    NEW: " << jtc->jointTorqueLoopGains[joint_index].kp << std::endl;
             reply.addString(key);
             reply.addDouble(jtc->jointTorqueLoopGains[joint_index].kp);
         }
         else if(key == "ki") {
+            std::cout << "Changing param: " << "ki" <<" --- OLD: " << jtc->jointTorqueLoopGains[joint_index].ki;
             jtc->jointTorqueLoopGains[joint_index].ki = request.get(++i).asDouble();
+            std::cout << "    NEW: " << jtc->jointTorqueLoopGains[joint_index].ki << std::endl;
             reply.addString(key);
             reply.addDouble(jtc->jointTorqueLoopGains[joint_index].ki);
         }
         else if(key == "kd") {
+            std::cout << "Changing param: " << "kd" <<" --- OLD: " << jtc->jointTorqueLoopGains[joint_index].kd;
             jtc->jointTorqueLoopGains[joint_index].kd = request.get(++i).asDouble();
+            std::cout << "    NEW: " << jtc->jointTorqueLoopGains[joint_index].kd << std::endl;
             reply.addString(key);
             reply.addDouble(jtc->jointTorqueLoopGains[joint_index].kd);
         }
         else if(key == "max_int") {
+            std::cout << "Changing param: " << "max_int" <<" --- OLD: " << jtc->jointTorqueLoopGains[joint_index].max_int;
             jtc->jointTorqueLoopGains[joint_index].max_int = request.get(++i).asInt();
+            std::cout << "    NEW: " << jtc->jointTorqueLoopGains[joint_index].max_int << std::endl;
             reply.addString(key);
             reply.addInt(jtc->jointTorqueLoopGains[joint_index].max_int);
         }
         else if(key == "max_pwm") {
+            std::cout << "Changing param: " << "max_pwm" <<" --- OLD: " << jtc->jointTorqueLoopGains[joint_index].max_pwm;
             jtc->jointTorqueLoopGains[joint_index].max_pwm = request.get(++i).asInt();
+            std::cout << "    NEW: " << jtc->jointTorqueLoopGains[joint_index].max_pwm << std::endl;
             reply.addString(key);
             reply.addInt(jtc->jointTorqueLoopGains[joint_index].max_pwm);
         }
         else if(key == "kv") {
+            std::cout << "Changing param: " << "kv" <<" --- OLD: " << jtc->motorParameters[joint_index].kv;
             jtc->motorParameters[joint_index].kv = request.get(++i).asDouble();
+            std::cout << "    NEW: " << jtc->motorParameters[joint_index].kv << std::endl;
             reply.addString(key);
             reply.addDouble(jtc->motorParameters[joint_index].kv);
         }
         else if(key == "kcp") {
+            std::cout << "Changing param: " << "kcp" <<" --- OLD: " << jtc->motorParameters[joint_index].kcp;
             jtc->motorParameters[joint_index].kcp = request.get(++i).asDouble();
+            std::cout << "    NEW: " << jtc->motorParameters[joint_index].kcp << std::endl;
             reply.addString(key);
             reply.addDouble(jtc->motorParameters[joint_index].kcp);
         }
         else if(key == "kcn") {
+            std::cout << "Changing param: " << "kcn" <<" --- OLD: " << jtc->motorParameters[joint_index].kcn;
             jtc->motorParameters[joint_index].kcn = request.get(++i).asDouble();
+            std::cout << "    NEW: " << jtc->motorParameters[joint_index].kcn << std::endl;
             reply.addString(key);
             reply.addDouble(jtc->motorParameters[joint_index].kcn);
         }
         else if(key == "coulombVelThr") {
+            std::cout << "Changing param: " << "coulombVelThr" <<" --- OLD: " << jtc->motorParameters[joint_index].coulombVelThr;
             jtc->motorParameters[joint_index].coulombVelThr = request.get(++i).asDouble();
+            std::cout << "    NEW: " << jtc->motorParameters[joint_index].coulombVelThr << std::endl;
             reply.addString(key);
             reply.addDouble(jtc->motorParameters[joint_index].coulombVelThr);
         }
         else if(key == "kff") {
+            std::cout << "Changing param: " << "kff" <<" --- OLD: " << jtc->motorParameters[joint_index].kff;
             jtc->motorParameters[joint_index].kff = request.get(++i).asDouble();
+            std::cout << "    NEW: " << jtc->motorParameters[joint_index].kff << std::endl;
             reply.addString(key);
             reply.addDouble(jtc->motorParameters[joint_index].kff);
         }
         else if(key == "frictionCompensation") {
+            std::cout << "Changing param: " << "frictionCompensation" <<" --- OLD: " << jtc->motorParameters[joint_index].frictionCompensation;
             jtc->motorParameters[joint_index].frictionCompensation = request.get(++i).asDouble();
+            std::cout << "    NEW: " << jtc->motorParameters[joint_index].frictionCompensation << std::endl;
             reply.addString(key);
             reply.addDouble(jtc->motorParameters[joint_index].frictionCompensation);
         }
