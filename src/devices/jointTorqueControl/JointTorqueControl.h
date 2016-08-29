@@ -23,6 +23,8 @@
 #include <Eigen/Core>
 #include <vector>
 #include <fstream>
+#include <sstream>
+
 #include <boost/filesystem.hpp>
 
 
@@ -158,6 +160,8 @@ private:
      void setParameterValues(yarp::os::Bottle& request, yarp::os::Bottle& reply);
      void getParameterValues(yarp::os::Bottle& request, yarp::os::Bottle& reply);
      void addAllJointParamsToReply(int joint_index, yarp::os::Bottle& reply);
+     std::string formatJointParamsForSave();
+
 
  private:
      yarp::dev::JointTorqueControl* jtc;

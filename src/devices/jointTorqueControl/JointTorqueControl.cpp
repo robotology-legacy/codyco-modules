@@ -123,13 +123,7 @@ void RpcServerCallback::saveParametersToFile(yarp::os::Bottle& request, yarp::os
 
     std::ofstream saveFile;
     saveFile.open(filePath.c_str());
-
-    for(int j=0; j<jtc->axes; ++j) {
-        yarp::os::Bottle fakeBottle;
-        addAllJointParamsToReply(j, fakeBottle);
-        saveFile << "joint_index" << " " << j << " " << fakeBottle.toString() << "\n";
-    }
-
+    saveFile << formatJointParamsForSave();
     saveFile.close();
 
     std::string replyString("Parameters saved to: " + boost::filesystem::canonical(filePath).string());
@@ -265,30 +259,83 @@ void RpcServerCallback::getParameterValues(yarp::os::Bottle& request, yarp::os::
     }
 }
 
+std::string RpcServerCallback::formatJointParamsForSave()
+{
+    std::stringstream formattedStream;
+
+    formattedStream << "kp\t\t\t=\t(\t";
+    for(int j=0; j<jtc->axes; ++j) {formattedStream << jtc->jointTorqueLoopGains[j].kp << "\t";}
+    formattedStream << ")\n";
+
+    formattedStream << "ki\t\t\t=\t(\t";
+    for(int j=0; j<jtc->axes; ++j) {formattedStream << jtc->jointTorqueLoopGains[j].ki << "\t";}
+    formattedStream << ")\n";
+
+    formattedStream << "kd\t\t\t=\t(\t";
+    for(int j=0; j<jtc->axes; ++j) {formattedStream << jtc->jointTorqueLoopGains[j].kd << "\t";}
+    formattedStream << ")\n";
+
+    formattedStream << "maxInt\t\t\t=\t(\t";
+    for(int j=0; j<jtc->axes; ++j) {formattedStream << jtc->jointTorqueLoopGains[j].max_int << "\t";}
+    formattedStream << ")\n";
+
+    formattedStream << "maxPwm\t\t\t=\t(\t";
+    for(int j=0; j<jtc->axes; ++j) {formattedStream << jtc->jointTorqueLoopGains[j].max_pwm << "\t";}
+    formattedStream << ")\n";
+
+    formattedStream << "kv\t\t\t=\t(\t";
+    for(int j=0; j<jtc->axes; ++j) {formattedStream << jtc->motorParameters[j].kv << "\t";}
+    formattedStream << ")\n";
+
+    formattedStream << "kcp\t\t\t=\t(\t";
+    for(int j=0; j<jtc->axes; ++j) {formattedStream << jtc->motorParameters[j].kcp << "\t";}
+    formattedStream << ")\n";
+
+    formattedStream << "kcn\t\t\t=\t(\t";
+    for(int j=0; j<jtc->axes; ++j) {formattedStream << jtc->motorParameters[j].kcn << "\t";}
+    formattedStream << ")\n";
+
+    formattedStream << "coulombVelThr\t\t=\t(\t";
+    for(int j=0; j<jtc->axes; ++j) {formattedStream << jtc->motorParameters[j].coulombVelThr << "\t";}
+    formattedStream << ")\n";
+
+    formattedStream << "kff\t\t\t=\t(\t";
+    for(int j=0; j<jtc->axes; ++j) {formattedStream << jtc->motorParameters[j].kff << "\t";}
+    formattedStream << ")\n";
+
+    formattedStream << "frictionCompensation\t=\t(\t";
+    for(int j=0; j<jtc->axes; ++j) {formattedStream << jtc->motorParameters[j].frictionCompensation << "\t";}
+    formattedStream << ")\n";
+
+    return formattedStream.str();
+
+}
+
+
 void RpcServerCallback::addAllJointParamsToReply(int joint_index, yarp::os::Bottle& reply)
 {
-        reply.addString("kp");
-        reply.addDouble(jtc->jointTorqueLoopGains[joint_index].kp);
-        reply.addString("ki");
-        reply.addDouble(jtc->jointTorqueLoopGains[joint_index].ki);
-        reply.addString("kd");
-        reply.addDouble(jtc->jointTorqueLoopGains[joint_index].kd);
-        reply.addString("max_int");
-        reply.addInt(jtc->jointTorqueLoopGains[joint_index].max_int);
-        reply.addString("max_pwm");
-        reply.addInt(jtc->jointTorqueLoopGains[joint_index].max_pwm);
-        reply.addString("kv");
-        reply.addDouble(jtc->motorParameters[joint_index].kv);
-        reply.addString("kcp");
-        reply.addDouble(jtc->motorParameters[joint_index].kcp);
-        reply.addString("kcn");
-        reply.addDouble(jtc->motorParameters[joint_index].kcn);
-        reply.addString("coulombVelThr");
-        reply.addDouble(jtc->motorParameters[joint_index].coulombVelThr);
-        reply.addString("kff");
-        reply.addDouble(jtc->motorParameters[joint_index].kff);
-        reply.addString("frictionCompensation");
-        reply.addDouble(jtc->motorParameters[joint_index].frictionCompensation);
+    reply.addString("kp");
+    reply.addDouble(jtc->jointTorqueLoopGains[joint_index].kp);
+    reply.addString("ki");
+    reply.addDouble(jtc->jointTorqueLoopGains[joint_index].ki);
+    reply.addString("kd");
+    reply.addDouble(jtc->jointTorqueLoopGains[joint_index].kd);
+    reply.addString("max_int");
+    reply.addInt(jtc->jointTorqueLoopGains[joint_index].max_int);
+    reply.addString("max_pwm");
+    reply.addInt(jtc->jointTorqueLoopGains[joint_index].max_pwm);
+    reply.addString("kv");
+    reply.addDouble(jtc->motorParameters[joint_index].kv);
+    reply.addString("kcp");
+    reply.addDouble(jtc->motorParameters[joint_index].kcp);
+    reply.addString("kcn");
+    reply.addDouble(jtc->motorParameters[joint_index].kcn);
+    reply.addString("coulombVelThr");
+    reply.addDouble(jtc->motorParameters[joint_index].coulombVelThr);
+    reply.addString("kff");
+    reply.addDouble(jtc->motorParameters[joint_index].kff);
+    reply.addString("frictionCompensation");
+    reply.addDouble(jtc->motorParameters[joint_index].frictionCompensation);
 }
 
 
