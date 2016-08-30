@@ -84,7 +84,7 @@ void RpcServerCallback::parseRequestAndWriteReply(yarp::os::Bottle& request, yar
 
 void RpcServerCallback::generateHelpResponse(yarp::os::Bottle& reply)
 {
-    std::string replyString = "===============\nValid Commands\n===============\nNote: Omit the brackets [] when writing your commands.\n\n";
+    std::string replyString = "\n===============\nValid Commands\n===============\nNote: Omit the brackets [] when writing your commands.\n\n";
     replyString += "[save] [location] - saves all current parameters to a txt file at the specified [location] (defaults to ./).\n";
     replyString += "[get] [joint_list] - returns a list of strings with the joint labels.\n";
     replyString += "[get] [no_joints] - returns the number of joints in the part.\n";
@@ -105,6 +105,7 @@ void RpcServerCallback::generateHelpResponse(yarp::os::Bottle& reply)
     replyString += "  --> frictionCompensation - coefficient of friction compensation (0-1) (Motor Parameters)\n";
 
     std::cout << replyString << std::endl;
+    reply.addVocab(yarp::os::Vocab::encode("many"));
     reply.addString(replyString);
 }
 
