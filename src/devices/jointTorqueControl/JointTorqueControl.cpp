@@ -162,17 +162,17 @@ void RpcServerCallback::setParameterValues(yarp::os::Bottle& request, yarp::os::
         }
         else if(key == "max_int") {
             std::cout << "Changing param: " << "max_int" <<" --- OLD: " << jtc->jointTorqueLoopGains[joint_index].max_int;
-            jtc->jointTorqueLoopGains[joint_index].max_int = request.get(++i).asInt();
+            jtc->jointTorqueLoopGains[joint_index].max_int = request.get(++i).asDouble();
             std::cout << "    NEW: " << jtc->jointTorqueLoopGains[joint_index].max_int << std::endl;
             reply.addString(key);
-            reply.addInt(jtc->jointTorqueLoopGains[joint_index].max_int);
+            reply.addDouble(jtc->jointTorqueLoopGains[joint_index].max_int);
         }
         else if(key == "max_pwm") {
             std::cout << "Changing param: " << "max_pwm" <<" --- OLD: " << jtc->jointTorqueLoopGains[joint_index].max_pwm;
-            jtc->jointTorqueLoopGains[joint_index].max_pwm = request.get(++i).asInt();
+            jtc->jointTorqueLoopGains[joint_index].max_pwm = request.get(++i).asDouble();
             std::cout << "    NEW: " << jtc->jointTorqueLoopGains[joint_index].max_pwm << std::endl;
             reply.addString(key);
-            reply.addInt(jtc->jointTorqueLoopGains[joint_index].max_pwm);
+            reply.addDouble(jtc->jointTorqueLoopGains[joint_index].max_pwm);
         }
         else if(key == "kv") {
             std::cout << "Changing param: " << "kv" <<" --- OLD: " << jtc->motorParameters[joint_index].kv;
@@ -244,11 +244,11 @@ void RpcServerCallback::getParameterValues(yarp::os::Bottle& request, yarp::os::
         }
         else if(key == "max_int") {
             reply.addString(key);
-            reply.addInt(jtc->jointTorqueLoopGains[joint_index].max_int);
+            reply.addDouble(jtc->jointTorqueLoopGains[joint_index].max_int);
         }
         else if(key == "max_pwm") {
             reply.addString(key);
-            reply.addInt(jtc->jointTorqueLoopGains[joint_index].max_pwm);
+            reply.addDouble(jtc->jointTorqueLoopGains[joint_index].max_pwm);
         }
         else if(key == "kv") {
             reply.addString(key);
@@ -306,15 +306,15 @@ std::string RpcServerCallback::formatJointParamsForSave()
     for(int j=0; j<jtc->axes; ++j) {formattedStream << jtc->jointTorqueLoopGains[j].max_pwm << "\t";}
     formattedStream << ")\n";
 
-    formattedStream << "kv\t\t\t=\t(\t";
+    formattedStream << "bemf\t\t\t=\t(\t";
     for(int j=0; j<jtc->axes; ++j) {formattedStream << jtc->motorParameters[j].kv << "\t";}
     formattedStream << ")\n";
 
-    formattedStream << "kcp\t\t\t=\t(\t";
+    formattedStream << "stictionUp\t\t\t=\t(\t";
     for(int j=0; j<jtc->axes; ++j) {formattedStream << jtc->motorParameters[j].kcp << "\t";}
     formattedStream << ")\n";
 
-    formattedStream << "kcn\t\t\t=\t(\t";
+    formattedStream << "stictionDown\t\t\t=\t(\t";
     for(int j=0; j<jtc->axes; ++j) {formattedStream << jtc->motorParameters[j].kcn << "\t";}
     formattedStream << ")\n";
 
@@ -344,9 +344,9 @@ void RpcServerCallback::addAllJointParamsToReply(int joint_index, yarp::os::Bott
     reply.addString("kd");
     reply.addDouble(jtc->jointTorqueLoopGains[joint_index].kd);
     reply.addString("max_int");
-    reply.addInt(jtc->jointTorqueLoopGains[joint_index].max_int);
+    reply.addDouble(jtc->jointTorqueLoopGains[joint_index].max_int);
     reply.addString("max_pwm");
-    reply.addInt(jtc->jointTorqueLoopGains[joint_index].max_pwm);
+    reply.addDouble(jtc->jointTorqueLoopGains[joint_index].max_pwm);
     reply.addString("kv");
     reply.addDouble(jtc->motorParameters[joint_index].kv);
     reply.addString("kcp");
