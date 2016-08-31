@@ -1190,10 +1190,14 @@ void JointTorqueControl::computeOutputMotorTorques()
 
     for(int j=0; j < this->axes; j++ )
     {
-        JointTorqueLoopGains &gains = jointTorqueLoopGains[j];
-        jointTorquesError[j]        = measuredJointTorques[j] - desiredJointTorques[j];
-        integralState[j]            = saturation(integralState[j] + gains.ki*dt*jointTorquesError(j),gains.max_int,-gains.max_int );
-        jointControlOutputBuffer[j] = desiredJointTorques[j] - gains.kp*jointTorquesError[j] - integralState[j];
+        JointTorqueLoopGains &gains     = jointTorqueLoopGains[j];
+        jointTorquesError[j]            = measuredJointTorques[j] - desiredJointTorques[j];
+        derivativeJointTorquesError[j]  = (jointTorquesError[j] - oldJointTorquesError[j]) / dt;
+
+        oldJointTorquesError[j] = jointTorquesError[j];
+
+        integralState[j]            = saturation(integralState[j] + gains.ki * dt * jointTorquesError(j), gains.max_int, -gains.max_int );
+        jointControlOutputBuffer[j] = desiredJointTorques[j] - gains.kp*jointTorquesError[j] - gains.kd*derivativeJointTorquesError[j] - integralState[j];
     }
 
     toEigenVector(jointControlOutput) = couplingMatrices.fromJointTorquesToMotorTorques * toEigenVector(jointControlOutputBuffer);
