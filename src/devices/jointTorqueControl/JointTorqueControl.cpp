@@ -92,17 +92,17 @@ void RpcServerCallback::generateHelpResponse(yarp::os::Bottle& reply)
     replyString += "[get] [param_id] [joint_index] - get the parameter value for a joint index.\n";
     replyString += "[set] [joint_index] [param_id] [param_value] [param_id] [param_value] ... - set the parameter value(s) for a joint index.\n";
     replyString += "\n  Valid [param_id] values:\n";
-    replyString += "  --> kp - proportional gain (Joint Torque Loop)\n";
-    replyString += "  --> ki - integral gain (Joint Torque Loop)\n";
-    replyString += "  --> kd - proportional gain (Joint Torque Loop)\n";
-    replyString += "  --> max_int - ??? (Joint Torque Loop)\n";
-    replyString += "  --> max_pwm - ??? (Joint Torque Loop)\n";
-    replyString += "  --> kv - proportional gain ??? (Motor Parameters)\n";
-    replyString += "  --> kcp - ??? (Motor Parameters)\n";
-    replyString += "  --> kcn - ??? (Motor Parameters)\n";
-    replyString += "  --> coulombVelThr - ??? (Motor Parameters)\n";
-    replyString += "  --> kff - feed-forward gain for gravity compensation torque (Motor Parameters)\n";
-    replyString += "  --> frictionCompensation - coefficient of friction compensation (0-1) (Motor Parameters)\n";
+    replyString += "  --> kp - The proportional torque error gain.\n";
+    replyString += "  --> ki - The integral torque error gain.\n";
+    replyString += "  --> kd - The derivative torque error gain.\n";
+    replyString += "  --> max_int - Maximum allowable integral gain windup (spooling).\n";
+    replyString += "  --> max_pwm - Maximum allowable PWM signal.\n";
+    replyString += "  --> kv - Propotional constant multiplied by the joint velocity (back emf).\n";
+    replyString += "  --> kcp - Stiction up (qd > 0) proportional constant multiplied to the coulomb friction, or sign(qd) function.\n";
+    replyString += "  --> kcn - Stiction down (qd < 0) proportional constant multiplied to the coulomb friction, or sign(qd) function.\n";
+    replyString += "  --> coulombVelThr - Joint velocity at which to apply the sign(qd) estimate of coulomb friction. Below this threshold the coulomb friction is calculated as (qd/coulombVelThr)^3\n";
+    replyString += "  --> kff - Feedforward proportional gain on the desired torque.\n";
+    replyString += "  --> frictionCompensation - Coefficient from 0-1 which dictates how much of the calculated friction compensation is added to the PI control.\n";
 
     std::cout << replyString << std::endl;
     reply.addVocab(yarp::os::Vocab::encode("many"));
