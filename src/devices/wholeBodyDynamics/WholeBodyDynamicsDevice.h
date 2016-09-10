@@ -119,6 +119,7 @@ class wholeBodyDynamicsDeviceFilters
  * | modelFile      |      -         | path to file      |   -   | model.urdf    | No       | Path to the URDF file used for the kinematic and dynamic model.   |       |
  * | assumeFixed    |                | frame name        |   -   |     -         | No       | If it is present, the initial kinematic source used for estimation will be that specified frame is fixed, and its gravity is specified by fixedFrameGravity. Otherwise, the default IMU will be used. | |
  * | fixedFrameGravity  |      -     | vector of doubles | m/s^2 | -             | Yes      | Gravity of the frame that is assumed to be fixed, if the kinematic source used is the fixed frame. | |
+ * | imuFrameName   |       -        | string            |   -   |      -        | Yes      | Name of the frame (in the robot model) with respect to which the IMU broadcast its sensor measurements. |
  * | imuFilterCutoffInHz |     -     | double            | Hz    |      -        | Yes      | Cutoff frequency of the filter used to filter IMU measures. | The used filter is a simple first order filter. |
  * | forceTorqueFilterCutoffInHz | - | double            | Hz    |      -        | Yes      | Cutoff frequency of the filter used to filter FT measures.  |  The used filter is a simple first order filter. |
  * | jointVelFilterCutoffInHz    | - | double            | Hz    |      -        | Yes      | Cutoff frequency of the filter used to filter joint velocities measures. | The used filter is a simple first order filter. |
@@ -204,7 +205,7 @@ class wholeBodyDynamicsDeviceFilters
  *         <param name="modelFile">model.urdf</param>
  *         <param name="fixedFrameGravity">(0,0,-9.81)</param>
  *         <param name="defaultContactFrames">(l_hand,r_hand,root_link,l_sole,r_sole,l_lower_leg,r_lower_leg,l_elbow_1,r_elbow_1)</param>
- *
+ *         <param name="imuFrameName">imu_frame</param>
  *         <!-- map between iDynTree links (identified by a name)
  *              and skinDynLib links (identified by their frame name, a BodyPart enum
  *              and a local (to the body part) index -->
@@ -284,8 +285,8 @@ private:
     bool correctlyConfigured;
 
     /**
-     *
-     *
+     * True if sensors have been read correctly, false
+     * if sensors have never been read or if one of the sensor devices returned an error (such as a timeout).
      */
     bool sensorReadCorrectly;
 
@@ -325,7 +326,6 @@ private:
         yarp::dev::IVirtualAnalogSensor * ivirtsens;
         yarp::dev::IMultipleWrapper     * multwrap;
     } remappedVirtualAnalogSensorsInterfaces;
-
 
     /** F/T sensors interfaces */
     std::vector<yarp::dev::IAnalogSensor * > ftSensors;

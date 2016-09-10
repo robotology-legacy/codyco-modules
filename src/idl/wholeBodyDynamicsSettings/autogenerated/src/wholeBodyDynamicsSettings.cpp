@@ -53,6 +53,20 @@ bool wholeBodyDynamicsSettings::nested_read_fixedFrameGravity(yarp::os::idl::Wir
   }
   return true;
 }
+bool wholeBodyDynamicsSettings::read_imuFrameName(yarp::os::idl::WireReader& reader) {
+  if (!reader.readString(imuFrameName)) {
+    reader.fail();
+    return false;
+  }
+  return true;
+}
+bool wholeBodyDynamicsSettings::nested_read_imuFrameName(yarp::os::idl::WireReader& reader) {
+  if (!reader.readString(imuFrameName)) {
+    reader.fail();
+    return false;
+  }
+  return true;
+}
 bool wholeBodyDynamicsSettings::read_imuFilterCutoffInHz(yarp::os::idl::WireReader& reader) {
   if (!reader.readDouble(imuFilterCutoffInHz)) {
     reader.fail();
@@ -141,6 +155,7 @@ bool wholeBodyDynamicsSettings::read(yarp::os::idl::WireReader& reader) {
   if (!read_kinematicSource(reader)) return false;
   if (!read_fixedFrameName(reader)) return false;
   if (!read_fixedFrameGravity(reader)) return false;
+  if (!read_imuFrameName(reader)) return false;
   if (!read_imuFilterCutoffInHz(reader)) return false;
   if (!read_forceTorqueFilterCutoffInHz(reader)) return false;
   if (!read_jointVelFilterCutoffInHz(reader)) return false;
@@ -152,7 +167,7 @@ bool wholeBodyDynamicsSettings::read(yarp::os::idl::WireReader& reader) {
 
 bool wholeBodyDynamicsSettings::read(yarp::os::ConnectionReader& connection) {
   yarp::os::idl::WireReader reader(connection);
-  if (!reader.readListHeader(11)) return false;
+  if (!reader.readListHeader(12)) return false;
   return read(reader);
 }
 
@@ -178,6 +193,14 @@ bool wholeBodyDynamicsSettings::write_fixedFrameGravity(yarp::os::idl::WireWrite
 }
 bool wholeBodyDynamicsSettings::nested_write_fixedFrameGravity(yarp::os::idl::WireWriter& writer) {
   if (!writer.writeNested(fixedFrameGravity)) return false;
+  return true;
+}
+bool wholeBodyDynamicsSettings::write_imuFrameName(yarp::os::idl::WireWriter& writer) {
+  if (!writer.writeString(imuFrameName)) return false;
+  return true;
+}
+bool wholeBodyDynamicsSettings::nested_write_imuFrameName(yarp::os::idl::WireWriter& writer) {
+  if (!writer.writeString(imuFrameName)) return false;
   return true;
 }
 bool wholeBodyDynamicsSettings::write_imuFilterCutoffInHz(yarp::os::idl::WireWriter& writer) {
@@ -232,6 +255,7 @@ bool wholeBodyDynamicsSettings::write(yarp::os::idl::WireWriter& writer) {
   if (!write_kinematicSource(writer)) return false;
   if (!write_fixedFrameName(writer)) return false;
   if (!write_fixedFrameGravity(writer)) return false;
+  if (!write_imuFrameName(writer)) return false;
   if (!write_imuFilterCutoffInHz(writer)) return false;
   if (!write_forceTorqueFilterCutoffInHz(writer)) return false;
   if (!write_jointVelFilterCutoffInHz(writer)) return false;
@@ -243,7 +267,7 @@ bool wholeBodyDynamicsSettings::write(yarp::os::idl::WireWriter& writer) {
 
 bool wholeBodyDynamicsSettings::write(yarp::os::ConnectionWriter& connection) {
   yarp::os::idl::WireWriter writer(connection);
-  if (!writer.writeListHeader(11)) return false;
+  if (!writer.writeListHeader(12)) return false;
   return write(writer);
 }
 bool wholeBodyDynamicsSettings::Editor::write(yarp::os::ConnectionWriter& connection) {
@@ -268,6 +292,12 @@ bool wholeBodyDynamicsSettings::Editor::write(yarp::os::ConnectionWriter& connec
     if (!writer.writeString("set")) return false;
     if (!writer.writeString("fixedFrameGravity")) return false;
     if (!obj->nested_write_fixedFrameGravity(writer)) return false;
+  }
+  if (is_dirty_imuFrameName) {
+    if (!writer.writeListHeader(3)) return false;
+    if (!writer.writeString("set")) return false;
+    if (!writer.writeString("imuFrameName")) return false;
+    if (!obj->nested_write_imuFrameName(writer)) return false;
   }
   if (is_dirty_imuFilterCutoffInHz) {
     if (!writer.writeListHeader(3)) return false;
@@ -344,10 +374,15 @@ bool wholeBodyDynamicsSettings::Editor::read(yarp::os::ConnectionReader& connect
         if (!writer.writeString("Gravity fixedFrameGravity")) return false;
         if (!writer.writeString("If kinematicSource is FIXED_LINK, specify the frame of the robot that we know to be fixed (i.e. not moving with respect to an inertial frame)")) return false;
       }
+      if (field=="imuFrameName") {
+        if (!writer.writeListHeader(2)) return false;
+        if (!writer.writeString("std::string imuFrameName")) return false;
+        if (!writer.writeString("If kinematicSource is FIXED_LINK, specify the gravity vector (in m/s^2) in the fixedFrame")) return false;
+      }
       if (field=="imuFilterCutoffInHz") {
         if (!writer.writeListHeader(2)) return false;
         if (!writer.writeString("double imuFilterCutoffInHz")) return false;
-        if (!writer.writeString("If kinematicSource is FIXED_LINK, specify the gravity vector (in m/s^2) in the fixedFrame")) return false;
+        if (!writer.writeString("If kinematicSource is IMU, specify the frame name of the imu")) return false;
       }
       if (field=="forceTorqueFilterCutoffInHz") {
         if (!writer.writeListHeader(2)) return false;
@@ -375,11 +410,12 @@ bool wholeBodyDynamicsSettings::Editor::read(yarp::os::ConnectionReader& connect
         if (!writer.writeString("Use the joint velocity measurement if this is true, assume they are zero otherwise.")) return false;
       }
     }
-    if (!writer.writeListHeader(10)) return false;
+    if (!writer.writeListHeader(11)) return false;
     writer.writeString("*** Available fields:");
     writer.writeString("kinematicSource");
     writer.writeString("fixedFrameName");
     writer.writeString("fixedFrameGravity");
+    writer.writeString("imuFrameName");
     writer.writeString("imuFilterCutoffInHz");
     writer.writeString("forceTorqueFilterCutoffInHz");
     writer.writeString("jointVelFilterCutoffInHz");
@@ -419,6 +455,10 @@ bool wholeBodyDynamicsSettings::Editor::read(yarp::os::ConnectionReader& connect
       will_set_fixedFrameGravity();
       if (!obj->nested_read_fixedFrameGravity(reader)) return false;
       did_set_fixedFrameGravity();
+    } else if (key == "imuFrameName") {
+      will_set_imuFrameName();
+      if (!obj->nested_read_imuFrameName(reader)) return false;
+      did_set_imuFrameName();
     } else if (key == "imuFilterCutoffInHz") {
       will_set_imuFilterCutoffInHz();
       if (!obj->nested_read_imuFilterCutoffInHz(reader)) return false;
