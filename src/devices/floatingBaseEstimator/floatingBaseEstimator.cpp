@@ -238,7 +238,11 @@ bool floatingBaseEstimator::open(os::Searchable& config)
 
     // Open the controlboard remapper
     ok = this->openRemapperControlBoard(config);
-    if( !ok ) return false;
+    if( !ok )
+    {
+        closePorts();
+        return false;
+    }
 
     return true;
 }
