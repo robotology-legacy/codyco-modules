@@ -65,11 +65,11 @@ void Filter::init(const Vector &y0, const Vector &u0)
     y=y0;
 
     double sum_b=0.0;
-    for (size_t i=0; i<b.size(); i++)
+    for (int i=0; i<b.size(); i++)
         sum_b+=b[i];
 
     double sum_a=0.0;
-    for (size_t i=0; i<a.size(); i++)
+    for (int i=0; i<a.size(); i++)
         sum_a+=a[i];
 
     if (fabs(sum_b)>1e-9)   // if filter DC gain is not zero
@@ -85,11 +85,11 @@ void Filter::init(const Vector &y0, const Vector &u0)
         // if sum_a==a[0] then the filter can only be initialized to zero
     }
 
-    for (size_t i=0; i<yold.cols(); i++)
+    for (int i=0; i<yold.cols(); i++)
         yold.col(i)=toEigen(y_init);
     yold_last_column_sample = 0;
 
-    for (size_t i=0; i<uold.cols(); i++)
+    for (int i=0; i<uold.cols(); i++)
         uold.col(i)=toEigen(u_init);
     uold_last_column_sample = 0;
 }
@@ -122,7 +122,7 @@ void Filter::setCoeffs(const Vector &num, const Vector &den)
 /***************************************************************************/
 bool Filter::adjustCoeffs(const Vector &num, const Vector &den)
 {
-    if ((num.length()==b.size()) && (den.length()==a.size()))
+    if ((num.length()==(size_t)b.size()) && (den.length()==(size_t)a.size()))
     {
         (b)=toEigen(num);
         (a)=toEigen(den);
