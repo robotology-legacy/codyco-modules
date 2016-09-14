@@ -843,6 +843,7 @@ bool WholeBodyDynamicsDevice::open(os::Searchable& config)
 
      // Open the virtualsensor remapper
     ok = this->openRemapperVirtualSensors(config);
+    if( !ok )
     {
         yError() << "wholeBodyDynamics: Problem in opening virtual analog sensors remapper.";
         return false;
