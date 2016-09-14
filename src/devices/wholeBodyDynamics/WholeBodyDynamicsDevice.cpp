@@ -271,7 +271,7 @@ bool WholeBodyDynamicsDevice::openEstimator(os::Searchable& config)
     ok = estimator.loadModelAndSensorsFromFileWithSpecifiedDOFs(modelFileFullPath,estimationJointNames);
     if( !ok )
     {
-        yError() << "wholeBodyDynamics : impossible to create ExtWrenchesAndJointTorquesEstimator from file "
+        yInfo() << "wholeBodyDynamics : impossible to create ExtWrenchesAndJointTorquesEstimator from file "
                  << modelFileName << " ( full path: " << modelFileFullPath << " ) ";
         return false;
     }
@@ -283,6 +283,7 @@ bool WholeBodyDynamicsDevice::openEstimator(os::Searchable& config)
     }
 
     this->resizeBuffers();
+
     return true;
 }
 
@@ -704,9 +705,10 @@ bool WholeBodyDynamicsDevice::loadGravityCompensationSettingsFromConfig(os::Sear
 
     if( !propAll.check("GRAVITY_COMPENSATION") )
     {
+        yWarning() << "wholeBodyDynamics: GRAVITY_COMPENSATION group not found,  disabling gravity compensation support";
         m_gravityCompensationEnabled = false;
         m_gravityCompesationJoints.resize(0);
-        ret = false;
+        ret = true;
     }
     else
     {
@@ -785,46 +787,89 @@ bool WholeBodyDynamicsDevice::open(os::Searchable& config)
 
     // Load settings in the class
     ok = this->loadSettingsFromConfig(config);
-    if( !ok ) return false;
+   if( !ok ) 
+    {
+        yError() << "wholeBodyDynamics: Problem in loading settings from config.";
+        return false;
+    }
 
     // Create the estimator
     ok = this->openEstimator(config);
-    if( !ok ) return false;
+     if( !ok ) 
+    {
+        yError() << "wholeBodyDynamics: Problem in opening estimator object.";
+        return false;
+    } 
 
     // Open settings related to gravity compensation (we need the estimator to be open)
     ok = this->loadGravityCompensationSettingsFromConfig(config);
-    if( !ok ) return false;
+    if( !ok ) 
+    {
+        yError() << "wholeBodyDynamics: Problem in opening gravity compensator settings.";
+        return false;
+    } 
 
     // Open settings related to gravity compensation (we need the estimator to be open)
     ok = this->loadSecondaryCalibrationSettingsFromConfig(config);
-    if( !ok ) return false;
+    if( !ok ) 
+    {
+        yError() << "wholeBodyDynamics: Problem in loading secondary calibration matrix settings.";
+        return false;
+    } 
 
     // Open rpc port
     ok = this->openRPCPort();
-    if( !ok ) return false;
+    if( !ok ) 
+    {
+        yError() << "wholeBodyDynamics: Problem in opening rpc port.";
+        return false;
+    } 
 
     // Open settings port
     ok = this->openSettingsPort();
-    if( !ok ) return false;
+    if( !ok ) 
+    {
+        yError() << "wholeBodyDynamics: Problem in opening settings port.";
+        return false;
+    } 
 
     // Open the controlboard remapper
     ok = this->openRemapperControlBoard(config);
-    if( !ok ) return false;
+    if( !ok ) 
+    {
+        yError() << "wholeBodyDynamics: Problem in opening controlboard remapper.";
+        return false;
+    } 
 
      // Open the virtualsensor remapper
     ok = this->openRemapperVirtualSensors(config);
-    if( !ok ) return false;
+    {
+        yError() << "wholeBodyDynamics: Problem in opening virtual analog sensors remapper.";
+        return false;
+    } 
 
     ok = this->openDefaultContactFrames(config);
-    if( !ok ) return false;
+    if( !ok ) 
+    {
+        yError() << "wholeBodyDynamics: Problem in opening default contact frame settings.";
+        return false;
+    } 
 
     // Open the skin-related ports
     ok = this->openSkinContactListPorts(config);
-    if( !ok ) return false;
+    if( !ok ) 
+    {
+        yError() << "wholeBodyDynamics: Problem in opening skin-related port.";
+        return false;
+    } 
 
     // Open the ports related to publishing external wrenches
     ok = this->openExternalWrenchesPorts(config);
-    if( !ok ) return false;
+    if( !ok ) 
+    {
+        yError() << "wholeBodyDynamics: Problem in opening external wrenches port.";
+        return false;
+    } 
 
 
     return true;
