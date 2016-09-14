@@ -600,6 +600,17 @@ bool WholeBodyDynamicsDevice::loadSettingsFromConfig(os::Searchable& config)
         settings.fixedFrameName = fixedFrameName;
     }
 
+    // Check for the imu frame
+    if( prop.check("imuFrameName") &&
+        prop.find("imuFrameName").isString() )
+    {
+        settings.imuFrameName = prop.find("imuFrameName").asString();
+    }
+    else
+    {
+        yError() << "wholeBodyDynamics : missing required string parameter imuFrameName";
+        return false;
+    }
 
     // fixedFrameGravity is always required even if you
     // use the IMU because the estimation could switch in use a fixed frame
@@ -1210,7 +1221,7 @@ void WholeBodyDynamicsDevice::updateKinematics()
     if( settings.kinematicSource == IMU )
     {
         // Hardcode for the meanwhile
-        iDynTree::FrameIndex imuFrameIndex = estimator.model().getFrameIndex("imu_frame");
+        iDynTree::FrameIndex imuFrameIndex = estimator.model().getFrameIndex(settings.imuFrameName);
 
         estimator.updateKinematicsFromFloatingBase(jointPos,jointVel,jointAcc,imuFrameIndex,
                                                    filteredIMUMeasurements.linProperAcc,filteredIMUMeasurements.angularVel,filteredIMUMeasurements.angularAcc);
@@ -1378,9 +1389,6 @@ void WholeBodyDynamicsDevice::publishEstimatedQuantities()
             // Send gravity compensation torques
             publishGravityCompensation();
 
-            //Send base information to iCubGui
-            //publishBaseToGui();
-
             //Send filtered inertia for gravity compensation
             //publishFilteredInertialForGravityCompensator();
 
@@ -1452,8 +1460,6 @@ void WholeBodyDynamicsDevice::resetGravityCompensation()
         }
     }
 }
-
-
 
 template <class T> void broadcastData(T& _values, yarp::os::BufferedPort<T>& _port)
 {
