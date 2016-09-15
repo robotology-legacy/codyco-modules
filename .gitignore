@@ -12,3 +12,4 @@
 *.user
 *.fig
 src/modules/icubWalkingIK/app/robots/icubGazeboSim/iCubWalkingIKModule.ini
+src/modules/icubWalkingIK/app/robots/iCubGenova01/iCubWalkingIKModule.ini
