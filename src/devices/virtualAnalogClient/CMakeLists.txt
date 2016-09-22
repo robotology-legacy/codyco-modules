@@ -9,22 +9,26 @@ include(YarpInstallationHelpers)
 
 yarp_configure_external_installation(codyco)
 
-yarp_prepare_device(virtualAnalogClient TYPE yarp::dev::VirtualAnalogClient INCLUDE "VirtualAnalogClient.h")
+yarp_prepare_plugin(virtualAnalogClient CATEGORY device
+                                        TYPE yarp::dev::VirtualAnalogClient
+                                        INCLUDE "VirtualAnalogClient.h"
+                                        DEFAULT ON
+                                        ADVANCED ON)
 
-include_directories(${CMAKE_CURRENT_SOURCE_DIR})
+if(ENABLE_codycomod_virtualAnalogClient)
+    include_directories(${CMAKE_CURRENT_SOURCE_DIR})
+    include_directories(SYSTEM
+                        ${YARP_INCLUDE_DIRS})
 
-include_directories(SYSTEM
-                    ${YARP_INCLUDE_DIRS})
+    yarp_add_plugin(virtualAnalogClient VirtualAnalogClient.h VirtualAnalogClient.cpp)
 
-yarp_add_plugin(virtualAnalogClient VirtualAnalogClient.h VirtualAnalogClient.cpp)
+    target_link_libraries(virtualAnalogClient ${YARP_LIBRARIES})
 
-target_link_libraries(virtualAnalogClient ${YARP_LIBRARIES})
+    yarp_install(TARGETS virtualAnalogClient
+                 EXPORT CoDyCo
+                 COMPONENT runtime
+                 LIBRARY DESTINATION ${CODYCO_DYNAMIC_PLUGINS_INSTALL_DIR}
+                 ARCHIVE DESTINATION ${CODYCO_STATIC_PLUGINS_INSTALL_DIR})
 
-
-yarp_install(TARGETS virtualAnalogClient
-             EXPORT CoDyCo
-             COMPONENT runtime
-             LIBRARY DESTINATION ${CODYCO_DYNAMIC_PLUGINS_INSTALL_DIR}
-             ARCHIVE DESTINATION ${CODYCO_STATIC_PLUGINS_INSTALL_DIR})
-
-yarp_install(FILES virtualAnalogClient.ini DESTINATION ${CODYCO_PLUGIN_MANIFESTS_INSTALL_DIR})
+    yarp_install(FILES virtualAnalogClient.ini DESTINATION ${CODYCO_PLUGIN_MANIFESTS_INSTALL_DIR})
+endif()

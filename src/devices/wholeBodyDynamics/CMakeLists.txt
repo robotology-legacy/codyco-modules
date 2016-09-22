@@ -12,35 +12,41 @@ include(YarpInstallationHelpers)
 
 yarp_configure_external_installation(codyco)
 
-yarp_prepare_plugin(wholebodydynamics CATEGORY device TYPE yarp::dev::WholeBodyDynamicsDevice INCLUDE "WholeBodyDynamicsDevice.h")
+yarp_prepare_plugin(wholebodydynamics CATEGORY device
+                                      TYPE yarp::dev::WholeBodyDynamicsDevice
+                                      INCLUDE "WholeBodyDynamicsDevice.h"
+                                      DEFAULT ON
+                                      ADVANCED ON)
 
-include_directories(${CMAKE_CURRENT_SOURCE_DIR})
+if(ENABLE_codycomod_wholebodydynamics)
+    include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 
-include_directories(SYSTEM
-                    ${YARP_INCLUDE_DIRS}
-                    ${EIGEN3_INCLUDE_DIR}
-                    ${skinDynLib_INCLUDE_DIRS})
+    include_directories(SYSTEM
+                        ${YARP_INCLUDE_DIRS}
+                        ${EIGEN3_INCLUDE_DIR}
+                        ${skinDynLib_INCLUDE_DIRS})
 
-yarp_add_plugin(wholeBodyDynamicsDevice WholeBodyDynamicsDevice.h WholeBodyDynamicsDevice.cpp
-                                        SixAxisForceTorqueMeasureHelpers.h SixAxisForceTorqueMeasureHelpers.cpp
-                                        GravityCompensationHelpers.h GravityCompensationHelpers.cpp)
+    yarp_add_plugin(wholeBodyDynamicsDevice WholeBodyDynamicsDevice.h WholeBodyDynamicsDevice.cpp
+                                            SixAxisForceTorqueMeasureHelpers.h SixAxisForceTorqueMeasureHelpers.cpp
+                                            GravityCompensationHelpers.h GravityCompensationHelpers.cpp)
 
-target_link_libraries(wholeBodyDynamicsDevice wholeBodyDynamicsSettings
-                                              wholeBodyDynamics_IDLServer
-                                              ctrlLibRT
-                                              ${YARP_LIBRARIES}
-                                              skinDynLib
-                                              ${iDynTree_LIBRARIES})
+    target_link_libraries(wholeBodyDynamicsDevice   wholeBodyDynamicsSettings
+                                                    wholeBodyDynamics_IDLServer
+                                                    ctrlLibRT
+                                                    ${YARP_LIBRARIES}
+                                                    skinDynLib
+                                                    ${iDynTree_LIBRARIES})
 
-if(MSVC)
-   add_definitions(-D_USE_MATH_DEFINES)
+    if(MSVC)
+        add_definitions(-D_USE_MATH_DEFINES)
+    endif()
+
+
+    yarp_install(TARGETS wholeBodyDynamicsDevice
+                 EXPORT CoDyCo
+                 COMPONENT runtime
+                 LIBRARY DESTINATION ${CODYCO_DYNAMIC_PLUGINS_INSTALL_DIR}
+                 ARCHIVE DESTINATION ${CODYCO_STATIC_PLUGINS_INSTALL_DIR})
+
+    yarp_install(FILES wholebodydynamics.ini DESTINATION ${CODYCO_PLUGIN_MANIFESTS_INSTALL_DIR})
 endif()
-
-
-yarp_install(TARGETS wholeBodyDynamicsDevice
-             EXPORT CoDyCo
-             COMPONENT runtime
-             LIBRARY DESTINATION ${CODYCO_DYNAMIC_PLUGINS_INSTALL_DIR}
-             ARCHIVE DESTINATION ${CODYCO_STATIC_PLUGINS_INSTALL_DIR})
-
-yarp_install(FILES wholebodydynamics.ini DESTINATION ${CODYCO_PLUGIN_MANIFESTS_INSTALL_DIR})

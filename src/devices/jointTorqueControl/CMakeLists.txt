@@ -12,12 +12,22 @@ include(YarpInstallationHelpers)
 
 yarp_configure_external_installation(codyco)
 
-yarp_prepare_device(passThroughControlBoard TYPE yarp::dev::PassThroughControlBoard INCLUDE PassThroughControlBoard.h WRAPPER controlboardwrapper)
-yarp_prepare_device(jointTorqueControl TYPE yarp::dev::JointTorqueControl INCLUDE JointTorqueControl.h WRAPPER controlboardwrapper)
+yarp_prepare_plugin(passThroughControlBoard CATEGORY device
+                                            TYPE yarp::dev::PassThroughControlBoard
+                                            INCLUDE PassThroughControlBoard.h
+                                            DEFAULT ON
+                                            ADVANCED ON
+                                            WRAPPER controlboardwrapper)
+yarp_prepare_plugin(jointTorqueControl CATEGORY device
+                                       TYPE yarp::dev::JointTorqueControl
+                                       INCLUDE JointTorqueControl.h
+                                       DEFAULT ON
+                                       ADVANCED ON
+                                       WRAPPER controlboardwrapper)
 
 set(ENABLE_codycomod_jointTorqueControl TRUE)
 
-if(NOT SKIP_jointTorqueControl)
+if(ENABLE_codycomod_jointTorqueControl)
     include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 
     include_directories(SYSTEM
@@ -52,6 +62,5 @@ if(NOT SKIP_jointTorqueControl)
     add_subdirectory(app)
     
     yarp_install(FILES jointTorqueControl.ini DESTINATION ${CODYCO_PLUGIN_MANIFESTS_INSTALL_DIR})
-    
 endif()
 

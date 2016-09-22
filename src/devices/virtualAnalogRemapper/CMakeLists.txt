@@ -9,23 +9,28 @@ include(YarpInstallationHelpers)
 
 yarp_configure_external_installation(codyco)
 
-yarp_prepare_device(virtualAnalogRemapper TYPE yarp::dev::VirtualAnalogRemapper INCLUDE "VirtualAnalogRemapper.h")
+yarp_prepare_plugin(virtualAnalogRemapper CATEGORY device
+                                          TYPE yarp::dev::VirtualAnalogRemapper
+                                          INCLUDE "VirtualAnalogRemapper.h"
+                                          DEFAULT ON
+                                          ADVANCED ON)
 
-include_directories(${CMAKE_CURRENT_SOURCE_DIR})
+if(ENABLE_codycomod_virtualAnalogRemapper)
+    include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 
-include_directories(SYSTEM
-                    ${YARP_INCLUDE_DIRS})
+    include_directories(SYSTEM
+                        ${YARP_INCLUDE_DIRS})
 
-yarp_add_plugin(virtualAnalogRemapper VirtualAnalogRemapper.h VirtualAnalogRemapper.cpp)
+    yarp_add_plugin(virtualAnalogRemapper VirtualAnalogRemapper.h VirtualAnalogRemapper.cpp)
 
-target_link_libraries(virtualAnalogRemapper ${YARP_LIBRARIES})
+    target_link_libraries(virtualAnalogRemapper ${YARP_LIBRARIES})
 
+    yarp_install(TARGETS virtualAnalogRemapper
+                 EXPORT CoDyCo
+                 COMPONENT runtime
+                 LIBRARY DESTINATION ${CODYCO_DYNAMIC_PLUGINS_INSTALL_DIR}
+                 ARCHIVE DESTINATION ${CODYCO_STATIC_PLUGINS_INSTALL_DIR})
 
-yarp_install(TARGETS virtualAnalogRemapper
-             EXPORT CoDyCo
-             COMPONENT runtime
-             LIBRARY DESTINATION ${CODYCO_DYNAMIC_PLUGINS_INSTALL_DIR}
-             ARCHIVE DESTINATION ${CODYCO_STATIC_PLUGINS_INSTALL_DIR})
-
-yarp_install(FILES virtualAnalogRemapper.ini DESTINATION ${CODYCO_PLUGIN_MANIFESTS_INSTALL_DIR})
+    yarp_install(FILES virtualAnalogRemapper.ini DESTINATION ${CODYCO_PLUGIN_MANIFESTS_INSTALL_DIR})
+endif()
 
