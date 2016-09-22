@@ -9,7 +9,7 @@ include(YarpInstallationHelpers)
 
 yarp_configure_external_installation(codyco)
 
-yarp_prepare_device(genericSensorClient TYPE GenericSensorClient INCLUDE "GenericSensorClient.h")
+yarp_prepare_plugin(genericSensorClient CATEGORY device TYPE yarp::dev::GenericSensorClient INCLUDE "GenericSensorClient.h")
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 

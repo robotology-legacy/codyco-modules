@@ -9,7 +9,7 @@ include(YarpInstallationHelpers)
 
 yarp_configure_external_installation(codyco)
 
-yarp_prepare_device(virtualAnalogClient TYPE VirtualAnalogClient INCLUDE "VirtualAnalogClient.h")
+yarp_prepare_device(virtualAnalogClient TYPE yarp::dev::VirtualAnalogClient INCLUDE "VirtualAnalogClient.h")
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 

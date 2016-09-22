@@ -10,7 +10,7 @@ include(YarpInstallationHelpers)
 
 yarp_configure_external_installation(codyco)
 
-yarp_prepare_device(floatingbaseestimator TYPE floatingBaseEstimator INCLUDE "floatingBaseEstimator.h")
+yarp_prepare_device(floatingbaseestimator TYPE yarp::dev::floatingBaseEstimator INCLUDE "floatingBaseEstimator.h")
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 

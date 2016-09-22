@@ -12,8 +12,8 @@ include(YarpInstallationHelpers)
 
 yarp_configure_external_installation(codyco)
 
-yarp_prepare_device(passThroughControlBoard TYPE PassThroughControlBoard INCLUDE PassThroughControlBoard.h WRAPPER controlboardwrapper)
-yarp_prepare_device(jointTorqueControl TYPE JointTorqueControl INCLUDE JointTorqueControl.h WRAPPER controlboardwrapper)
+yarp_prepare_device(passThroughControlBoard TYPE yarp::dev::PassThroughControlBoard INCLUDE PassThroughControlBoard.h WRAPPER controlboardwrapper)
+yarp_prepare_device(jointTorqueControl TYPE yarp::dev::JointTorqueControl INCLUDE JointTorqueControl.h WRAPPER controlboardwrapper)
 
 set(ENABLE_codycomod_jointTorqueControl TRUE)
 
