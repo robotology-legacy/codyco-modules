@@ -13,7 +13,7 @@ yarp_prepare_plugin(virtualAnalogClient CATEGORY device
                                         TYPE yarp::dev::VirtualAnalogClient
                                         INCLUDE "VirtualAnalogClient.h"
                                         DEFAULT ON
-                                        ADVANCED ON)
+                                        ADVANCED)
 
 if(ENABLE_codycomod_virtualAnalogClient)
     include_directories(${CMAKE_CURRENT_SOURCE_DIR})

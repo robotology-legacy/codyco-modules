@@ -16,13 +16,13 @@ yarp_prepare_plugin(passThroughControlBoard CATEGORY device
                                             TYPE yarp::dev::PassThroughControlBoard
                                             INCLUDE PassThroughControlBoard.h
                                             DEFAULT ON
-                                            ADVANCED ON
+                                            ADVANCED
                                             WRAPPER controlboardwrapper)
 yarp_prepare_plugin(jointTorqueControl CATEGORY device
                                        TYPE yarp::dev::JointTorqueControl
                                        INCLUDE JointTorqueControl.h
                                        DEFAULT ON
-                                       ADVANCED ON
+                                       ADVANCED
                                        WRAPPER controlboardwrapper)
 
 set(ENABLE_codycomod_jointTorqueControl TRUE)

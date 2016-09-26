@@ -16,7 +16,7 @@ yarp_prepare_plugin(wholebodydynamics CATEGORY device
                                       TYPE yarp::dev::WholeBodyDynamicsDevice
                                       INCLUDE "WholeBodyDynamicsDevice.h"
                                       DEFAULT ON
-                                      ADVANCED ON)
+                                      ADVANCED)
 
 if(ENABLE_codycomod_wholebodydynamics)
     include_directories(${CMAKE_CURRENT_SOURCE_DIR})

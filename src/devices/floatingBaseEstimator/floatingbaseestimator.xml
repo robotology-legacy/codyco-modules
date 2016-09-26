@@ -9,7 +9,7 @@
 
         <action phase="startup" level="15" type="attach">
             <paramlist name="networks">
-                <!-- motorcontrol and virtual torque sensors -->
+                <!-- motorcontrol devices -->
                 <elem name="left_lower_leg">left_lower_leg_mc</elem>
                 <elem name="right_lower_leg">right_lower_leg_mc</elem>
                 <elem name="left_upper_leg">left_upper_leg_mc</elem>

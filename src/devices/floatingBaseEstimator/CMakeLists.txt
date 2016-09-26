@@ -14,7 +14,7 @@ yarp_prepare_plugin(floatingbaseestimator CATEGORY device
                                           TYPE yarp::dev::floatingBaseEstimator
                                           INCLUDE "floatingBaseEstimator.h"
                                           DEFAULT ON
-                                          ADVANCED ON)
+                                          ADVANCED)
 
 if(ENABLE_codycomod_floatingbaseestimator)
     include_directories(${CMAKE_CURRENT_SOURCE_DIR})

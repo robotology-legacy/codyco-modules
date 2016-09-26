@@ -13,7 +13,7 @@ yarp_prepare_plugin(virtualAnalogRemapper CATEGORY device
                                           TYPE yarp::dev::VirtualAnalogRemapper
                                           INCLUDE "VirtualAnalogRemapper.h"
                                           DEFAULT ON
-                                          ADVANCED ON)
+                                          ADVANCED)
 
 if(ENABLE_codycomod_virtualAnalogRemapper)
     include_directories(${CMAKE_CURRENT_SOURCE_DIR})
