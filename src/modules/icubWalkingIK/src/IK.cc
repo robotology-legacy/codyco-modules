@@ -86,7 +86,7 @@ Eigen::Vector3d CalcAngularVelocityfromMatrix (const Eigen::Matrix3d &RotMat) {
 }
 
 //FIXME: parameter for switching fixed foot is temporary
-bool IKinematics (yarpWbi::yarpWholeBodyModel* wbm,
+bool IKinematics (yarpWbi::yarpWholeBodyModelV1* wbm,
                   yarpWbi::yarpWholeBodyStates* wbs,
                   floatingBaseOdometry * odometry,
                   const Eigen::VectorXd &Qinit,
