@@ -1,14 +1,14 @@
 #include "iCubWalkingIKThread.h"
 
-iCubWalkingIKThread::iCubWalkingIKThread ( int period,
-                                           yarpWbi::yarpWholeBodyModel* wbm,
-                                           yarpWbi::yarpWholeBodyStates* wbs,
-                                           walkingParams params,
-                                           odometryParams &odometry_params,
-                                           inverseKinematicsParams &inverseKin_params,
-                                           yarp::os::ResourceFinder& rf,
-                                           std::string walkingPatternFile,
-                                           std::string outputDir ) :
+iCubWalkingIKThread::iCubWalkingIKThread(int period,
+                                         yarpWbi::yarpWholeBodyModelV1 *wbm,
+                                         yarpWbi::yarpWholeBodyStates *wbs,
+                                         walkingParams params,
+                                         odometryParams &odometry_params,
+                                         inverseKinematicsParams &inverseKin_params,
+                                         yarp::os::ResourceFinder &rf,
+                                         std::string walkingPatternFile,
+                                         std::string outputDir) :
 RateThread(period),
 m_period(period),
 m_walkingPatternFile(walkingPatternFile),

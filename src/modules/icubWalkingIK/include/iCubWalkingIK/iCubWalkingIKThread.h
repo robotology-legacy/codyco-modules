@@ -44,7 +44,7 @@ private:
     odometryParams m_odometryParams;
     inverseKinematicsParams m_inverseKinematicsParams;
     yarp::os::ResourceFinder m_rf;
-    yarpWbi::yarpWholeBodyModel* m_wbm;
+    yarpWbi::yarpWholeBodyModelV1* m_wbm;
     yarpWbi::yarpWholeBodyStates* m_wbs;
     std::string m_outputDir;
     floatingBaseOdometry* m_odometry;
@@ -65,15 +65,15 @@ public:
     yarp::os::Semaphore  thread_mutex;
     bool planner_flag;
     
-    iCubWalkingIKThread (int period,
-                         yarpWbi::yarpWholeBodyModel* wbm,
-                         yarpWbi::yarpWholeBodyStates* wbs,
-                         walkingParams params,
-                         odometryParams &odometry_params,
-                         inverseKinematicsParams &inverseKin_params,
-                         yarp::os::ResourceFinder& rf,
-                         std::string walkingPatternFile,
-                         std::string outputDir);
+    iCubWalkingIKThread(int period,
+                        yarpWbi::yarpWholeBodyModelV1 *wbm,
+                        yarpWbi::yarpWholeBodyStates *wbs,
+                        walkingParams params,
+                        odometryParams &odometry_params,
+                        inverseKinematicsParams &inverseKin_params,
+                        yarp::os::ResourceFinder &rf,
+                        std::string walkingPatternFile,
+                        std::string outputDir);
     virtual ~iCubWalkingIKThread();
     bool threadInit();
     void run();

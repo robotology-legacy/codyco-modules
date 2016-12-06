@@ -2,7 +2,7 @@
 
 using namespace yarpWbi;
 
-floatingBaseOdometry::floatingBaseOdometry(yarpWholeBodyModel * wbm) :
+floatingBaseOdometry::floatingBaseOdometry(yarpWholeBodyModelV1 * wbm) :
 m_wbm(wbm)
 {
     // Here we assume that wbm has been correctly initialized.

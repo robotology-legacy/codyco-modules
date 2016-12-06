@@ -19,7 +19,7 @@
 #define FLOATING_BASE_ODOMETRY_H
 
 #include <iDynTree/Estimation/simpleLeggedOdometryKDL.h>
-#include <yarpWholeBodyInterface/yarpWholeBodyModel.h>
+#include <yarpWholeBodyInterface/yarpWholeBodyModelV1.h>
 #include <yarp/sig/Matrix.h>
 #include <yarp/os/LogStream.h>
 #include <iDynTree/Estimation/robotStatus.h>
@@ -28,7 +28,7 @@
 //TODO: Include this class in yarpWholeBodyModel
 class floatingBaseOdometry {
 private:
-    yarpWbi::yarpWholeBodyModel * m_wbm;
+    yarpWbi::yarpWholeBodyModelV1 * m_wbm;
     iDynTree::simpleLeggedOdometry m_floatingBase;
     iCub::iDynTree::DynTree * m_robot_model;
     std::string m_current_fixed_link_name;
@@ -37,7 +37,7 @@ private:
     iDynTree::RobotJointStatus * m_joint_status;
     int fixed_link;
 public:
-    floatingBaseOdometry(yarpWbi::yarpWholeBodyModel * wbm);
+    floatingBaseOdometry(yarpWbi::yarpWholeBodyModelV1 * wbm);
     virtual ~floatingBaseOdometry();
     bool init(std::string initial_world_frame_position = "l_sole",
               std::string initial_fixed_link = "r_sole",
