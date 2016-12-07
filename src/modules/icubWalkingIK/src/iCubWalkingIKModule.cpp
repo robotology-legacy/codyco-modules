@@ -29,7 +29,7 @@ bool iCubWalkingIKModule::configure(ResourceFinder &rf) {
     }
     
     m_moduleName = rf.check("name", Value("iCubWalkingIK"), "Looking for module name").asString();
-    m_robotName = rf.check("robot", Value("icubGazeboSim"), "Looking for robot name").asString();
+    m_robotName = rf.check("robot", Value("icubSim"), "Looking for robot name").asString();
     m_period = rf.check("period", Value(10), "Looking for period").asInt();
     m_outputDir = rf.check("outputDir", Value(""), "Output directory to store results").asString();
     

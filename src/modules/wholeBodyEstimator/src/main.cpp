@@ -24,7 +24,7 @@ int main(int argc, char* argv[])
         printf("PARAMETERS\n");
         printf("--period          :[10] Thread period in miliseconds\n.");
         printf("--from            :[wholeBodyEstimator.ini] Name of .ini file for configuration\n");
-        printf("--robot           :[icub] Robot name. Other options: icubGazeboSim\n");
+        printf("--robot           :[icub] Robot name. Other options: icubSim\n");
         printf("--rate            :[10] Thread period (ms)\n");
         printf("--local           :[quaternionEKFModule] Module name used to prepend ports opened by this module\n");
         printf("--verbose         :[false] When true, prints many debugging messages.\n");

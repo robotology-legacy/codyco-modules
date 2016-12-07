@@ -28,8 +28,8 @@
         <node>localhost</node>
         <prefix></prefix>
         <dependency>
-            <port timeout="10">/icubGazeboSim/right_leg/state:o</port>
-            <port timeout="10">/icubGazeboSim/left_leg/state:o</port>
+            <port timeout="10">/icubSim/right_leg/state:o</port>
+            <port timeout="10">/icubSim/left_leg/state:o</port>
         </dependency>
     </module>
     

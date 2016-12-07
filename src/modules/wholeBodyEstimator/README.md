@@ -10,7 +10,7 @@ In order to work with this module as it currently is, please take into account t
 # Testing QuaternionEKF
 This is more of a personal reminder or notes in order to keep track of the standalone debugging procedure I perform on my machine. This means, without having to use the real robot. 
  1. Launch the Gazebo simulator with the icub world.
- 2. Launch the `yarpdataplayer` and open the directoy `dumper01/` in `app/`, then play. This will stream data through the ports `/icubGazeboSim/right_leg/inertialMTB` and `/icub/right_leg/state:o`.
+ 2. Launch the `yarpdataplayer` and open the directoy `dumper01/` in `app/`, then play. This will stream data through the ports `/icub[..]/right_leg/inertialMTB` and `/icub[..]/right_leg/state:o`.
  3. Make sure your environmental variable `YARP_ROBOT_NAME` points to `icubGazeboSim`.
  4. Run the wholeBodyEstimator with at least the following parameters:
 ```bash
@@ -21,7 +21,7 @@ joints_list                 ROBOT_DYNAMIC_MODEL_JOINTS
 [MODULE_PARAMETERS]
 name                        wholeBodyEstimator
 period                      10
-robot                       icubGazeboSim
+robot                       icubSim
 verbose                     true
 ```
 

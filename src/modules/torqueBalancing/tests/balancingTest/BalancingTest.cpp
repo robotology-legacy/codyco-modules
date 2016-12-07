@@ -49,7 +49,7 @@ bool BalancingTest::setup(yarp::os::Property &property) {
     Property options;
     options.put("device", "remote_controlboard");
     options.put("local", "/balancingTest/ctrlBoard");                 //local port names
-    options.put("remote", "/icubGazeboSim/right_leg");         //where we connect to
+    options.put("remote", "/icubSim/right_leg");         //where we connect to
 
     RTF_ASSERT_ERROR_IF(monitorDD.open(options),
                         "error in opening remote_controlboard");

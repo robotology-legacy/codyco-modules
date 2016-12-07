@@ -24,7 +24,7 @@ int main(int argc, char* argv[])
         printf("\n");
         printf("PARAMETERS\n");
         printf("--from            :[quaternionEKFModule.ini] Name of .ini file for configuration\n");
-        printf("--robot           :[icub] Robot name. Other options: icubGazeboSim\n");
+        printf("--robot           :[icub] Robot name. Other options: icubSim\n");
         printf("--rate            :[10] Thread period (ms)\n");
         printf("--local           :[quaternionEKFModule] Module name used to prepend ports opened by this module\n");
         printf("--calib           :[false] The module enters in calibration mode for which it asks you \n\

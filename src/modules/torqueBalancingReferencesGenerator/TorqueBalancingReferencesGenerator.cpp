@@ -148,7 +148,7 @@ bool TorqueBalancingReferencesGenerator::configure (yarp::os::ResourceFinder &rf
         return false;
     }
     
-    robotName = rf.check("robot", Value("icubGazeboSim"), "Looking for robot name").asString();
+    robotName = rf.check("robot", Value("icubSim"), "Looking for robot name").asString();
 //     numberOfPostures = rf.check("numberOfPostures", Value(0), "Looking for numberOfPostures").asInt();
 
     directionOfOscillation.resize(3,0.0);

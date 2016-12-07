@@ -20,7 +20,7 @@ int main (int argc, char **argv)
 
     if (rf.check("help")) {
         std::cout << "Parameters of this module: " << std::endl;
-        std::cout << "\t--robot                 :[icub] Robot name (icubGazeboSim or icub)" << std::endl;
+        std::cout << "\t--robot                 :[icub] Robot name (icubSim or icub)" << std::endl;
         std::cout << "\t--rate                  :[10] Module period in ms" << std::endl;
         std::cout << "\t--local                 :Prefix of the port to be opened by this module" << std::endl;
         std::cout << "\t--com-traj-csv          :[comTraj_iCubGenova01] csv file name without extension" << std::endl;

@@ -47,7 +47,7 @@ unless the modified files are first copied into the source directory, i.e.
 
 The configuration file `torqueBalancingRefGen.ini` can contain several options.
 - `name`: module name. Ports will be opened with this name. Default to `torqueBalancingReferencesGenerator`
-- `robot`: name of the robot to connect to (`icubGazeboSim` for simulations, `icub` for experiments)
+- `robot`: name of the robot to connect to (`icubSim` for simulations, `icub` for experiments)
 - `period`: controller period in milliseconds. Default is 10ms (100Hz)
 - `wbi_config_file`: name (or full path, see ResourceFinder documentation) to the whole body interface initialization file
 - `wbi_joint_list`: name of the torque controlled joint list.

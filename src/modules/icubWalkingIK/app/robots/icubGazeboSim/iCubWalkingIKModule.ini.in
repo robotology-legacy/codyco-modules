@@ -1,5 +1,5 @@
 name         icubWalkingIK
-robot        icubGazeboSim
+robot        icubSim
 period       10
 modulePeriod 0.01
 patternFile  comTraj_iCubGenova01
