@@ -1,1 +1,2 @@
 add_subdirectory(ctrlLibRT)
+add_subdirectory(inverseKinematics)
