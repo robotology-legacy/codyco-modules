@@ -21,7 +21,7 @@ find_package(ICUB REQUIRED)
 # add the source codes to build the plugin library
 add_executable(${PROJECT_NAME} iKinVersusLegacyTest.cpp)
 
-target_link_libraries(${PROJECT_NAME} SYSTEM inverseKinematics ${YARP_LIBRARIES} iKin)
+target_link_libraries(${PROJECT_NAME} inverseKinematics ${YARP_LIBRARIES} iKin)
 
 
 # set the installation options

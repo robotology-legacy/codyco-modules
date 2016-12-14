@@ -872,7 +872,7 @@ namespace kinematics {
     void InverseKinematicsNLP::testDerivatives(const iDynTree::VectorDynSize& derivativePoint, int frameIndex, double epsilon, double tolerance, int _parametrization)
     {
 
-        using namespace Ipopt;
+        using Ipopt::Number;
         using namespace iDynTree;
         using namespace Eigen;
 
@@ -893,7 +893,7 @@ namespace kinematics {
         //Compute analytical derivatives
         MatrixDynSize _analyticalJacobian(3 + sizeOfRotationParametrization(parametrization), derivativePoint.size());
         _analyticalJacobian.zero();
-        Map<Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor> > analyticalJacobian = toEigen(_analyticalJacobian);
+        Eigen::Map<Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor> > analyticalJacobian = toEigen(_analyticalJacobian);
 
         updateState(_x);
 
