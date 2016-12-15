@@ -783,6 +783,11 @@ bool WholeBodyDynamicsDevice::open(os::Searchable& config)
 {
     yarp::os::LockGuard guard(this->deviceMutex);
 
+    if( config.check("verbose") )
+    {
+        std::cerr << config.toString() << std::endl;
+    }
+
     bool ok;
 
     // Load settings in the class
