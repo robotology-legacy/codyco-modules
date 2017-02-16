@@ -1704,14 +1704,14 @@ bool WholeBodyDynamicsDevice::setupCalibrationWithExternalWrenchesOnTwoFrames(co
     iDynTree::FrameIndex frame1Index = estimator.model().getFrameIndex(frame1Name);
     if( frame1Index == iDynTree::FRAME_INVALID_INDEX )
     {
-        yError() << "wholeBodyDynamics : setupCalibrationWithExternalWrenchesOnTwoFrames impossible to find frame " << frame1Index;
+        yError() << "wholeBodyDynamics : setupCalibrationWithExternalWrenchesOnTwoFrames impossible to find frame " << frame1Name;
         return false;
     }
 
     iDynTree::FrameIndex frame2Index = estimator.model().getFrameIndex(frame2Name);
     if( frame2Index == iDynTree::FRAME_INVALID_INDEX )
     {
-        yError() << "wholeBodyDynamics : setupCalibrationWithExternalWrenchesOnTwoFrames impossible to find frame " << frame2Index;
+        yError() << "wholeBodyDynamics : setupCalibrationWithExternalWrenchesOnTwoFrames impossible to find frame " << frame2Name;
         return false;
     }
 
@@ -1797,6 +1797,36 @@ bool WholeBodyDynamicsDevice::calibStandingRightFoot(const std::string& calib_co
 
     return true;
 
+}
+
+bool WholeBodyDynamicsDevice::calibStandingOnOneLink(const std::string &standing_frame, const int32_t nr_of_samples)
+{
+    yarp::os::LockGuard guard(this->deviceMutex);
+
+    bool ok = this->setupCalibrationWithExternalWrenchOnOneFrame(standing_frame,nr_of_samples);
+
+    if( !ok )
+    {
+        return false;
+    }
+
+    return true;
+}
+
+bool WholeBodyDynamicsDevice::calibStandingOnTwoLinks(const std::string &first_standing_frame,
+                                                      const std::string &second_standing_frame,
+                                                      const int32_t nr_of_samples)
+{
+    yarp::os::LockGuard guard(this->deviceMutex);
+
+    bool ok = this->setupCalibrationWithExternalWrenchesOnTwoFrames(first_standing_frame,second_standing_frame,nr_of_samples);
+
+    if( !ok )
+    {
+        return false;
+    }
+
+    return true;
 }
 
 bool WholeBodyDynamicsDevice::resetOffset(const std::string& calib_code)
