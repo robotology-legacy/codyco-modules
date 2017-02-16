@@ -560,6 +560,9 @@ private:
       */
      virtual bool calibStandingRightFoot(const std::string& calib_code, const int32_t nr_of_samples = 100);
 
+     virtual bool calibStandingOnOneLink(const std::string& standing_frame, const int32_t nr_of_samples = 100);
+     virtual bool calibStandingOnTwoLinks(const std::string& first_standing_frame, const std::string& second_standing_frame, const int32_t nr_of_samples = 100);
+
      /**
       * Reset the sensor offset to 0 0 0 0 0 0 (six zeros).
       * @param calib_code argument to specify the sensors to reset (all,arms,legs,feet)
