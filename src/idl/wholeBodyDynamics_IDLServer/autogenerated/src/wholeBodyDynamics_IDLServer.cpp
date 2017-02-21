@@ -46,6 +46,27 @@ public:
   virtual bool read(yarp::os::ConnectionReader& connection);
 };
 
+class wholeBodyDynamics_IDLServer_calibStandingOnOneLink : public yarp::os::Portable {
+public:
+  std::string standing_frame;
+  int32_t nr_of_samples;
+  bool _return;
+  void init(const std::string& standing_frame, const int32_t nr_of_samples);
+  virtual bool write(yarp::os::ConnectionWriter& connection);
+  virtual bool read(yarp::os::ConnectionReader& connection);
+};
+
+class wholeBodyDynamics_IDLServer_calibStandingOnTwoLinks : public yarp::os::Portable {
+public:
+  std::string first_standing_frame;
+  std::string second_standing_frame;
+  int32_t nr_of_samples;
+  bool _return;
+  void init(const std::string& first_standing_frame, const std::string& second_standing_frame, const int32_t nr_of_samples);
+  virtual bool write(yarp::os::ConnectionWriter& connection);
+  virtual bool read(yarp::os::ConnectionReader& connection);
+};
+
 class wholeBodyDynamics_IDLServer_resetOffset : public yarp::os::Portable {
 public:
   std::string calib_code;
@@ -290,6 +311,58 @@ bool wholeBodyDynamics_IDLServer_calibStandingRightFoot::read(yarp::os::Connecti
 void wholeBodyDynamics_IDLServer_calibStandingRightFoot::init(const std::string& calib_code, const int32_t nr_of_samples) {
   _return = false;
   this->calib_code = calib_code;
+  this->nr_of_samples = nr_of_samples;
+}
+
+bool wholeBodyDynamics_IDLServer_calibStandingOnOneLink::write(yarp::os::ConnectionWriter& connection) {
+  yarp::os::idl::WireWriter writer(connection);
+  if (!writer.writeListHeader(3)) return false;
+  if (!writer.writeTag("calibStandingOnOneLink",1,1)) return false;
+  if (!writer.writeString(standing_frame)) return false;
+  if (!writer.writeI32(nr_of_samples)) return false;
+  return true;
+}
+
+bool wholeBodyDynamics_IDLServer_calibStandingOnOneLink::read(yarp::os::ConnectionReader& connection) {
+  yarp::os::idl::WireReader reader(connection);
+  if (!reader.readListReturn()) return false;
+  if (!reader.readBool(_return)) {
+    reader.fail();
+    return false;
+  }
+  return true;
+}
+
+void wholeBodyDynamics_IDLServer_calibStandingOnOneLink::init(const std::string& standing_frame, const int32_t nr_of_samples) {
+  _return = false;
+  this->standing_frame = standing_frame;
+  this->nr_of_samples = nr_of_samples;
+}
+
+bool wholeBodyDynamics_IDLServer_calibStandingOnTwoLinks::write(yarp::os::ConnectionWriter& connection) {
+  yarp::os::idl::WireWriter writer(connection);
+  if (!writer.writeListHeader(4)) return false;
+  if (!writer.writeTag("calibStandingOnTwoLinks",1,1)) return false;
+  if (!writer.writeString(first_standing_frame)) return false;
+  if (!writer.writeString(second_standing_frame)) return false;
+  if (!writer.writeI32(nr_of_samples)) return false;
+  return true;
+}
+
+bool wholeBodyDynamics_IDLServer_calibStandingOnTwoLinks::read(yarp::os::ConnectionReader& connection) {
+  yarp::os::idl::WireReader reader(connection);
+  if (!reader.readListReturn()) return false;
+  if (!reader.readBool(_return)) {
+    reader.fail();
+    return false;
+  }
+  return true;
+}
+
+void wholeBodyDynamics_IDLServer_calibStandingOnTwoLinks::init(const std::string& first_standing_frame, const std::string& second_standing_frame, const int32_t nr_of_samples) {
+  _return = false;
+  this->first_standing_frame = first_standing_frame;
+  this->second_standing_frame = second_standing_frame;
   this->nr_of_samples = nr_of_samples;
 }
 
@@ -715,6 +788,26 @@ bool wholeBodyDynamics_IDLServer::calibStandingRightFoot(const std::string& cali
   bool ok = yarp().write(helper,helper);
   return ok?helper._return:_return;
 }
+bool wholeBodyDynamics_IDLServer::calibStandingOnOneLink(const std::string& standing_frame, const int32_t nr_of_samples) {
+  bool _return = false;
+  wholeBodyDynamics_IDLServer_calibStandingOnOneLink helper;
+  helper.init(standing_frame,nr_of_samples);
+  if (!yarp().canWrite()) {
+    yError("Missing server method '%s'?","bool wholeBodyDynamics_IDLServer::calibStandingOnOneLink(const std::string& standing_frame, const int32_t nr_of_samples)");
+  }
+  bool ok = yarp().write(helper,helper);
+  return ok?helper._return:_return;
+}
+bool wholeBodyDynamics_IDLServer::calibStandingOnTwoLinks(const std::string& first_standing_frame, const std::string& second_standing_frame, const int32_t nr_of_samples) {
+  bool _return = false;
+  wholeBodyDynamics_IDLServer_calibStandingOnTwoLinks helper;
+  helper.init(first_standing_frame,second_standing_frame,nr_of_samples);
+  if (!yarp().canWrite()) {
+    yError("Missing server method '%s'?","bool wholeBodyDynamics_IDLServer::calibStandingOnTwoLinks(const std::string& first_standing_frame, const std::string& second_standing_frame, const int32_t nr_of_samples)");
+  }
+  bool ok = yarp().write(helper,helper);
+  return ok?helper._return:_return;
+}
 bool wholeBodyDynamics_IDLServer::resetOffset(const std::string& calib_code) {
   bool _return = false;
   wholeBodyDynamics_IDLServer_resetOffset helper;
@@ -967,6 +1060,51 @@ bool wholeBodyDynamics_IDLServer::read(yarp::os::ConnectionReader& connection) {
       }
       bool _return;
       _return = calibStandingRightFoot(calib_code,nr_of_samples);
+      yarp::os::idl::WireWriter writer(reader);
+      if (!writer.isNull()) {
+        if (!writer.writeListHeader(1)) return false;
+        if (!writer.writeBool(_return)) return false;
+      }
+      reader.accept();
+      return true;
+    }
+    if (tag == "calibStandingOnOneLink") {
+      std::string standing_frame;
+      int32_t nr_of_samples;
+      if (!reader.readString(standing_frame)) {
+        reader.fail();
+        return false;
+      }
+      if (!reader.readI32(nr_of_samples)) {
+        nr_of_samples = 100;
+      }
+      bool _return;
+      _return = calibStandingOnOneLink(standing_frame,nr_of_samples);
+      yarp::os::idl::WireWriter writer(reader);
+      if (!writer.isNull()) {
+        if (!writer.writeListHeader(1)) return false;
+        if (!writer.writeBool(_return)) return false;
+      }
+      reader.accept();
+      return true;
+    }
+    if (tag == "calibStandingOnTwoLinks") {
+      std::string first_standing_frame;
+      std::string second_standing_frame;
+      int32_t nr_of_samples;
+      if (!reader.readString(first_standing_frame)) {
+        reader.fail();
+        return false;
+      }
+      if (!reader.readString(second_standing_frame)) {
+        reader.fail();
+        return false;
+      }
+      if (!reader.readI32(nr_of_samples)) {
+        nr_of_samples = 100;
+      }
+      bool _return;
+      _return = calibStandingOnTwoLinks(first_standing_frame,second_standing_frame,nr_of_samples);
       yarp::os::idl::WireWriter writer(reader);
       if (!writer.isNull()) {
         if (!writer.writeListHeader(1)) return false;
@@ -1255,6 +1393,8 @@ std::vector<std::string> wholeBodyDynamics_IDLServer::help(const std::string& fu
     helpString.push_back("calibStanding");
     helpString.push_back("calibStandingLeftFoot");
     helpString.push_back("calibStandingRightFoot");
+    helpString.push_back("calibStandingOnOneLink");
+    helpString.push_back("calibStandingOnTwoLinks");
     helpString.push_back("resetOffset");
     helpString.push_back("quit");
     helpString.push_back("resetSimpleLeggedOdometry");
@@ -1305,6 +1445,28 @@ std::vector<std::string> wholeBodyDynamics_IDLServer::help(const std::string& fu
       helpString.push_back("Calibrate the force/torque sensors when on single support on right foot ");
       helpString.push_back("(WARNING: calibrate the sensors when the only external forces acting on the robot are on the right sole). ");
       helpString.push_back("@param calib_code argument to specify the sensors to calibrate (all,arms,legs,feet) ");
+      helpString.push_back("@param nr_of_samples number of samples ");
+      helpString.push_back("@return true/false on success/failure ");
+    }
+    if (functionName=="calibStandingOnOneLink") {
+      helpString.push_back("bool calibStandingOnOneLink(const std::string& standing_frame, const int32_t nr_of_samples = 100) ");
+      helpString.push_back("Calibrate the force/torque sensors offsets when the external forces are acting on only one link. ");
+      helpString.push_back("This method is typically used when the robot is standing on only one feet, ");
+      helpString.push_back("or when it is attached to a fixture that is acting on a single link (typically the chest or the waist). ");
+      helpString.push_back("@note This method calibrates the offsets of all the force-torque sensors. ");
+      helpString.push_back("@param standing_frame a frame belonging to the link on which it is assumed that external forces are acting. ");
+      helpString.push_back("@param nr_of_samples number of samples to use for calibration. ");
+      helpString.push_back("@return true/false on success/failure. ");
+    }
+    if (functionName=="calibStandingOnTwoLinks") {
+      helpString.push_back("bool calibStandingOnTwoLinks(const std::string& first_standing_frame, const std::string& second_standing_frame, const int32_t nr_of_samples = 100) ");
+      helpString.push_back("Calibrate the force/torque sensors offsets when the external forces are acting on only two links. ");
+      helpString.push_back("This method is not in general guaranteed to work, and it works in practice only when the robot and its internal ");
+      helpString.push_back("forces are symmetric w.r.t. the two contact links. Note that the value obtaiend from this calibration depend ");
+      helpString.push_back("on the location of the origin of the specific frames of the contact links used for the calibration. ");
+      helpString.push_back("@note This method calibrates the offsets of all the force-torque sensors. ");
+      helpString.push_back("@param first_standing_frame a frame belonging to one of the two links on which it is assumed that tue external forces are acting. ");
+      helpString.push_back("@param second_standing_frame a frame belonging to the other link on which it is assumed that tue external forces are acting. ");
       helpString.push_back("@param nr_of_samples number of samples ");
       helpString.push_back("@return true/false on success/failure ");
     }
