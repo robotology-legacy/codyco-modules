@@ -80,6 +80,8 @@ bool GravityCompensationHelper::loadModel(const Model& _model, const std::string
 
     // set that the model is valid
     m_isModelValid = true;
+
+    return true;
 }
 
 
