@@ -69,7 +69,6 @@ bool VirtualAnalogRemapper::attachAll(const PolyDriverList& p)
                          << p[devIdx]->key << " exposes a IVirtualAnalogSensor, but not a IAxisInfo interface,"
                          << " impossible to map the list of joint names to the IVirtualAnalogSensor interface";
                 return false;
-
             }
             else
             {
