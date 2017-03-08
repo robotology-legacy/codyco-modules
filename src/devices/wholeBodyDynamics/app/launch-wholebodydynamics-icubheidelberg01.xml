@@ -47,12 +47,12 @@
     <!-- six axis force torque sensors -->
     <device name="l_leg_ft_sensor" type="analogsensorclient">
         <param name="remote"> /icub/left_leg/analog:o </param>
-        <param name="local"> /wholeBodyDynamics/l_arm_ft_sensor </param>
+        <param name="local"> /wholeBodyDynamics/l_leg_ft_sensor </param>
     </device>
 
     <device name="r_leg_ft_sensor" type="analogsensorclient">
         <param name="remote"> /icub/right_leg/analog:o </param>
-        <param name="local"> /wholeBodyDynamics/r_arm_ft_sensor </param>
+        <param name="local"> /wholeBodyDynamics/r_leg_ft_sensor </param>
     </device>
 
     <device name="l_foot_ft_sensor" type="analogsensorclient">
