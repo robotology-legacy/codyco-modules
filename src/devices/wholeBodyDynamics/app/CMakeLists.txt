@@ -12,7 +12,7 @@ macro(install_wbd_robots_files)
   cmake_parse_arguments(WBD "${_options}" "${_oneValueArgs}" "${_multiValueArgs}" ${ARGN} )
 
   # Configure and install files for using wholebodydynamics in the robot's yarprobotinterface
-  if(NOT ${NO_ROBOT})
+  if(NOT ${WBD_NO_ROBOT})
     configure_file(${CMAKE_CURRENT_SOURCE_DIR}/${WBD_ROBOT_WBD_CONF}
                    ${CMAKE_CURRENT_BINARY_DIR}/${WBD_YARP_ROBOT_NAME}/wholebodydynamics.xml
                    @ONLY)
