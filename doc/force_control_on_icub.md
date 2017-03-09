@@ -10,7 +10,7 @@ The original plan was to develop the iCub v2 with real strain-gauge based joint 
 but this process [2] was not successfull and all existing iCub's uses the embedded six-axis force-torque
 sensors to estimate the joint torques for low-level joint torque control.
 
-During the CoDyCo project (2013-2017), the software originally developed in [1] was rewritten to improve its generality,
+During the CoDyCo project (2013-2017), the software originally developed in [1] was rewritten to improve 
 its computational efficency and its generality (i.e. the possibility to run it on several different robots).
 
 # `wholebodydynamics` YARP device 
@@ -53,19 +53,19 @@ may not be updated. Please check the status of the configuration files with the 
 ### Run `wholebodydynamics` on an external PC
 This is the reccomended procedure in general. To launch the `wholebodydynamics` on an external PC running a *nix based OS, just run:
 ~~~
-YARP_ROBOT_NAME=${YARP_ROBOT_NAME} yarprobotinterface --config --config launch-wholebodydynamics.xml  
+YARP_ROBOT_NAME=<yarp_robot_name> yarprobotinterface --config launch-wholebodydynamics.xml  
 ~~~
-where `YARP_ROBOT_NAME` is the robot for which you are launching the estimator.
+where `<yarp_robot_name>` is the robot for which you are launching the estimator.
 
 For example, if you want to run the `wholebodydynamics` for the Gazebo simulation, you will need to run:
 ~~~
-YARP_ROBOT_NAME=icubGazeboSim yarprobotinterface --config --config launch-wholebodydynamics.xml
+YARP_ROBOT_NAME=icubGazeboSim yarprobotinterface --config launch-wholebodydynamics.xml
 ~~~
 
 Note that you can avoid to preprend the `YARP_ROBOT_NAME=icubGazeboSim` enviromental variable.  
 
 ### Run `wholebodydynamics` on the robot 
-**Please note that this configuration is not officially supported by the iCub Facility support theme, so please request support only from this repo.**
+**Please note that this configuration is not officially supported by the iCub Facility support team, so please request support only from this repo.**
 
 This setup requires adding one configuration file to the robot yarprobotinterface configuration files as distributed in the [robots-configuration](https://github.com/robotology/robots-configuration) repository. For doing this, please import the configuration files for your robot on the `~/.local/share/yarp/robots/${YARP_ROBOT_NAME}` using the `yarp-config` utility program. 
 
