@@ -49,4 +49,7 @@ if(ENABLE_codycomod_wholebodydynamics)
                  ARCHIVE DESTINATION ${CODYCO_STATIC_PLUGINS_INSTALL_DIR})
 
     yarp_install(FILES wholebodydynamics.ini DESTINATION ${CODYCO_PLUGIN_MANIFESTS_INSTALL_DIR})
+
+    # Install configuration files
+    add_subdirectory(app)
 endif()
