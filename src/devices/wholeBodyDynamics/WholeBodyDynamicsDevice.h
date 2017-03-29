@@ -543,6 +543,7 @@ private:
 
     yarp::os::Node *publisherNode; /*!< node to publish on the ROS topics */
     unsigned rosMessageSequence;
+    std::string rosTFPrefix;
 
     /***
      * RPC Calibration related methods
