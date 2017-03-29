@@ -8,6 +8,7 @@
         <param name="fixedFrameGravity">(0,0,-9.81)</param>
         <param name="defaultContactFrames">(l_hand,r_hand,root_link,l_sole,r_sole,l_lower_leg,r_lower_leg,l_elbow_1,r_elbow_1)</param>
         <param name="imuFrameName">imu_frame</param>
+        <param name="publishOnROS">true</param>
 
         <!-- map between iDynTree links (identified by a name)
              and skinDynLib links (identified by their frame name, a BodyPart enum

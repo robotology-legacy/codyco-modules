@@ -19,6 +19,9 @@ yarp_prepare_plugin(wholebodydynamics CATEGORY device
                                       ADVANCED)
 
 if(ENABLE_codycomod_wholebodydynamics)
+  
+    add_subdirectory(ros_msgs)
+    
     include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 
     include_directories(SYSTEM
@@ -35,7 +38,8 @@ if(ENABLE_codycomod_wholebodydynamics)
                                                     ctrlLibRT
                                                     ${YARP_LIBRARIES}
                                                     skinDynLib
-                                                    ${iDynTree_LIBRARIES})
+                                                    ${iDynTree_LIBRARIES}
+                                                    yarp-rosmsgs)
 
     if(MSVC)
         add_definitions(-D_USE_MATH_DEFINES)

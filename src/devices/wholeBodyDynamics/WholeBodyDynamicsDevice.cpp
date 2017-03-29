@@ -6,6 +6,10 @@
 #include <yarp/os/Property.h>
 #include <yarp/os/ResourceFinder.h>
 #include <yarp/os/Time.h>
+#include <yarp/os/Node.h>
+#include <yarp/os/Publisher.h>
+
+#include <TickTime.h>
 
 #include <yarp/dev/IAnalogSensor.h>
 #include <yarp/dev/GenericSensorInterfaces.h>
@@ -15,6 +19,24 @@
 
 #include <cassert>
 #include <cmath>
+
+static inline TickTime normalizeSecNSec(double yarpTimeStamp)
+{
+    uint64_t time = (uint64_t) (yarpTimeStamp * 1000000000UL);
+    uint64_t nsec_part = (time % 1000000000UL);
+    uint64_t sec_part = (time / 1000000000UL);
+    TickTime ret;
+
+    if (sec_part > UINT_MAX)
+    {
+        yWarning() << "Timestamp exceeded the 64 bit representation, resetting it to 0";
+        sec_part = 0;
+    }
+
+    ret.sec  = sec_part;
+    ret.nsec = nsec_part;
+    return ret;
+}
 
 namespace yarp
 {
@@ -32,7 +54,8 @@ WholeBodyDynamicsDevice::WholeBodyDynamicsDevice(): RateThread(10),
                                                     estimationWentWell(false),
                                                     validOffsetAvailable(false),
                                                     lastReadingSkinContactListStamp(0.0),
-                                                    settingsEditor(settings)
+                                                    settingsEditor(settings),
+                                                    publisherNode(0)
 {
     // Calibration quantities
     calibrationBuffers.ongoingCalibration = false;
@@ -111,6 +134,12 @@ bool WholeBodyDynamicsDevice::closeExternalWrenchesPorts()
             outputWrenchPorts[i].output_port->close();
             delete outputWrenchPorts[i].output_port;
             outputWrenchPorts[i].output_port = 0;
+        }
+
+        if (outputWrenchPorts[i].rosPublishers) {
+            outputWrenchPorts[i].rosPublishers->close();
+            delete outputWrenchPorts[i].rosPublishers;
+            outputWrenchPorts[i].rosPublishers = 0;
         }
     }
     return true;
@@ -504,6 +533,24 @@ bool WholeBodyDynamicsDevice::openExternalWrenchesPorts(os::Searchable& config)
         yError() << "wholeBodyDynamics impossible to open port for publishing external wrenches";
         return false;
     }
+
+    // Open topics if enabled
+    if (publisherNode) {
+        for(unsigned int i = 0; i < outputWrenchPorts.size(); i++ )
+        {
+            std::string port_name = outputWrenchPorts[i].port_name;
+            outputWrenchPorts[i].rosPublishers = new yarp::os::Publisher<geometry_msgs::WrenchStamped>();
+            ok = ok && outputWrenchPorts[i].rosPublishers && outputWrenchPorts[i].rosPublishers->topic(port_name);
+        }
+
+        if( !ok )
+        {
+            yError() << "wholeBodyDynamics impossible to open ROS topic for publishing external wrenches";
+            return false;
+        }
+    }
+
+    rosMessageSequence = 1;
 
     return ok;
 }
@@ -906,6 +953,13 @@ bool WholeBodyDynamicsDevice::attachAllControlBoard(const PolyDriverList& p)
         yError() << " WholeBodyDynamicsDevice::attachAll in attachAll of the remappedControlBoard";
         return false;
     }
+
+    yarp::os::Value falseValue;
+    falseValue.fromString("false");
+    if (prop.check("publishOnROS", falseValue, "Checking ROS enabled").asBool()) {
+        publisherNode = new yarp::os::Node("/wholeBodyDynamics");
+    }
+
 
     return true;
 }
@@ -1711,7 +1765,27 @@ void WholeBodyDynamicsDevice::publishExternalWrenches()
 
         broadcastData<yarp::sig::Vector>(outputWrenchPorts[i].output_vector,
                                          *(outputWrenchPorts[i].output_port));
+
+        if (publisherNode && this->outputWrenchPorts[i].rosPublishers) {
+            // ROS is enabled
+            geometry_msgs::WrenchStamped &wrench = this->outputWrenchPorts[i].rosPublishers->prepare();
+
+            wrench.header.seq = rosMessageSequence;
+            wrench.header.stamp = normalizeSecNSec(yarp::os::Time::now());
+
+            wrench.wrench.force.x = outputWrenchPorts[i].output_vector(0);
+            wrench.wrench.force.y = outputWrenchPorts[i].output_vector(1);
+            wrench.wrench.force.z = outputWrenchPorts[i].output_vector(2);
+
+            wrench.wrench.torque.x = outputWrenchPorts[i].output_vector(3);
+            wrench.wrench.torque.y = outputWrenchPorts[i].output_vector(4);
+            wrench.wrench.torque.z = outputWrenchPorts[i].output_vector(5);
+
+            this->outputWrenchPorts[i].rosPublishers->write();
+        }
     }
+
+    rosMessageSequence++;
 }
 
 void WholeBodyDynamicsDevice::run()
@@ -1777,6 +1851,9 @@ bool WholeBodyDynamicsDevice::close()
 {
     this->remappedControlBoard.close();
     this->remappedVirtualAnalogSensors.close();
+
+    delete publisherNode;
+    publisherNode = 0;
 
     correctlyConfigured = false;
 
