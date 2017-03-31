@@ -1854,8 +1854,11 @@ bool WholeBodyDynamicsDevice::close()
     this->remappedControlBoard.close();
     this->remappedVirtualAnalogSensors.close();
 
-    delete publisherNode;
-    publisherNode = 0;
+    if (publisherNode) {
+        publisherNode->interrupt();
+        delete publisherNode;
+        publisherNode = 0;
+    }
 
     correctlyConfigured = false;
 
