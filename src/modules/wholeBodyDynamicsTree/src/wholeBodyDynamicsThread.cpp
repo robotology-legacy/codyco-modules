@@ -59,6 +59,8 @@ wholeBodyDynamicsThread::wholeBodyDynamicsThread(string _name,
                                                  bool _assume_fixed_base_calibration_from_odometry
                                                 )
     :  RateThread(_period),
+       threadStatus(STATUS_OK),
+       nrOfConsecutiveFailedSensorReadings(0),
        moduleName(_name),
        robotName(_robotName),
        sensors(_wbs),
@@ -1407,17 +1409,26 @@ void wholeBodyDynamicsThread::publishFilteredFTWithoutOffset()
 }
 
 //***************************************************************************
-void wholeBodyDynamicsThread::readRobotStatus()
+bool wholeBodyDynamicsThread::readRobotStatus()
 {
+    // Propagate the errors while readings sensors
+    // to the upper level
+    bool ok = true;
+
     //Don't wait to get a sensor measure
     bool wait = false;
     //Don't get timestamps
     double * stamps = NULL;
 
     // Get joint encoders position, velocities and accelerations
-    sensors->readSensors(wbi::SENSOR_ENCODER_POS, joint_status.getJointPosKDL().data.data(), stamps, wait);
-    sensors->readSensors(wbi::SENSOR_ENCODER_SPEED, joint_status.getJointVelKDL().data.data(), stamps, wait);
-    sensors->readSensors(wbi::SENSOR_ENCODER_ACCELERATION, joint_status.getJointAccKDL().data.data(), stamps, wait);
+    ok = ok && sensors->readSensors(wbi::SENSOR_ENCODER_POS, joint_status.getJointPosKDL().data.data(), stamps, wait);
+    ok = ok && sensors->readSensors(wbi::SENSOR_ENCODER_SPEED, joint_status.getJointVelKDL().data.data(), stamps, wait);
+    ok = ok && sensors->readSensors(wbi::SENSOR_ENCODER_ACCELERATION, joint_status.getJointAccKDL().data.data(), stamps, wait);
+
+    if( !ok )
+    {
+        yError()  << "wholeBodyDynamicsTree : Error while tryng to read encoders data";
+    }
 
     // Update yarp vectors
     joint_status.updateYarpBuffers();
@@ -1454,6 +1465,7 @@ void wholeBodyDynamicsThread::readRobotStatus()
                     filters->forcetorqueFilters[ft_numeric]->filt(sensor_status.estimated_ft_sensors[ft_numeric]);
             }
         } else {
+            ok = false;
             yError() << "wholeBodyDynamics: Error in reading F/T sensors, exiting";
         }
     }
@@ -1487,10 +1499,12 @@ void wholeBodyDynamicsThread::readRobotStatus()
             sensor_status.domega_imu     = filters->imuAngularAccelerationFilt->estimate(filters->imuAngularAccelerationFiltElement);
 
         } else {
+            ok = false;
             yError() << "wholeBodyDynamicsTree : Error in reading IMU";
         }
     }
 
+    return ok;
 }
 
 
@@ -1505,13 +1519,35 @@ void wholeBodyDynamicsThread::run()
 
     run_mutex.lock();
     this->run_mutex_acquired = true;
-    readRobotStatus();
+
+    bool sensorReadSuccessful = readRobotStatus();
+
+    // Hardcoded euristic for closing the module
+    // after that sensor reading have failed for
+    // several thread update. This mimic the same
+    // behavior found on the wholeBodyDynamics module.
+    // See https://github.com/robotology/codyco-modules/issues/161
+    if( !sensorReadSuccessful )
+    {
+        nrOfConsecutiveFailedSensorReadings++;
+        yWarning ("network delays detected (%d/10)\n", nrOfConsecutiveFailedSensorReadings);
+
+        if( nrOfConsecutiveFailedSensorReadings == 10 )
+        {
+            yError ("wholeBodyDynamicsTree thread lost connection with the robot sensors.");
+            threadStatus = STATUS_DISCONNECTED;
+        }
+    }
+    else
+    {
+        nrOfConsecutiveFailedSensorReadings = 0;
+    }
 
     // If doing smooth calibration, continue to stream torques
     // even when doing calibration
     if( wbd_mode == NORMAL || (smooth_calibration && !first_calibration) )
     {
-        estimation_run();
+        estimation_run(sensorReadSuccessful);
     }
 
     if( wbd_mode == CALIBRATING )
@@ -1529,10 +1565,8 @@ void wholeBodyDynamicsThread::run()
 }
 
 //*************************************************************************************************************************
-void wholeBodyDynamicsThread::estimation_run()
+void wholeBodyDynamicsThread::estimation_run(const bool sensorReadSuccessfull)
 {
-    bool ret;
-
     // Update smoothed offset
     if( this->smooth_calibration )
     {
@@ -1554,26 +1588,34 @@ void wholeBodyDynamicsThread::estimation_run()
     //Get estimated external ee wrenches
     getExternalWrenches();
 
-    //Send torques
-    publishTorques();
+    if( !sensorReadSuccessfull )
+    {
+        // if the sensor read was not successful, don't publish any estimate and print and error
+        yError() << "wholeBodyDynamicsTree : There was an error while reading the sensors, no estimate will be published.";
+    }
+    else
+    {
+        //Send torques
+        publishTorques();
 
-    //Send external contacts
-    publishContacts();
+        //Send external contacts
+        publishContacts();
 
-    //Send external wrench estimates
-    publishExternalWrenches();
+        //Send external wrench estimates
+        publishExternalWrenches();
 
-    //Compute odometry
-    publishOdometry();
+        //Compute odometry
+        publishOdometry();
 
-    //Send base information to iCubGui
-    publishBaseToGui();
+        //Send base information to iCubGui
+        publishBaseToGui();
 
-    //Send filtered inertia for gravity compensation
-    publishFilteredInertialForGravityCompensator();
+        //Send filtered inertia for gravity compensation
+        publishFilteredInertialForGravityCompensator();
 
-    //Send filtered force torque sensor measurment, if requested
-    publishFilteredFTWithoutOffset();
+        //Send filtered force torque sensor measurment, if requested
+        publishFilteredFTWithoutOffset();
+    }
 
     //if normal mode, publish the
     printCountdown = (printCountdown>=printPeriod) ? 0 : printCountdown +(int)getRate();   // countdown for next print (see sendMsg method)
@@ -1879,6 +1921,21 @@ void wholeBodyDynamicsThread::calibration_on_double_support_run()
     }
 
 }
+
+//*****************************************************************************
+wholeBodyDynamicsThread::threadStatusEnum wholeBodyDynamicsThread::getThreadStatus()
+{
+    wholeBodyDynamicsThread::threadStatusEnum retStatus;
+
+    run_mutex.lock();
+
+    retStatus = this->threadStatus;
+
+    run_mutex.unlock();
+
+    return retStatus;
+}
+
 
 //*****************************************************************************
 void wholeBodyDynamicsThread::threadRelease()
