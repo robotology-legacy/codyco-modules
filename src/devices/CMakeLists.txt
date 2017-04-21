@@ -17,7 +17,11 @@ include(YarpPlugin)
 
 yarp_begin_plugin_library(codycomod)
 
-add_subdirectory(jointTorqueControl)
+# jointTorqueControl is currently not working with YARP >= 2.3.69.8
+# see https://github.com/robotology/codyco-modules/issues/230
+if (${YARP_VERSION} VERSION_LESS 2.3.69.8)
+  add_subdirectory(jointTorqueControl)
+endif ()
 add_subdirectory(floatingBaseEstimator)
 add_subdirectory(wholeBodyDynamics)
 add_subdirectory(virtualAnalogClient)
