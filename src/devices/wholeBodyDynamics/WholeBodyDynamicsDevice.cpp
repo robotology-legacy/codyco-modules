@@ -1462,19 +1462,6 @@ void WholeBodyDynamicsDevice::publishGravityCompensation()
 
             switch(ctrl_mode)
             {
-                //for all this control modes do nothing
-                case VOCAB_CM_OPENLOOP:
-                case VOCAB_CM_IDLE:
-                case VOCAB_CM_UNKNOWN:
-                case VOCAB_CM_HW_FAULT:
-                    break;
-
-                case VOCAB_CM_TORQUE:
-                    // We don't do anything in torque mode, differently from the
-                    // old gravity compensation : because otherwise we interfere
-                    // with any torque control loop
-                    break;
-
                 case VOCAB_CM_POSITION:
                 case VOCAB_CM_POSITION_DIRECT:
                 case VOCAB_CM_MIXED:
@@ -1488,6 +1475,19 @@ void WholeBodyDynamicsDevice::publishGravityCompensation()
                          //stiff or unknown mode, nothing to do
                      }
                      break;
+                default:
+                    // We don't do anything in VOCAB_CM_TORQUE, differently from the
+                    // old gravity compensation : because otherwise we interfere
+                    // with any torque control loop
+                    //
+                    // for all this other control modes do nothing
+                    // VOCAB_CM_PWM
+                    // VOCAB_CM_CURRENT
+                    // VOCAB_CM_OPENLOOP:
+                    // VOCAB_CM_IDLE:
+                    // VOCAB_CM_UNKNOWN:
+                    // VOCAB_CM_HW_FAULT:
+                    break;
             }
         }
     }
