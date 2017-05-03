@@ -1578,6 +1578,9 @@ void WholeBodyDynamicsDevice::run()
 {
     yarp::os::LockGuard guard(this->deviceMutex);
 
+    // Set the process to have a Round Robin scheduling
+    this->setPriority(20,2);
+
     if( correctlyConfigured )
     {
         // Load settings if modified
