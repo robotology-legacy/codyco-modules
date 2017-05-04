@@ -42,6 +42,8 @@ WholeBodyDynamicsDevice::WholeBodyDynamicsDevice(): RateThread(10),
     calibrationBuffers.nrOfSamplesToUseForCalibration = 0;
     calibrationBuffers.nrOfSamplesUsedUntilNowForCalibration = 0;
 
+    // Set the process to have a Round Robin scheduling (2) with high priority
+    this->setPriority(5,2);
 }
 
 WholeBodyDynamicsDevice::~WholeBodyDynamicsDevice()
