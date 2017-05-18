@@ -58,9 +58,9 @@ set(ICUBS_ETH_SIX_FTS iCubDarmstadt01;iCubGenova02;iCubGenova04;iCubNancy01)
 foreach(YARP_ROBOT_NAME ${ICUBS_ETH_SIX_FTS})
   message(STATUS ${YARP_ROBOT_NAME})
   install_wbd_robots_files(YARP_ROBOT_NAME ${YARP_ROBOT_NAME}
-                           EXTERNAL_WBD_CONF wholebodydynamics-icub-eth-six-fts.xml
+                           EXTERNAL_WBD_CONF wholebodydynamics-icub-external-and-can-six-fts.xml
                            EXTERNAL_YRI_CONF launch-wholebodydynamics-icub-six-fts.xml
-                           ROBOT_WBD_CONF    wholebodydynamics-icub-external-and-can-six-fts.xml)
+                           ROBOT_WBD_CONF wholebodydynamics-icub-eth-six-fts.xml)   
 endforeach()
 
 # We have also several robots that are CAN with 6 ft sensors

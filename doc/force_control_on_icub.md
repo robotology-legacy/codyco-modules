@@ -1,5 +1,5 @@
 This is a new and incomplete version of http://wiki.icub.org/wiki/Force_Control , updated with 
-the details on the new wholeBodyDynamicsDevice modules developed for the CoDyCo European Project.
+the details on the new `wholeBodyDynamicsDevice` module, which is in charge of estimating mainly joint torques and external forces, developed for the CoDyCo European Project.
 
 # History of joint-level torque control on iCub 
 The first versions of iCub were not designed to perform joint-level torque control. 
