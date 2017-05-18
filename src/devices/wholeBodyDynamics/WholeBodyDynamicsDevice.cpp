@@ -42,8 +42,6 @@ WholeBodyDynamicsDevice::WholeBodyDynamicsDevice(): RateThread(10),
     calibrationBuffers.nrOfSamplesToUseForCalibration = 0;
     calibrationBuffers.nrOfSamplesUsedUntilNowForCalibration = 0;
 
-    // Set the process to have a Round Robin scheduling (2) with high priority
-    this->setPriority(5,2);
 }
 
 WholeBodyDynamicsDevice::~WholeBodyDynamicsDevice()
@@ -1579,9 +1577,6 @@ void WholeBodyDynamicsDevice::publishExternalWrenches()
 void WholeBodyDynamicsDevice::run()
 {
     yarp::os::LockGuard guard(this->deviceMutex);
-
-    // Set the process to have a Round Robin scheduling
-    this->setPriority(20,2);
 
     if( correctlyConfigured )
     {
