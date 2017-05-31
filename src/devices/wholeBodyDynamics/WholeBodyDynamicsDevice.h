@@ -155,7 +155,9 @@ class wholeBodyDynamicsDeviceFilters
  * |                      | enableGravityCompensation | bool | -  | -           | No        |  |  |
  * |                      | gravityCompensationBaseLink| string | - | -         | No        | ..  | |
  * |                      | gravityCompensationAxesNames | vector of strings | - | - | No   | Axes for which the gravity compensation is published. | |
- *
+ * | publishOnROS      |      -         | bool |   -   |   false           | No      | Specify if estimated wrenches should be published also on ROS topics    |       |
+ * | rosTFPrefix      |      -         | string |   -   |   empty string           | No      | TF prefix added to the published topics.     |       |
+
  * The axes contained in the axesNames parameter are then mapped to the wrapped controlboard in the attachAll method, using controlBoardRemapper class.
  * Furthermore are also used to match the yarp axes to the joint names found in the passed URDF file.
  *
