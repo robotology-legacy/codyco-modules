@@ -20,7 +20,10 @@ yarp_prepare_plugin(wholebodydynamics CATEGORY device
 
 if(ENABLE_codycomod_wholebodydynamics)
   
+    set(OLD_ALLOW_DIL ${ALLOW_IDL_GENERATION})
+    set(ALLOW_IDL_GENERATION ON CACHE BOOL "Allow generation of IDL" FORCE)
     add_subdirectory(ros_msgs)
+    set(ALLOW_IDL_GENERATION ${OLD_ALLOW_DIL} CACHE BOOL "Allow generation of IDL" FORCE)
     
     include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 
