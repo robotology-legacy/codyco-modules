@@ -1327,7 +1327,7 @@ void WholeBodyDynamicsDevice::readContactPoints()
 
     // read skin
     iCub::skinDynLib::skinContactList *scl =this->portContactsInput.read(false);
-    if(scl)
+    if(scl && useSkinContact)
     {
         //< \todo TODO check for envelope?
         last_reading_skin_contact_list_Stamp = yarp::os::Time::now();
@@ -1362,12 +1362,16 @@ void WholeBodyDynamicsDevice::readContactPoints()
             }
         }
     }
-
-    else if(yarp::os::Time::now()-last_reading_skin_contact_list_Stamp>SKIN_EVENTS_TIMEOUT && last_reading_skin_contact_list_Stamp!=0.0)
+    else
     {
-        //std::cout << "Resetting skin contact for timeout" << std::endl;
-        contactsReadFromSkin.clear();
+        if(yarp::os::Time::now()-last_reading_skin_contact_list_Stamp>SKIN_EVENTS_TIMEOUT && last_reading_skin_contact_list_Stamp!=0.0)
+        {
 
+            contactsReadFromSkin.clear();
+            yWarning() << "wholeBodyDynamics: Resetting skin contact for timeout";
+        }
+
+        yInfo() << "wholeBodyDynamics: Using default contact";
         // For now just put the default contact points
         //This logic only gives the location of the contacts but it does not store any value of pressure or wrench in the contact,
 
@@ -1386,6 +1390,7 @@ void WholeBodyDynamicsDevice::readContactPoints()
 
         return;
     }
+
     // convert skinContactList into LinkUnknownWrenchContacts TODO: change function to keep and store wrench information only contact location and force directionis kept
     conversionHelper.fromSkinDynLibToiDynTree(estimator.model(),contactsReadFromSkin,measuredContactLocations);
 
