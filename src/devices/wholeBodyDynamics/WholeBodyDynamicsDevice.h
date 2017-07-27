@@ -1,6 +1,8 @@
 #ifndef CODYCO_WHOLE_BODY_DYNAMICS_DEVICE_H
 #define CODYCO_WHOLE_BODY_DYNAMICS_DEVICE_H
 
+#define SKIN_EVENTS_TIMEOUT 0.2
+
 // YARP includes
 #include <yarp/dev/DeviceDriver.h>
 #include <yarp/dev/PolyDriver.h>
@@ -301,6 +303,14 @@ private:
      * (so torque estimation can start to be broadcasted).
      */
     bool validOffsetAvailable;
+
+    /**
+     * Double to keep track of last time skin was read
+     * (to verify timeouts).
+     */
+    double  last_reading_skin_contact_list_Stamp;
+
+
 
 
     /**
