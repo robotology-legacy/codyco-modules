@@ -310,7 +310,11 @@ private:
      */
     double  last_reading_skin_contact_list_Stamp;
 
-
+    /**
+     * Flag set to false initially, then loaded from config file
+     * (enable or disable the use of skin information for determining contact location).
+     */
+    bool useSkinContact;
 
 
     /**

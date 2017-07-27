@@ -566,6 +566,7 @@ bool WholeBodyDynamicsDevice::loadSettingsFromConfig(os::Searchable& config)
     settings.forceTorqueFilterCutoffInHz = 3.0;
     settings.jointVelFilterCutoffInHz    = 3.0;
     settings.jointAccFilterCutoffInHz    = 3.0;
+    useSkinContact                       =false;
 
     yarp::os::Property prop;
     prop.fromString(config.toString().c_str());
@@ -628,6 +629,18 @@ bool WholeBodyDynamicsDevice::loadSettingsFromConfig(os::Searchable& config)
     {
         yError() << "wholeBodyDynamics : missing required parameter fixedFrameGravity";
         return false;
+    }
+
+
+
+
+    if( prop.check("useSkinContact") && prop.find("useSkinContact").isBool() )
+    {
+        useSkinContact = prop.find("useSkinContact").asBool();
+    }
+    else
+    {
+        yWarning() << "wholeBodyDynamics : missing parameter useSkinContact";
     }
 
     return true;
@@ -1333,9 +1346,10 @@ void WholeBodyDynamicsDevice::readContactPoints()
         contactsReadFromSkin.clear();
         int min_taxel=2;//might become a configuration variable
         //consider only contacts with a minimun of activated taxels, is this neccesary or correct?
+        //reference code use to count contacts per body part and consider moment zero only when there are more than one contact (why?)
         for(iCub::skinDynLib::skinContactList::iterator it=contactsReadFromSkin.begin(); it!=contactsReadFromSkin.end(); it++)
         {
-             // if there are more than 1 contact and less than 10 taxels are active then suppose zero moment
+             //  less than 10 taxels are active then suppose zero moment
             if( it->getActiveTaxels()<10)
             {
                 it->fixMoment();
