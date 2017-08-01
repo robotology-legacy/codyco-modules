@@ -1339,28 +1339,33 @@ void WholeBodyDynamicsDevice::readContactPoints()
             {
                 it->setPressure(0.0);
                 it->setActiveTaxels(0);
+                yWarning() << "wholeBodyDynamics: skincontactlist empty, setting pressure and active taxels to 0";
             }
             return;
         }
 
         contactsReadFromSkin.clear();
-        int min_taxel=2;//might become a configuration variable
+        int numberOfContacts=0;
+        int min_taxel=5;//might become a configuration variable
         //consider only contacts with a minimun of activated taxels, is this neccesary or correct?
         //reference code use to count contacts per body part and consider moment zero only when there are more than one contact (why?)
-        for(iCub::skinDynLib::skinContactList::iterator it=contactsReadFromSkin.begin(); it!=contactsReadFromSkin.end(); it++)
+        for(iCub::skinDynLib::skinContactList::iterator it=scl->begin(); it!=scl->end(); it++)
         {
              //  less than 10 taxels are active then suppose zero moment
             if( it->getActiveTaxels()<10)
             {
                 it->fixMoment();
+                yWarning() << "wholeBodyDynamics: less than 10 taxels are active then suppose zero moment";
             }
 
             //Insert a contact in skinContacts only if the number of taxel is greater than ActiveTaxels
             if( (int)it->getActiveTaxels() > min_taxel )
             {
                 contactsReadFromSkin.insert(contactsReadFromSkin.end(),*it);
+                numberOfContacts++;
             }
         }
+        yWarning() << "wholeBodyDynamics: numberOfContacts inserted in contactsReadFromSkin = "<<numberOfContacts;
     }
     else
     {
@@ -1404,14 +1409,15 @@ void WholeBodyDynamicsDevice::readContactPoints()
     {
 
         numberOfContacts= measuredContactLocations.getNrOfContactsForLink(linkIndex);
-
+    yWarning() << "wholeBodyDynamics: numberOfContacts in measuredContactLocations = "<<numberOfContacts<< " in linkIndex "<<linkIndex;
         if( numberOfContacts >0)
         {
             subModelIndex = estimator.submodels().getSubModelOfLink(linkIndex);
             yInfo()<<"Found contacts in link "<< linkIndex;
+            contacts_for_given_subModel[subModelIndex]++;
         }
 
-        contacts_for_given_subModel[subModelIndex]++;
+
 
     }
 
@@ -1419,7 +1425,7 @@ void WholeBodyDynamicsDevice::readContactPoints()
     {
         if( contacts_for_given_subModel[subModel] == 0 )
         {
-
+        yWarning() << "wholeBodyDynamics: using default contact location in submodel "<<subModel;
             bool ok = measuredContactLocations.addNewContactInFrame(estimator.model(),
                                                                     subModelIndex2DefaultContact[subModel], //frameIndex in iDynTree
                                                                     iDynTree::UnknownWrenchContact(iDynTree::FULL_WRENCH,iDynTree::Position::Zero()));
@@ -1427,6 +1433,10 @@ void WholeBodyDynamicsDevice::readContactPoints()
             {
                 yWarning() << "wholeBodyDynamics: Failing in adding default contact for submodel " << subModel;
             }
+        }
+        else
+        {
+             yWarning() << "wholeBodyDynamics: number of contacts in submodel "<<subModel<<" = "<<contacts_for_given_subModel[subModel];
         }
     }
 
