@@ -1326,7 +1326,7 @@ void WholeBodyDynamicsDevice::readContactPoints()
     size_t nrOfSubModels = estimator.submodels().getNrOfSubModels();
 
     // read skin
-    iCub::skinDynLib::skinContactList *scl =this->portContactsInput.read(false);
+    iCub::skinDynLib::skinContactList *scl =this->portContactsInput.read(false); //this could also mean no new message
     if(scl && useSkinContact)
     {
         int numberOfContacts=0;
@@ -1411,18 +1411,39 @@ void WholeBodyDynamicsDevice::readContactPoints()
         // For now just put the default contact points
         //This logic only gives the location of the contacts but it does not store any value of pressure or wrench in the contact,
 
-        for(size_t subModel = 0; subModel < nrOfSubModels; subModel++)
+        if (contactsReadFromSkin.empty())
         {
-            bool ok = measuredContactLocations.addNewContactInFrame(estimator.model(),
-                                                                    subModelIndex2DefaultContact[subModel], //frameIndex in iDynTree
-                                                                    iDynTree::UnknownWrenchContact(iDynTree::FULL_WRENCH,iDynTree::Position::Zero()));
-            if( !ok )
+            yWarning() << "wholeBodyDynamics: attempting to use previous contacts but previous contacts is empty using default contacts instead";
+            for(size_t subModel = 0; subModel < nrOfSubModels; subModel++)
             {
-                yWarning() << "wholeBodyDynamics: Failing in adding default contact for submodel " << subModel;
+                bool ok = measuredContactLocations.addNewContactInFrame(estimator.model(),
+                                                                        subModelIndex2DefaultContact[subModel], //frameIndex in iDynTree
+                                                                        iDynTree::UnknownWrenchContact(iDynTree::FULL_WRENCH,iDynTree::Position::Zero()));
+                if( !ok )
+                {
+                    yWarning() << "wholeBodyDynamics: Failing in adding default contact for submodel " << subModel;
+                }
+
+
+
+
             }
         }
 
-        // Todo: read contact positions from skin
+        //< \todo TODO this (using the last contacts if no contacts are detected) should be at subtree level, not at global level??
+        // ask what is intended with this TODO
+        else
+        {
+            for(iCub::skinDynLib::skinContactList::iterator it=contactsReadFromSkin.begin(); it!=contactsReadFromSkin.end(); it++)
+            {
+                it->setPressure(0.0);
+                it->setActiveTaxels(0);
+                yWarning() << "wholeBodyDynamics: skincontactlist empty, setting pressure and active taxels to 0";
+                numberOfContacts++;
+            }
+            yWarning() << "wholeBodyDynamics: numberOfContacts in contactsReadFromSkin from previous contacts = "<<numberOfContacts;
+
+        }
 
         return;
     }
