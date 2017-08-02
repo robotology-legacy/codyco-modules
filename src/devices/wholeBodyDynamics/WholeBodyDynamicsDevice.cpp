@@ -1322,14 +1322,14 @@ void WholeBodyDynamicsDevice::readContactPoints()
     // robot is divided by the F/T sensors.
 	yWarning() << "wholeBodyDynamics: starting readContactPoints";
     measuredContactLocations.clear();
-
+    int numberOfContacts=0;
     size_t nrOfSubModels = estimator.submodels().getNrOfSubModels();
 
     // read skin
-    iCub::skinDynLib::skinContactList *scl =this->portContactsInput.read(false); //this could also mean no new message
+    iCub::skinDynLib::skinContactList *scl =this->portContactsInput.read(false); //scl=null could also mean no new message
     if(scl && useSkinContact)
     {
-        int numberOfContacts=0;
+
         //< \todo TODO check for envelope?
         last_reading_skin_contact_list_Stamp = yarp::os::Time::now();
         if(scl->empty())   // if no skin contacts => leave the old contacts but reset pressure and contact list
@@ -1455,7 +1455,7 @@ void WholeBodyDynamicsDevice::readContactPoints()
     //declare and initialize contact count to 0
     std::vector<int> contacts_for_given_subModel(nrOfSubModels,0);
 
-    int numberOfContacts=0;
+    numberOfContacts=0;
     int subModelIndex=0;
     // check each link to see if they have and assigned contact in which case check the subModelIndex
      yWarning() << "wholeBodyDynamics: check each link to see if they have and assigned contact ";
