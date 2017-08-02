@@ -1320,7 +1320,7 @@ void WholeBodyDynamicsDevice::readContactPoints()
     // In this function the location of the external forces acting on the robot
     // are computed. The basic strategy is to assume a contact for each subtree in which the
     // robot is divided by the F/T sensors.
-
+	yWarning() << "wholeBodyDynamics: starting readContactPoints";
     measuredContactLocations.clear();
 
     size_t nrOfSubModels = estimator.submodels().getNrOfSubModels();
