@@ -1353,6 +1353,7 @@ void WholeBodyDynamicsDevice::readContactPoints()
 
 
                 }
+                return;
             }
 
             //< \todo TODO this (using the last contacts if no contacts are detected) should be at subtree level, not at global level??
@@ -1370,7 +1371,7 @@ void WholeBodyDynamicsDevice::readContactPoints()
 
             }
 
-            return;
+
         }
         else
         {
@@ -1428,6 +1429,7 @@ void WholeBodyDynamicsDevice::readContactPoints()
 
 
             }
+            return;
         }
 
         //< \todo TODO this (using the last contacts if no contacts are detected) should be at subtree level, not at global level??
@@ -1445,7 +1447,7 @@ void WholeBodyDynamicsDevice::readContactPoints()
 
         }
 
-        return;
+        //return;
     }
 
     // convert skinContactList into LinkUnknownWrenchContacts TODO: change function to keep and store wrench information only contact location and force directionis kept
