@@ -1320,7 +1320,7 @@ void WholeBodyDynamicsDevice::readContactPoints()
     // In this function the location of the external forces acting on the robot
     // are computed. The basic strategy is to assume a contact for each subtree in which the
     // robot is divided by the F/T sensors.
-	yWarning() << "wholeBodyDynamics: starting readContactPoints";
+    yInfo() << "wholeBodyDynamics: starting readContactPoints";
     measuredContactLocations.clear();
     int numberOfContacts=0;
     size_t nrOfSubModels = estimator.submodels().getNrOfSubModels();
@@ -1338,7 +1338,7 @@ void WholeBodyDynamicsDevice::readContactPoints()
 
             if (contactsReadFromSkin.empty())
             {
-                yWarning() << "wholeBodyDynamics: attempting to use previous contacts but previous contacts is empty using default contacts instead";
+                yInfo() << "wholeBodyDynamics: attempting to use previous contacts but previous contacts is empty using default contacts instead";
                 for(size_t subModel = 0; subModel < nrOfSubModels; subModel++)
                 {
                     bool ok = measuredContactLocations.addNewContactInFrame(estimator.model(),
@@ -1364,10 +1364,10 @@ void WholeBodyDynamicsDevice::readContactPoints()
                 {
                     it->setPressure(0.0);
                     it->setActiveTaxels(0);
-                    yWarning() << "wholeBodyDynamics: skincontactlist empty, setting pressure and active taxels to 0";
+                    yDebug() << "wholeBodyDynamics: skincontactlist empty, setting pressure and active taxels to 0";
                     numberOfContacts++;
                 }
-                yWarning() << "wholeBodyDynamics: numberOfContacts in contactsReadFromSkin from previous contacts = "<<numberOfContacts;
+                yInfo() << "wholeBodyDynamics: numberOfContacts in contactsReadFromSkin from previous contacts = "<<numberOfContacts;
 
             }
 
@@ -1376,7 +1376,7 @@ void WholeBodyDynamicsDevice::readContactPoints()
         else
         {
             contactsReadFromSkin.clear();
-            yWarning() << "wholeBodyDynamics: clear contactsReadFromSkin ";
+            yDebug() << "wholeBodyDynamics: clear contactsReadFromSkin ";
             int min_taxel=5;//might become a configuration variable
             //consider only contacts with a minimun of activated taxels, is this neccesary or correct?
             //reference code use to count contacts per body part and consider moment zero only when there are more than one contact (why?)
@@ -1386,7 +1386,7 @@ void WholeBodyDynamicsDevice::readContactPoints()
                     if( it->getActiveTaxels()<10)
             {
                     it->fixMoment();
-                    yWarning() << "wholeBodyDynamics: less than 10 taxels are active then suppose zero moment";
+                    yDebug() << "wholeBodyDynamics: less than 10 taxels are active then suppose zero moment";
                 }
 
                 //Insert a contact in skinContacts only if the number of taxel is greater than ActiveTaxels
@@ -1396,7 +1396,7 @@ void WholeBodyDynamicsDevice::readContactPoints()
                     numberOfContacts++;
                 }
             }
-            yWarning() << "wholeBodyDynamics: numberOfContacts inserted in contactsReadFromSkin = "<<numberOfContacts;
+            yInfo() << "wholeBodyDynamics: numberOfContacts inserted in contactsReadFromSkin = "<<numberOfContacts;
         }
     }
     else
@@ -1405,7 +1405,7 @@ void WholeBodyDynamicsDevice::readContactPoints()
         {
 
             contactsReadFromSkin.clear();
-            yWarning() << "wholeBodyDynamics: Resetting skin contact for timeout";
+            yInfo() << "wholeBodyDynamics: Resetting skin contact for timeout";
         }
 
         yInfo() << "wholeBodyDynamics: Using default contact";
@@ -1414,7 +1414,7 @@ void WholeBodyDynamicsDevice::readContactPoints()
 
         if (contactsReadFromSkin.empty())
         {
-            yWarning() << "wholeBodyDynamics: previous contacts is empty using default contacts instead";
+            yInfo() << "wholeBodyDynamics: previous contacts is empty using default contacts instead";
             for(size_t subModel = 0; subModel < nrOfSubModels; subModel++)
             {
                 bool ok = measuredContactLocations.addNewContactInFrame(estimator.model(),
@@ -1443,7 +1443,7 @@ void WholeBodyDynamicsDevice::readContactPoints()
                 yWarning() << "wholeBodyDynamics: skincontactlist empty, setting pressure and active taxels to 0";
                 numberOfContacts++;
             }
-            yWarning() << "wholeBodyDynamics: numberOfContacts in contactsReadFromSkin from previous contacts = "<<numberOfContacts;
+            yInfo() << "wholeBodyDynamics: numberOfContacts in contactsReadFromSkin from previous contacts = "<<numberOfContacts;
 
         }
 
@@ -1451,7 +1451,7 @@ void WholeBodyDynamicsDevice::readContactPoints()
     }
 
     // convert skinContactList into LinkUnknownWrenchContacts TODO: change function to keep and store wrench information only contact location and force directionis kept
-   yWarning() << "wholeBodyDynamics: using conversion helper from contactsReadFromSkin to measuredContactLocations ";
+   yDebug() << "wholeBodyDynamics: using conversion helper from contactsReadFromSkin to measuredContactLocations ";
     conversionHelper.fromSkinDynLibToiDynTree(estimator.model(),contactsReadFromSkin,measuredContactLocations);
 
     //declare and initialize contact count to 0
@@ -1460,16 +1460,16 @@ void WholeBodyDynamicsDevice::readContactPoints()
     numberOfContacts=0;
     int subModelIndex=0;
     // check each link to see if they have and assigned contact in which case check the subModelIndex
-     yWarning() << "wholeBodyDynamics: check each link to see if they have and assigned contact ";
+     yDebug() << "wholeBodyDynamics: check each link to see if they have and assigned contact ";
     for(size_t linkIndex = 0; linkIndex < estimator.model().getNrOfLinks(); linkIndex++)
     {
 
         numberOfContacts= measuredContactLocations.getNrOfContactsForLink(linkIndex);
-    yWarning() << "wholeBodyDynamics: numberOfContacts in measuredContactLocations = "<<numberOfContacts<< " in linkIndex "<<linkIndex;
+    yDebug() << "wholeBodyDynamics: numberOfContacts in measuredContactLocations = "<<numberOfContacts<< " in linkIndex "<<linkIndex;
         if( numberOfContacts >0)
         {
             subModelIndex = estimator.submodels().getSubModelOfLink(linkIndex);
-            yInfo()<<"Found contacts in link "<< linkIndex;
+            yDebug()<<"wholeBodyDynamics: Found contacts in link "<< linkIndex;
             contacts_for_given_subModel[subModelIndex]++;
         }
 
@@ -1481,7 +1481,7 @@ void WholeBodyDynamicsDevice::readContactPoints()
     {
         if( contacts_for_given_subModel[subModel] == 0 )
         {
-        yWarning() << "wholeBodyDynamics: using default contact location in submodel "<<subModel;
+        yDebug() << "wholeBodyDynamics: using default contact location in submodel "<<subModel;
             bool ok = measuredContactLocations.addNewContactInFrame(estimator.model(),
                                                                     subModelIndex2DefaultContact[subModel], //frameIndex in iDynTree
                                                                     iDynTree::UnknownWrenchContact(iDynTree::FULL_WRENCH,iDynTree::Position::Zero()));
@@ -1492,7 +1492,7 @@ void WholeBodyDynamicsDevice::readContactPoints()
         }
         else
         {
-             yWarning() << "wholeBodyDynamics: number of contacts in submodel "<<subModel<<" = "<<contacts_for_given_subModel[subModel];
+             yDebug() << "wholeBodyDynamics: number of contacts in submodel "<<subModel<<" = "<<contacts_for_given_subModel[subModel];
         }
     }
 
