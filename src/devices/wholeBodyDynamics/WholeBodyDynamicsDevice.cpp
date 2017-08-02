@@ -1375,7 +1375,7 @@ void WholeBodyDynamicsDevice::readContactPoints()
         else
         {
             contactsReadFromSkin.clear();
-
+            yWarning() << "wholeBodyDynamics: clear contactsReadFromSkin ";
             int min_taxel=5;//might become a configuration variable
             //consider only contacts with a minimun of activated taxels, is this neccesary or correct?
             //reference code use to count contacts per body part and consider moment zero only when there are more than one contact (why?)
@@ -1413,7 +1413,7 @@ void WholeBodyDynamicsDevice::readContactPoints()
 
         if (contactsReadFromSkin.empty())
         {
-            yWarning() << "wholeBodyDynamics: attempting to use previous contacts but previous contacts is empty using default contacts instead";
+            yWarning() << "wholeBodyDynamics: previous contacts is empty using default contacts instead";
             for(size_t subModel = 0; subModel < nrOfSubModels; subModel++)
             {
                 bool ok = measuredContactLocations.addNewContactInFrame(estimator.model(),
