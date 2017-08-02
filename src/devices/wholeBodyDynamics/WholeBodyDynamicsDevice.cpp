@@ -1329,6 +1329,7 @@ void WholeBodyDynamicsDevice::readContactPoints()
     iCub::skinDynLib::skinContactList *scl =this->portContactsInput.read(false);
     if(scl && useSkinContact)
     {
+        int numberOfContacts=0;
         //< \todo TODO check for envelope?
         last_reading_skin_contact_list_Stamp = yarp::os::Time::now();
         if(scl->empty())   // if no skin contacts => leave the old contacts but reset pressure and contact list
@@ -1340,32 +1341,36 @@ void WholeBodyDynamicsDevice::readContactPoints()
                 it->setPressure(0.0);
                 it->setActiveTaxels(0);
                 yWarning() << "wholeBodyDynamics: skincontactlist empty, setting pressure and active taxels to 0";
-            }
-            return;
-        }
-
-        contactsReadFromSkin.clear();
-        int numberOfContacts=0;
-        int min_taxel=5;//might become a configuration variable
-        //consider only contacts with a minimun of activated taxels, is this neccesary or correct?
-        //reference code use to count contacts per body part and consider moment zero only when there are more than one contact (why?)
-        for(iCub::skinDynLib::skinContactList::iterator it=scl->begin(); it!=scl->end(); it++)
-        {
-             //  less than 10 taxels are active then suppose zero moment
-            if( it->getActiveTaxels()<10)
-            {
-                it->fixMoment();
-                yWarning() << "wholeBodyDynamics: less than 10 taxels are active then suppose zero moment";
-            }
-
-            //Insert a contact in skinContacts only if the number of taxel is greater than ActiveTaxels
-            if( (int)it->getActiveTaxels() > min_taxel )
-            {
-                contactsReadFromSkin.insert(contactsReadFromSkin.end(),*it);
                 numberOfContacts++;
             }
+            yWarning() << "wholeBodyDynamics: numberOfContacts in contactsReadFromSkin from previous contacts = "<<numberOfContacts;
+            return;
         }
-        yWarning() << "wholeBodyDynamics: numberOfContacts inserted in contactsReadFromSkin = "<<numberOfContacts;
+        else
+        {
+            contactsReadFromSkin.clear();
+
+            int min_taxel=5;//might become a configuration variable
+            //consider only contacts with a minimun of activated taxels, is this neccesary or correct?
+            //reference code use to count contacts per body part and consider moment zero only when there are more than one contact (why?)
+            for(iCub::skinDynLib::skinContactList::iterator it=scl->begin(); it!=scl->end(); it++)
+            {
+                //  less than 10 taxels are active then suppose zero moment
+                if( it->getActiveTaxels()<10)
+                {
+                    it->fixMoment();
+                    yWarning() << "wholeBodyDynamics: less than 10 taxels are active then suppose zero moment";
+                }
+
+                //Insert a contact in skinContacts only if the number of taxel is greater than ActiveTaxels
+                if( (int)it->getActiveTaxels() > min_taxel )
+                {
+                    contactsReadFromSkin.insert(contactsReadFromSkin.end(),*it);
+                    numberOfContacts++;
+                }
+            }
+            yWarning() << "wholeBodyDynamics: numberOfContacts inserted in contactsReadFromSkin = "<<numberOfContacts;
+        }
     }
     else
     {
@@ -1397,6 +1402,7 @@ void WholeBodyDynamicsDevice::readContactPoints()
     }
 
     // convert skinContactList into LinkUnknownWrenchContacts TODO: change function to keep and store wrench information only contact location and force directionis kept
+   yWarning() << "wholeBodyDynamics: using conversion helper from contactsReadFromSkin to measuredContactLocations ";
     conversionHelper.fromSkinDynLibToiDynTree(estimator.model(),contactsReadFromSkin,measuredContactLocations);
 
     //declare and initialize contact count to 0
@@ -1405,6 +1411,7 @@ void WholeBodyDynamicsDevice::readContactPoints()
     int numberOfContacts=0;
     int subModelIndex=0;
     // check each link to see if they have and assigned contact in which case check the subModelIndex
+     yWarning() << "wholeBodyDynamics: check each link to see if they have and assigned contact ";
     for(size_t linkIndex = 0; linkIndex < estimator.model().getNrOfLinks(); linkIndex++)
     {
 
