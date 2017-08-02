@@ -1402,6 +1402,7 @@ void WholeBodyDynamicsDevice::readContactPoints()
     }
 
     // convert skinContactList into LinkUnknownWrenchContacts TODO: change function to keep and store wrench information only contact location and force directionis kept
+   yWarning() << "wholeBodyDynamics: using conversion helper from contactsReadFromSkin to measuredContactLocations ";
     conversionHelper.fromSkinDynLibToiDynTree(estimator.model(),contactsReadFromSkin,measuredContactLocations);
 
     //declare and initialize contact count to 0
@@ -1410,6 +1411,7 @@ void WholeBodyDynamicsDevice::readContactPoints()
     int numberOfContacts=0;
     int subModelIndex=0;
     // check each link to see if they have and assigned contact in which case check the subModelIndex
+     yWarning() << "wholeBodyDynamics: check each link to see if they have and assigned contact ";
     for(size_t linkIndex = 0; linkIndex < estimator.model().getNrOfLinks(); linkIndex++)
     {
 
