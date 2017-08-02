@@ -1334,16 +1334,42 @@ void WholeBodyDynamicsDevice::readContactPoints()
         last_reading_skin_contact_list_Stamp = yarp::os::Time::now();
         if(scl->empty())   // if no skin contacts => leave the old contacts but reset pressure and contact list
         {
+
+
+            if (contactsReadFromSkin.empty())
+            {
+                yWarning() << "wholeBodyDynamics: attempting to use previous contacts but previous contacts is empty using default contacts instead";
+                for(size_t subModel = 0; subModel < nrOfSubModels; subModel++)
+                {
+                    bool ok = measuredContactLocations.addNewContactInFrame(estimator.model(),
+                                                                            subModelIndex2DefaultContact[subModel], //frameIndex in iDynTree
+                                                                            iDynTree::UnknownWrenchContact(iDynTree::FULL_WRENCH,iDynTree::Position::Zero()));
+                    if( !ok )
+                    {
+                        yWarning() << "wholeBodyDynamics: Failing in adding default contact for submodel " << subModel;
+                    }
+
+
+
+
+                }
+            }
+
             //< \todo TODO this (using the last contacts if no contacts are detected) should be at subtree level, not at global level??
             // ask what is intended with this TODO
-            for(iCub::skinDynLib::skinContactList::iterator it=contactsReadFromSkin.begin(); it!=contactsReadFromSkin.end(); it++)
+            else
             {
-                it->setPressure(0.0);
-                it->setActiveTaxels(0);
-                yWarning() << "wholeBodyDynamics: skincontactlist empty, setting pressure and active taxels to 0";
-                numberOfContacts++;
+                for(iCub::skinDynLib::skinContactList::iterator it=contactsReadFromSkin.begin(); it!=contactsReadFromSkin.end(); it++)
+                {
+                    it->setPressure(0.0);
+                    it->setActiveTaxels(0);
+                    yWarning() << "wholeBodyDynamics: skincontactlist empty, setting pressure and active taxels to 0";
+                    numberOfContacts++;
+                }
+                yWarning() << "wholeBodyDynamics: numberOfContacts in contactsReadFromSkin from previous contacts = "<<numberOfContacts;
+
             }
-            yWarning() << "wholeBodyDynamics: numberOfContacts in contactsReadFromSkin from previous contacts = "<<numberOfContacts;
+
             return;
         }
         else
@@ -1353,11 +1379,11 @@ void WholeBodyDynamicsDevice::readContactPoints()
             int min_taxel=5;//might become a configuration variable
             //consider only contacts with a minimun of activated taxels, is this neccesary or correct?
             //reference code use to count contacts per body part and consider moment zero only when there are more than one contact (why?)
-            for(iCub::skinDynLib::skinContactList::iterator it=scl->begin(); it!=scl->end(); it++)
+                    for(iCub::skinDynLib::skinContactList::iterator it=scl->begin(); it!=scl->end(); it++)
             {
-                //  less than 10 taxels are active then suppose zero moment
-                if( it->getActiveTaxels()<10)
-                {
+                    //  less than 10 taxels are active then suppose zero moment
+                    if( it->getActiveTaxels()<10)
+            {
                     it->fixMoment();
                     yWarning() << "wholeBodyDynamics: less than 10 taxels are active then suppose zero moment";
                 }
