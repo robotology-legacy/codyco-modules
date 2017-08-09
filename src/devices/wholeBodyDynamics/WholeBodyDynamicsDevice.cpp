@@ -1320,7 +1320,7 @@ void WholeBodyDynamicsDevice::readContactPoints()
     // In this function the location of the external forces acting on the robot
     // are computed. The basic strategy is to assume a contact for each subtree in which the
     // robot is divided by the F/T sensors.
-    yInfo() << "wholeBodyDynamics: starting readContactPoints";
+
     measuredContactLocations.clear();
     int numberOfContacts=0;
     size_t nrOfSubModels = estimator.submodels().getNrOfSubModels();
@@ -1338,7 +1338,7 @@ void WholeBodyDynamicsDevice::readContactPoints()
 
             if (contactsReadFromSkin.empty())
             {
-                yInfo() << "wholeBodyDynamics: attempting to use previous contacts but previous contacts is empty using default contacts instead";
+
                 for(size_t subModel = 0; subModel < nrOfSubModels; subModel++)
                 {
                     bool ok = measuredContactLocations.addNewContactInFrame(estimator.model(),
@@ -1364,7 +1364,6 @@ void WholeBodyDynamicsDevice::readContactPoints()
                 {
                     it->setPressure(0.0);
                     it->setActiveTaxels(0);
-                    yDebug() << "wholeBodyDynamics: skincontactlist empty, setting pressure and active taxels to 0";
                     numberOfContacts++;
                 }
                 yInfo() << "wholeBodyDynamics: numberOfContacts in contactsReadFromSkin from previous contacts = "<<numberOfContacts;
@@ -1376,25 +1375,19 @@ void WholeBodyDynamicsDevice::readContactPoints()
         else
         {
             contactsReadFromSkin.clear();
-            yDebug() << "wholeBodyDynamics: clear contactsReadFromSkin ";
-            int min_taxel=5;//might become a configuration variable
-            //consider only contacts with a minimun of activated taxels, is this neccesary or correct?
-            //reference code use to count contacts per body part and consider moment zero only when there are more than one contact (why?)
-                    for(iCub::skinDynLib::skinContactList::iterator it=scl->begin(); it!=scl->end(); it++)
+            for(iCub::skinDynLib::skinContactList::iterator it=scl->begin(); it!=scl->end(); it++)
             {
-                    //  less than 10 taxels are active then suppose zero moment
-                    if( it->getActiveTaxels()<10)
-            {
+                //  less than 10 taxels are active then suppose zero moment
+                if( it->getActiveTaxels()<10)
+                {
                     it->fixMoment();
                     yDebug() << "wholeBodyDynamics: less than 10 taxels are active then suppose zero moment";
                 }
 
-                //Insert a contact in skinContacts only if the number of taxel is greater than ActiveTaxels
-                if( (int)it->getActiveTaxels() > min_taxel )
-                {
-                    contactsReadFromSkin.insert(contactsReadFromSkin.end(),*it);
-                    numberOfContacts++;
-                }
+
+                contactsReadFromSkin.insert(contactsReadFromSkin.end(),*it);
+                numberOfContacts++;
+
             }
             yInfo() << "wholeBodyDynamics: numberOfContacts inserted in contactsReadFromSkin = "<<numberOfContacts;
         }
