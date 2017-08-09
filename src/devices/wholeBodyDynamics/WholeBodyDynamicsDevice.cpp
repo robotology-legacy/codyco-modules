@@ -566,6 +566,8 @@ bool WholeBodyDynamicsDevice::loadSettingsFromConfig(os::Searchable& config)
     settings.forceTorqueFilterCutoffInHz = 3.0;
     settings.jointVelFilterCutoffInHz    = 3.0;
     settings.jointAccFilterCutoffInHz    = 3.0;
+    //set to 2 so that by default it wont use the skin force calibration
+    trustSkinThreshold                   = 2;
 
     yarp::os::Property prop;
     prop.fromString(config.toString().c_str());
@@ -628,6 +630,18 @@ bool WholeBodyDynamicsDevice::loadSettingsFromConfig(os::Searchable& config)
     {
         yError() << "wholeBodyDynamics : missing required parameter fixedFrameGravity";
         return false;
+    }
+
+
+
+
+    if( prop.check("trustSkinThreshold") && prop.find("trustSkinThreshold").isInt() )
+    {
+        trustSkinThreshold = prop.find("trustSkinThreshold").asInt();
+    }
+    else
+    {
+        yWarning() << "wholeBodyDynamics : missing parameter trustSkinThreshold";
     }
 
     return true;
@@ -1309,22 +1323,177 @@ void WholeBodyDynamicsDevice::readContactPoints()
     // robot is divided by the F/T sensors.
 
     measuredContactLocations.clear();
-
-    // For now just put the default contact points
+    int numberOfContacts=0;
     size_t nrOfSubModels = estimator.submodels().getNrOfSubModels();
+
+    // read skin
+    iCub::skinDynLib::skinContactList *scl =this->portContactsInput.read(false); //scl=null could also mean no new message
+    if(scl)
+    {
+
+        //< \todo TODO check for envelope?
+        last_reading_skin_contact_list_Stamp = yarp::os::Time::now();
+        if(scl->empty())   // if no skin contacts => leave the old contacts but reset pressure and contact list
+        {
+
+
+            if (contactsReadFromSkin.empty())
+            {
+
+                for(size_t subModel = 0; subModel < nrOfSubModels; subModel++)
+                {
+                    bool ok = measuredContactLocations.addNewContactInFrame(estimator.model(),
+                                                                            subModelIndex2DefaultContact[subModel], //frameIndex in iDynTree
+                                                                            iDynTree::UnknownWrenchContact(iDynTree::FULL_WRENCH,iDynTree::Position::Zero()));
+                    if( !ok )
+                    {
+                        yWarning() << "wholeBodyDynamics: Failing in adding default contact for submodel " << subModel;
+                    }
+
+
+
+
+                }
+                return;
+            }
+
+            //< \todo TODO this (using the last contacts if no contacts are detected) should be at subtree level, not at global level??
+            // ask what is intended with this TODO
+            else
+            {
+                for(iCub::skinDynLib::skinContactList::iterator it=contactsReadFromSkin.begin(); it!=contactsReadFromSkin.end(); it++)
+                {
+                    it->setPressure(0.0);
+                    it->setActiveTaxels(0);
+                    numberOfContacts++;
+                }
+                yInfo() << "wholeBodyDynamics: numberOfContacts in contactsReadFromSkin from previous contacts = "<<numberOfContacts;
+
+            }
+
+
+        }
+        else
+        {
+            contactsReadFromSkin.clear();
+            for(iCub::skinDynLib::skinContactList::iterator it=scl->begin(); it!=scl->end(); it++)
+            {
+                //  less than 10 taxels are active then suppose zero moment
+                if( it->getActiveTaxels()<10)
+                {
+                    it->fixMoment();
+                    yDebug() << "wholeBodyDynamics: less than 10 taxels are active then suppose zero moment";
+                }
+                //if the calibration is not good enough assume we do not know the magnitude of the force.
+                if (it->getTrustSkinThreshold()<this->trustSkinThreshold)
+                {
+                  it->setForceModule(0.0); //This should set wrenchKnown variable to false
+                  yDebug() << "wholeBodyDynamics: trustSkinThreshold less than required, not using force information from skin";
+
+                }
+                contactsReadFromSkin.insert(contactsReadFromSkin.end(),*it);
+                numberOfContacts++;
+
+            }
+            yInfo() << "wholeBodyDynamics: numberOfContacts inserted in contactsReadFromSkin = "<<numberOfContacts;
+        }
+    }
+    else
+    {
+        if(yarp::os::Time::now()-last_reading_skin_contact_list_Stamp>SKIN_EVENTS_TIMEOUT && last_reading_skin_contact_list_Stamp!=0.0)
+        {
+
+            contactsReadFromSkin.clear();
+            yInfo() << "wholeBodyDynamics: Resetting skin contact for timeout";
+        }
+
+        yInfo() << "wholeBodyDynamics: Using default contact";
+        // For now just put the default contact points
+        //This logic only gives the location of the contacts but it does not store any value of pressure or wrench in the contact,
+
+        if (contactsReadFromSkin.empty())
+        {
+            yInfo() << "wholeBodyDynamics: previous contacts is empty using default contacts instead";
+            for(size_t subModel = 0; subModel < nrOfSubModels; subModel++)
+            {
+                bool ok = measuredContactLocations.addNewContactInFrame(estimator.model(),
+                                                                        subModelIndex2DefaultContact[subModel], //frameIndex in iDynTree
+                                                                        iDynTree::UnknownWrenchContact(iDynTree::FULL_WRENCH,iDynTree::Position::Zero()));
+                if( !ok )
+                {
+                    yWarning() << "wholeBodyDynamics: Failing in adding default contact for submodel " << subModel;
+                }
+
+
+
+
+            }
+            return;
+        }
+
+        //< \todo TODO this (using the last contacts if no contacts are detected) should be at subtree level, not at global level??
+        // ask what is intended with this TODO
+        else
+        {
+            for(iCub::skinDynLib::skinContactList::iterator it=contactsReadFromSkin.begin(); it!=contactsReadFromSkin.end(); it++)
+            {
+                it->setPressure(0.0);
+                it->setActiveTaxels(0);
+                yWarning() << "wholeBodyDynamics: skincontactlist empty, setting pressure and active taxels to 0";
+                numberOfContacts++;
+            }
+            yInfo() << "wholeBodyDynamics: numberOfContacts in contactsReadFromSkin from previous contacts = "<<numberOfContacts;
+
+        }
+
+        //return;
+    }
+
+    // convert skinContactList into LinkUnknownWrenchContacts TODO: change function to keep and store wrench information only contact location and force directionis kept
+   yDebug() << "wholeBodyDynamics: using conversion helper from contactsReadFromSkin to measuredContactLocations ";
+    conversionHelper.fromSkinDynLibToiDynTree(estimator.model(),contactsReadFromSkin,measuredContactLocations);
+
+    //declare and initialize contact count to 0
+    std::vector<int> contacts_for_given_subModel(nrOfSubModels,0);
+
+    numberOfContacts=0;
+    int subModelIndex=0;
+    // check each link to see if they have and assigned contact in which case check the subModelIndex
+     yDebug() << "wholeBodyDynamics: check each link to see if they have and assigned contact ";
+    for(size_t linkIndex = 0; linkIndex < estimator.model().getNrOfLinks(); linkIndex++)
+    {
+
+        numberOfContacts= measuredContactLocations.getNrOfContactsForLink(linkIndex);
+    yDebug() << "wholeBodyDynamics: numberOfContacts in measuredContactLocations = "<<numberOfContacts<< " in linkIndex "<<linkIndex;
+        if( numberOfContacts >0)
+        {
+            subModelIndex = estimator.submodels().getSubModelOfLink(linkIndex);
+            yDebug()<<"wholeBodyDynamics: Found contacts in link "<< linkIndex;
+            contacts_for_given_subModel[subModelIndex]++;
+        }
+
+
+
+    }
 
     for(size_t subModel = 0; subModel < nrOfSubModels; subModel++)
     {
-        bool ok = measuredContactLocations.addNewContactInFrame(estimator.model(),
-                                                                subModelIndex2DefaultContact[subModel],
-                                                               iDynTree::UnknownWrenchContact(iDynTree::FULL_WRENCH,iDynTree::Position::Zero()));
-        if( !ok )
+        if( contacts_for_given_subModel[subModel] == 0 )
         {
-            yWarning() << "wholeBodyDynamics: Failing in adding default contact for submodel " << subModel;
+        yDebug() << "wholeBodyDynamics: using default contact location in submodel "<<subModel;
+            bool ok = measuredContactLocations.addNewContactInFrame(estimator.model(),
+                                                                    subModelIndex2DefaultContact[subModel], //frameIndex in iDynTree
+                                                                    iDynTree::UnknownWrenchContact(iDynTree::FULL_WRENCH,iDynTree::Position::Zero()));
+            if( !ok )
+            {
+                yWarning() << "wholeBodyDynamics: Failing in adding default contact for submodel " << subModel;
+            }
+        }
+        else
+        {
+             yDebug() << "wholeBodyDynamics: number of contacts in submodel "<<subModel<<" = "<<contacts_for_given_subModel[subModel];
         }
     }
-
-    // Todo: read contact positions from skin
 
     return;
 }
@@ -1408,6 +1577,7 @@ void WholeBodyDynamicsDevice::computeCalibration()
 void WholeBodyDynamicsDevice::computeExternalForcesAndJointTorques()
 {
     // The kinematics information was already set by the readSensorsAndUpdateKinematics method
+    //This is receiving contact location but no wrench information from the contacts TODO: integrate dynContact info
     estimationWentWell = estimator.estimateExtWrenchesAndJointTorques(measuredContactLocations,filteredSensorMeasurements,
                                                                        estimateExternalContactWrenches,estimatedJointTorques);
 }
