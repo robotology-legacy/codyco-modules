@@ -566,7 +566,8 @@ bool WholeBodyDynamicsDevice::loadSettingsFromConfig(os::Searchable& config)
     settings.forceTorqueFilterCutoffInHz = 3.0;
     settings.jointVelFilterCutoffInHz    = 3.0;
     settings.jointAccFilterCutoffInHz    = 3.0;
-    useSkinContact                       =false;
+    //set to 2 so that by default it wont use the skin force calibration
+    trustSkinThreshold                   = 2;
 
     yarp::os::Property prop;
     prop.fromString(config.toString().c_str());
@@ -634,13 +635,13 @@ bool WholeBodyDynamicsDevice::loadSettingsFromConfig(os::Searchable& config)
 
 
 
-    if( prop.check("useSkinContact") && prop.find("useSkinContact").isBool() )
+    if( prop.check("trustSkinThreshold") && prop.find("trustSkinThreshold").isInt() )
     {
-        useSkinContact = prop.find("useSkinContact").asBool();
+        trustSkinThreshold = prop.find("trustSkinThreshold").asInt();
     }
     else
     {
-        yWarning() << "wholeBodyDynamics : missing parameter useSkinContact";
+        yWarning() << "wholeBodyDynamics : missing parameter trustSkinThreshold";
     }
 
     return true;
@@ -1327,7 +1328,7 @@ void WholeBodyDynamicsDevice::readContactPoints()
 
     // read skin
     iCub::skinDynLib::skinContactList *scl =this->portContactsInput.read(false); //scl=null could also mean no new message
-    if(scl && useSkinContact)
+    if(scl)
     {
 
         //< \todo TODO check for envelope?
@@ -1383,8 +1384,13 @@ void WholeBodyDynamicsDevice::readContactPoints()
                     it->fixMoment();
                     yDebug() << "wholeBodyDynamics: less than 10 taxels are active then suppose zero moment";
                 }
+                //if the calibration is not good enough assume we do not know the magnitude of the force.
+                if (it->getTrustSkinThreshold()<this->trustSkinThreshold)
+                {
+                  it->setForceModule(0.0); //This should set wrenchKnown variable to false
+                  yDebug() << "wholeBodyDynamics: trustSkinThreshold less than required, not using force information from skin";
 
-
+                }
                 contactsReadFromSkin.insert(contactsReadFromSkin.end(),*it);
                 numberOfContacts++;
 

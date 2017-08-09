@@ -311,10 +311,11 @@ private:
     double  last_reading_skin_contact_list_Stamp;
 
     /**
-     * Flag set to false initially, then loaded from config file
+     * Integer set to 0 initially, then loaded from config file. It is a threshold to use the force skin
+     * information depending on the calibration trust levelof the skin
      * (enable or disable the use of skin information for determining contact location).
      */
-    bool useSkinContact;
+    int trustSkinThreshold;
 
 
     /**
