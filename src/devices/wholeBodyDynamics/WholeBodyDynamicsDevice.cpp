@@ -568,6 +568,9 @@ bool WholeBodyDynamicsDevice::loadSettingsFromConfig(os::Searchable& config)
     settings.jointVelFilterCutoffInHz    = 3.0;
     settings.jointAccFilterCutoffInHz    = 3.0;
 
+    //set to 2 so that by default it wont use the skin force calibration
+    trustSkinThreshold                   = 2;
+
     yarp::os::Property prop;
     prop.fromString(config.toString().c_str());
 
@@ -629,6 +632,17 @@ bool WholeBodyDynamicsDevice::loadSettingsFromConfig(os::Searchable& config)
     {
         yError() << "wholeBodyDynamics : missing required parameter fixedFrameGravity";
         return false;
+    }
+
+
+
+    if( prop.check("trustSkinThreshold") && prop.find("trustSkinThreshold").isInt() )
+    {
+        trustSkinThreshold = prop.find("trustSkinThreshold").asInt();
+    }
+    else
+    {
+        yWarning() << "wholeBodyDynamics : missing parameter trustSkinThreshold";
     }
 
     return true;
@@ -1358,6 +1372,14 @@ void WholeBodyDynamicsDevice::readContactPoints()
                 if( it->getActiveTaxels()<10)
                 {
                     it->fixMoment();                    
+                }
+
+                //if the calibration is not good enough assume we do not know the magnitude of the force.
+                if (it->getTrustSkinThreshold()<this->trustSkinThreshold)
+                {
+                  it->setForceModule(0.0); //This should set wrenchKnown variable to false
+                  //yDebug() << "wholeBodyDynamics: trustSkinThreshold less than required, not using force information from skin"; //leaving it temporarily for debug when testing on robot
+
                 }
                 contactsReadFromSkin.insert(contactsReadFromSkin.end(),*it);
                 numberOfContacts++;

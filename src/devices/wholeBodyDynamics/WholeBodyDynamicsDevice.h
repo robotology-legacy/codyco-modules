@@ -311,6 +311,13 @@ private:
     double  lastReadingSkinContactListStamp;
 
     /**
+     * Integer set to 0 initially, then loaded from config file. It is a threshold to use the force skin
+     * information depending on the calibration trust levelof the skin
+     * (enable or disable the use of skin information for determining contact location).
+     */
+    int trustSkinThreshold;
+
+    /**
      * Names of the axis (joint with at least a degree of freedom) used in estimation.
      */
     std::vector<std::string> estimationJointNames;
