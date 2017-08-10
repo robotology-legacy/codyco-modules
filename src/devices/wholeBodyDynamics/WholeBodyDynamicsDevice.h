@@ -1,6 +1,8 @@
 #ifndef CODYCO_WHOLE_BODY_DYNAMICS_DEVICE_H
 #define CODYCO_WHOLE_BODY_DYNAMICS_DEVICE_H
 
+
+
 // YARP includes
 #include <yarp/dev/DeviceDriver.h>
 #include <yarp/dev/PolyDriver.h>
@@ -302,6 +304,11 @@ private:
      */
     bool validOffsetAvailable;
 
+    /**
+     * Double to keep track of last time skin was read
+     * (to verify timeouts).
+     */
+    double  lastReadingSkinContactListStamp;
 
     /**
      * Names of the axis (joint with at least a degree of freedom) used in estimation.
