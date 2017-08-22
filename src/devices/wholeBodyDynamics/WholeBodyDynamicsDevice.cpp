@@ -1377,9 +1377,14 @@ void WholeBodyDynamicsDevice::readContactPoints()
                 //if the calibration is not good enough assume we do not know the magnitude of the force.
                 if (it->getForceTorqueEstimateConfidence()<this->forceTorqueEstimateConfidence)
                 {
-                  it->setForceModule(0.0); //This should set wrenchKnown variable to false
+                  it->setForceModule(0.0); //This should set forceMomentKnown variable to false
                   //yDebug() << "wholeBodyDynamics: forceTorqueEstimateConfidence less than required, not using force information from skin"; //leaving it temporarily for debug when testing on robot
 
+                }
+                else
+                {   //if confidence is good enough verify moment is different from 0, force direction is a unit vector and force magnitude is different from 0
+                    //if all conditions are true which should be for force/torque estimation comming fron the skin set forceMomentKnown=true
+                    it->checkForceMomentKnown();
                 }
                 contactsReadFromSkin.insert(contactsReadFromSkin.end(),*it);
                 numberOfContacts++;
