@@ -311,11 +311,11 @@ private:
     double  lastReadingSkinContactListStamp;
 
     /**
-     * Integer set to 0 initially, then loaded from config file. It is a threshold to use the force skin
-     * information depending on the calibration trust levelof the skin
-     * (enable or disable the use of skin information for determining contact location).
+     * Integer set to 2 initially, then loaded from config file. Non-zero integer representing the confidence
+     * in the force/torque estimate provided by the skin calibration.
+     * (enable or disable the use of skin information for determining contact force/torque).
      */
-    int trustSkinThreshold;
+     unsigned int forceTorqueEstimateConfidence;
 
     /**
      * Names of the axis (joint with at least a degree of freedom) used in estimation.
