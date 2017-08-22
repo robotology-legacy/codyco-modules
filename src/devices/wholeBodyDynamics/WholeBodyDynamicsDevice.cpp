@@ -569,7 +569,7 @@ bool WholeBodyDynamicsDevice::loadSettingsFromConfig(os::Searchable& config)
     settings.jointAccFilterCutoffInHz    = 3.0;
 
     //set to 2 so that by default it wont use the skin force calibration
-    trustSkinThreshold                   = 2;
+    forceTorqueEstimateConfidence                   = 2;
 
     yarp::os::Property prop;
     prop.fromString(config.toString().c_str());
@@ -636,13 +636,13 @@ bool WholeBodyDynamicsDevice::loadSettingsFromConfig(os::Searchable& config)
 
 
 
-    if( prop.check("trustSkinThreshold") && prop.find("trustSkinThreshold").isInt() )
+    if( prop.check("forceTorqueEstimateConfidence") && prop.find("forceTorqueEstimateConfidence").isInt() )
     {
-        trustSkinThreshold = prop.find("trustSkinThreshold").asInt();
+        forceTorqueEstimateConfidence = prop.find("forceTorqueEstimateConfidence").asInt();
     }
     else
     {
-        yWarning() << "wholeBodyDynamics : missing parameter trustSkinThreshold";
+        yWarning() << "wholeBodyDynamics : missing parameter forceTorqueEstimateConfidence";
     }
 
     return true;
@@ -1375,10 +1375,10 @@ void WholeBodyDynamicsDevice::readContactPoints()
                 }
 
                 //if the calibration is not good enough assume we do not know the magnitude of the force.
-                if (it->getTrustSkinThreshold()<this->trustSkinThreshold)
+                if (it->getForceTorqueEstimateConfidence()<this->forceTorqueEstimateConfidence)
                 {
                   it->setForceModule(0.0); //This should set wrenchKnown variable to false
-                  //yDebug() << "wholeBodyDynamics: trustSkinThreshold less than required, not using force information from skin"; //leaving it temporarily for debug when testing on robot
+                  //yDebug() << "wholeBodyDynamics: forceTorqueEstimateConfidence less than required, not using force information from skin"; //leaving it temporarily for debug when testing on robot
 
                 }
                 contactsReadFromSkin.insert(contactsReadFromSkin.end(),*it);
