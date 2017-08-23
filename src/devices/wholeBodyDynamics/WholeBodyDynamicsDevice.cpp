@@ -1384,7 +1384,7 @@ void WholeBodyDynamicsDevice::readContactPoints()
                 else
                 {   //if confidence is good enough verify moment is different from 0, force direction is a unit vector and force magnitude is different from 0
                     //if all conditions are true which should be for force/torque estimation comming fron the skin set forceMomentKnown=true
-                    it->checkForceMomentKnown();
+                    it->fixForceMoment(it->getForceMoment());
                 }
                 contactsReadFromSkin.insert(contactsReadFromSkin.end(),*it);
                 numberOfContacts++;
