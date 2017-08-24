@@ -22,7 +22,7 @@ bool scriptModule::configure(ResourceFinder &rf) {
     else
         name="/walkPlayer";
 
-    contextPath=rf.getContextPath().c_str();
+    contextPath=rf.getHomeContextPath().c_str();
     fprintf(stderr,"||| contextPath: %s\n", contextPath.c_str());
 
     rpcPort.open((name+"/rpc").c_str());
