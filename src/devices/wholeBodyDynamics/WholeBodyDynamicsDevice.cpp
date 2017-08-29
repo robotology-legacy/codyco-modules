@@ -1378,13 +1378,14 @@ void WholeBodyDynamicsDevice::readContactPoints()
                 if (it->getForceTorqueEstimateConfidence()<this->forceTorqueEstimateConfidence)
                 {
                   it->setForceModule(0.0); //This should set forceMomentKnown variable to false
-                  //yDebug() << "wholeBodyDynamics: forceTorqueEstimateConfidence less than required, not using force information from skin"; //leaving it temporarily for debug when testing on robot
+                  yDebug() << "wholeBodyDynamics: forceTorqueEstimateConfidence less than required, not using force information from skin value="<<it->getForceTorqueEstimateConfidence() << "threshold value= " << forceTorqueEstimateConfidence; //leaving it temporarily for debug when testing on robot
 
                 }
                 else
                 {   //if confidence is good enough verify moment is different from 0, force direction is a unit vector and force magnitude is different from 0
                     //if all conditions are true which should be for force/torque estimation comming fron the skin set forceMomentKnown=true
                     it->fixForceMoment(it->getForceMoment());
+                 yDebug() << "wholeBodyDynamics: forceTorqueEstimateConfidence good enough value="<<it->getForceTorqueEstimateConfidence();
                 }
                 contactsReadFromSkin.insert(contactsReadFromSkin.end(),*it);
                 numberOfContacts++;
@@ -1435,17 +1436,17 @@ void WholeBodyDynamicsDevice::readContactPoints()
 
     //declare and initialize contact count to 0
     std::vector<int> contacts_for_given_subModel(nrOfSubModels,0);
-
     numberOfContacts=0;
     int subModelIndex=0;
     // check each link to see if they have and assigned contact in which case check the subModelIndex
     for(size_t linkIndex = 0; linkIndex < estimator.model().getNrOfLinks(); linkIndex++)
     {
         numberOfContacts= measuredContactLocations.getNrOfContactsForLink(linkIndex);
+      
         if( numberOfContacts >0)
         {
             subModelIndex = estimator.submodels().getSubModelOfLink(linkIndex);
-            contacts_for_given_subModel[subModelIndex]++;
+            contacts_for_given_subModel[subModelIndex]=numberOfContacts;
         }
     }
 
@@ -1461,10 +1462,10 @@ void WholeBodyDynamicsDevice::readContactPoints()
                 yWarning() << "wholeBodyDynamics: Failing in adding default contact for submodel " << subModel;
             }
         }
-        /*else
+        else // debuging comment
         {
              yDebug() << "wholeBodyDynamics: number of contacts in submodel "<<subModel<<" = "<<contacts_for_given_subModel[subModel];
-        }*/
+        }
     }
 
     return;
