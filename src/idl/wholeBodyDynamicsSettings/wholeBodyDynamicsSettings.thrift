@@ -15,6 +15,11 @@ enum KinematicSourceType {
       FIXED_FRAME
 }
 
+enum EstimationAlgorithmType {
+      DETERMINISTIC_ALGORITHM,
+      PROBABILISTIC_ALGORITHM
+}
+
 struct wholeBodyDynamicsSettings {
     1: KinematicSourceType kinematicSource; /** Specify the source of the kinematic information for one link, see KinematicSourceType information for more info. */
     2: string fixedFrameName; /** If kinematicSource is FIXED_LINK, specify the frame of the robot that we know to be fixed (i.e. not moving with respect to an inertial frame) */
@@ -26,4 +31,5 @@ struct wholeBodyDynamicsSettings {
     8: double jointAccFilterCutoffInHz;    /** Cutoff frequency(in Hz) of the first order filter of the joint accelerations */
     9: bool useJointVelocity; /** Use the joint velocity measurement if this is true, assume they are zero otherwise. */
     10: bool useJointAcceleration; /** Use the joint acceleration measurment if this is true, assume they are zero otherwise. */
+    11: EstimationAlgorithmType estimationAlgorithm; /** Specify the estimatiion algorithm used, see EstimationAlgorithmType for more info. */
 }
