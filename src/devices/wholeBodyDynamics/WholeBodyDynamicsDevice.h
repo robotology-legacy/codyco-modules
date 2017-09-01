@@ -20,7 +20,9 @@
 
 // iDynTree includes
 #include <iDynTree/Estimation/ExtWrenchesAndJointTorquesEstimator.h>
-#include <iDynTree/iCub/skinDynLibConversions.h>
+#include <iDynTree/Estimation/BerdyHelper.h>
+#include <iDynTree/Estimation/BerdySparseMAPSolver.h>
+#include <iDynTree/skinDynLibConversions.h>
 #include <iDynTree/KinDynComputations.h>
 
 // Filters
@@ -369,7 +371,8 @@ private:
     bool openRPCPort();
     bool openRemapperControlBoard(os::Searchable& config);
     bool openRemapperVirtualSensors(os::Searchable& config);
-    bool openEstimator(os::Searchable& config);
+    bool openEstimators(os::Searchable &config);
+    bool openProbabilisticEstimator(os::Searchable& config);
     bool openDefaultContactFrames(os::Searchable& config);
     bool openSkinContactListPorts(os::Searchable& config);
     bool openExternalWrenchesPorts(os::Searchable& config);
@@ -440,8 +443,10 @@ private:
     bool readIMUSensors(bool verbose=true);
     void readSensors();
     void filterSensorsAndRemoveSensorOffsets();
-    void updateKinematics();
+    void updateSensorsMeasurements();
+    void updateProbabilisticEstimatorMeasurementsVector();
     void readContactPoints();
+    void updateExternalWrenchesCovariances();
     void computeCalibration();
     void computeExternalForcesAndJointTorques();
 
@@ -462,10 +467,19 @@ private:
     bool loadGravityCompensationSettingsFromConfig(yarp::os::Searchable & config);
 
     /**
-     * Class actually doing computations.
+     * Deterministic estimator
      */
-    iDynTree::ExtWrenchesAndJointTorquesEstimator estimator;
+    iDynTree::ExtWrenchesAndJointTorquesEstimator deterministicEstimator;
 
+    /**
+     * Probabilistic estimator and related variables
+     */
+    iDynTree::BerdyHelper                          probabilisticEstimatorHelper;
+    iDynTree::BerdySparseMAPSolver *               pProbablisticEstimator;
+    iDynTree::VectorDynSize        filteredProbabilisticEstimatorMeasurementsVector;
+    iDynTree::LinkNetExternalWrenches zeroExternalWrenches;
+    iDynTree::LinkInternalWrenches    dummyInternalWrenches;
+    iDynTree::JointDOFsDoubleArray    dummyJntTorques;
     /**
      * Buffers related methods
      */
@@ -487,6 +501,7 @@ private:
      */
     iDynTree::SensorsMeasurements  rawSensorsMeasurements;
     imuMeasurements                rawIMUMeasurements;
+
 
     /**
      * Filters

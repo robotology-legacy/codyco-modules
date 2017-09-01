@@ -10,8 +10,16 @@
 #include <yarp/dev/IAnalogSensor.h>
 #include <yarp/dev/GenericSensorInterfaces.h>
 
+#include <iDynTree/ModelIO/ModelLoader.h>
 #include <iDynTree/yarp/YARPConversions.h>
+
+#include <iDynTree/Core/EigenHelpers.h>
+#include <iDynTree/Core/SparseMatrix.h>
 #include <iDynTree/Core/Utils.h>
+
+#include <iDynTree/Sensors/AccelerometerSensor.h>
+#include <iDynTree/Sensors/GyroscopeSensor.h>
+#include <iDynTree/Sensors/ThreeAxisAngularAccelerometerSensor.h>
 
 #include <cassert>
 #include <cmath>
@@ -31,7 +39,8 @@ WholeBodyDynamicsDevice::WholeBodyDynamicsDevice(): RateThread(10),
                                                     sensorReadCorrectly(false),
                                                     estimationWentWell(false),
                                                     validOffsetAvailable(false),
-                                                    settingsEditor(settings)
+                                                    settingsEditor(settings),
+                                                    pProbablisticEstimator(0)
 {
     // Calibration quantities
     calibrationBuffers.ongoingCalibration = false;
@@ -47,7 +56,8 @@ WholeBodyDynamicsDevice::WholeBodyDynamicsDevice(): RateThread(10),
 
 WholeBodyDynamicsDevice::~WholeBodyDynamicsDevice()
 {
-
+    delete pProbablisticEstimator;
+    pProbablisticEstimator = 0;
 }
 
 
@@ -201,12 +211,12 @@ bool WholeBodyDynamicsDevice::openRemapperControlBoard(os::Searchable& config)
         return ok;
     }
 
-    // Check if the controlboard and the estimator have a consistent number of joints
+    // Check if the controlboard and the deterministicEstimator have a consistent number of joints
     int axes = 0;
     remappedControlBoardInterfaces.encs->getAxes(&axes);
-    if( axes != (int) estimator.model().getNrOfDOFs() )
+    if( axes != (int) deterministicEstimator.model().getNrOfDOFs() )
     {
-        yError() << "wholeBodyDynamics : open estimator model and the remappedControlBoard has an inconsistent number of joints";
+        yError() << "wholeBodyDynamics : open deterministicEstimator model and the remappedControlBoard has an inconsistent number of joints";
         return false;
     }
 
@@ -240,18 +250,18 @@ bool WholeBodyDynamicsDevice::openRemapperVirtualSensors(os::Searchable& config)
         return ok;
     }
 
-    // Check if the controlboard and the estimator have a consistent number of joints
+    // Check if the controlboard and the deterministicEstimator have a consistent number of joints
     int axes = remappedVirtualAnalogSensorsInterfaces.ivirtsens->getChannels();
-    if( axes != (int) estimator.model().getNrOfDOFs() )
+    if( axes != (int) deterministicEstimator.model().getNrOfDOFs() )
     {
-        yError() << "wholeBodyDynamics : open estimator model and the remapperVirtualAnalogSensor has an inconsistent number of joints";
+        yError() << "wholeBodyDynamics : open deterministicEstimator model and the remapperVirtualAnalogSensor has an inconsistent number of joints";
         return false;
     }
 
     return true;
 }
 
-bool WholeBodyDynamicsDevice::openEstimator(os::Searchable& config)
+bool WholeBodyDynamicsDevice::openEstimators(os::Searchable &config)
 {
     // get the list of considered dofs from config
     bool ok = getUsedDOFsList(config,estimationJointNames);
@@ -269,21 +279,162 @@ bool WholeBodyDynamicsDevice::openEstimator(os::Searchable& config)
 
     yInfo() << "wholeBodyDynamics : Loading model from " << modelFileFullPath;
 
-    ok = estimator.loadModelAndSensorsFromFileWithSpecifiedDOFs(modelFileFullPath,estimationJointNames);
+    // Loading model using the iDynTree::ModelLoader
+    iDynTree::ModelLoader mdlLoader;
+
+    ok = mdlLoader.loadReducedModelFromFile(modelFileFullPath, estimationJointNames);
+    if (!ok)
+    {
+        yInfo() << "wholeBodyDynamics : impossible to load model from file "
+                << modelFileName << " ( full path: " << modelFileFullPath << " ) ";
+        return false;
+    }
+
+    // We can use directly the model, but we need to change the sensors loaded from the model because at the moment
+    // both the deterministic estimator and the probabilistic estimator only support reading the measurements from one
+    // single imu. For this reason, we just delete all the GYROSCOPE, ACCELEROMETER and THREE_AXIS_ANGULAR_ACCELERATION
+    // sensors present in the robot description and add only the one used, based on the imuFrameName parameter
+    // TODO(traversaro): generalize this part to support multiple gyroscopes and linear accelerometers
+    //                   a possible strategy is to make sure that the first sensors for GYROSCOPE, LIN_ACCELERATION and
+    //                   THREE_AXIS_ANGULAR_ACCELERATION types are the "main" one used by the all the estimators
+    const iDynTree::Model& model = mdlLoader.model();
+    iDynTree::SensorsList sensorsActuallyUsedInEstimation = mdlLoader.sensors();
+
+    sensorsActuallyUsedInEstimation.removeAllSensorsOfType(iDynTree::GYROSCOPE);
+    sensorsActuallyUsedInEstimation.removeAllSensorsOfType(iDynTree::ACCELEROMETER);
+    sensorsActuallyUsedInEstimation.removeAllSensorsOfType(iDynTree::THREE_AXIS_ANGULAR_ACCELEROMETER);
+
+    iDynTree::FrameIndex imuFrameIndex = deterministicEstimator.model().getFrameIndex(settings.imuFrameName);
+
+
+    iDynTree::AccelerometerSensor linearAccelerometer;
+    linearAccelerometer.setName(settings.imuFrameName);
+    linearAccelerometer.setParentLink(model.getFrameName(model.getFrameLink(imuFrameIndex)));
+    linearAccelerometer.setLinkSensorTransform(model.getFrameTransform(imuFrameIndex));
+    linearAccelerometer.updateIndices(model);
+    ok = ok && sensorsActuallyUsedInEstimation.addSensor(linearAccelerometer);
+
+    iDynTree::ThreeAxisAngularAccelerometerSensor angularAccelerometer;
+    angularAccelerometer.setName(settings.imuFrameName);
+    angularAccelerometer.setParentLink(model.getFrameName(model.getFrameLink(imuFrameIndex)));
+    angularAccelerometer.setLinkSensorTransform(model.getFrameTransform(imuFrameIndex));
+    angularAccelerometer.updateIndices(model);
+    ok = ok && sensorsActuallyUsedInEstimation.addSensor(angularAccelerometer);
+
+    if (!ok)
+    {
+        yInfo() << "wholeBodyDynamics : problem processing sensors from file "
+                << modelFileName << " ( full path: " << modelFileFullPath << " ) ";
+        return false;
+    }
+
+    // Load deterministic model
+    ok = deterministicEstimator.setModelAndSensors(model, sensorsActuallyUsedInEstimation);
     if( !ok )
     {
-        yInfo() << "wholeBodyDynamics : impossible to create ExtWrenchesAndJointTorquesEstimator from file "
+        yInfo() << "wholeBodyDynamics : impossible to create ExtWrenchesAndJointTorquesdeterministicEstimator from file "
                  << modelFileName << " ( full path: " << modelFileFullPath << " ) ";
         return false;
     }
 
-    if( estimator.sensors().getNrOfSensors(iDynTree::SIX_AXIS_FORCE_TORQUE) == 0 )
+    if( deterministicEstimator.sensors().getNrOfSensors(iDynTree::SIX_AXIS_FORCE_TORQUE) == 0 )
     {
         yWarning() << "wholeBodyDynamics : the loaded model has 0 FT sensors, so the estimation will use just the model.";
         yWarning() << "wholeBodyDynamics : If you instead want to add the FT sensors to your model, please check iDynTree documentation on how to add sensors to models.";
     }
 
+    // Load probabilistic estimator
+    ok = this->openProbabilisticEstimator(config);
+
+    if (!ok)
+    {
+        yInfo() << "wholeBodyDynamics : problem creating BerdyMAPSparseSolver from file "
+                << modelFileName << " ( full path: " << modelFileFullPath << " ) ";
+        return false;
+    }
+
     this->resizeBuffers();
+
+    return ok;
+}
+
+inline void setDiagonalSubMatrix(iDynTree::SparseMatrix<iDynTree::ColumnMajor>& mat, const iDynTree::IndexRange range, double val)
+{
+    for (int i=0; i < range.size; i++)
+    {
+        mat(range.offset+i,range.offset+i) = val;
+    }
+}
+
+bool WholeBodyDynamicsDevice::openProbabilisticEstimator(os::Searchable &config)
+{
+
+    // Setup the BerdyHelper
+    iDynTree::BerdyOptions berdyOptions;
+    berdyOptions.berdyVariant = iDynTree::BERDY_FLOATING_BASE;
+    // For now, we use all the external wrenches as unknown and we just add the fact that some are known to be zero
+    // as sensors
+    berdyOptions.includeAllNetExternalWrenchesAsSensors = true;
+    berdyOptions.includeAllJointAccelerationsAsSensors  = true;
+    berdyOptions.includeAllJointTorquesAsSensors        = false;
+
+    bool ok = probabilisticEstimatorHelper.init(deterministicEstimator.model(),
+                                                deterministicEstimator.sensors(),
+                                                berdyOptions);
+    const iDynTree::Model& model = deterministicEstimator.model();
+
+    if (!ok)
+    {
+        return false;
+    }
+
+    // Setup the actual solver
+    delete pProbablisticEstimator;
+    pProbablisticEstimator = new iDynTree::BerdySparseMAPSolver(probabilisticEstimatorHelper);
+    if (!pProbablisticEstimator)
+    {
+        return false;
+    }
+    pProbablisticEstimator->initialize();
+
+    // Set the parameters
+
+    /// Set the dynamics variable prior
+    double dynamicsVariablesPriorCovariance = 1e6;
+    iDynTree::VectorDynSize dynamicsPriorMean(probabilisticEstimatorHelper.getNrOfDynamicVariables());
+    dynamicsPriorMean.zero();
+    pProbablisticEstimator->setDynamicsRegularizationPriorExpectedValue(dynamicsPriorMean);
+    iDynTree::Triplets dynamicsRegularizationCovarianceTriplets;
+    dynamicsRegularizationCovarianceTriplets.setDiagonalMatrix(0, 0, dynamicsVariablesPriorCovariance, probabilisticEstimatorHelper.getNrOfDynamicVariables());
+    iDynTree::SparseMatrix<iDynTree::ColumnMajor> dynamicsRegularizationCovariance(probabilisticEstimatorHelper.getNrOfDynamicVariables(), probabilisticEstimatorHelper.getNrOfDynamicVariables());
+    dynamicsRegularizationCovariance.setFromTriplets(dynamicsRegularizationCovarianceTriplets);
+    pProbablisticEstimator->setDynamicsRegularizationPriorCovariance(dynamicsRegularizationCovariance);
+
+    // Set the dynamics equations prior
+    double dynamicsEquationsPriorCovariance = 1e-6;
+    iDynTree::Triplets dynamicsEquationsPriorCovarianceTriplets;
+    dynamicsEquationsPriorCovarianceTriplets.setDiagonalMatrix(0, 0, dynamicsEquationsPriorCovariance, probabilisticEstimatorHelper.getNrOfDynamicEquations());
+    iDynTree::SparseMatrix<iDynTree::ColumnMajor> dynamicsEquationsPriorCovarianceMat(probabilisticEstimatorHelper.getNrOfDynamicVariables(), probabilisticEstimatorHelper.getNrOfDynamicVariables());
+    dynamicsEquationsPriorCovarianceMat.setFromTriplets(dynamicsEquationsPriorCovarianceTriplets);
+    pProbablisticEstimator->setDynamicsConstraintsPriorCovariance(dynamicsEquationsPriorCovarianceMat);
+
+    // Set the measurements prior
+    double linAccelerometersCovariance = 1e-6;
+    setDiagonalSubMatrix(pProbablisticEstimator->measurementsPriorCovarianceInverse(),
+                         probabilisticEstimatorHelper.getRangeSensorVariable(iDynTree::ACCELEROMETER, 0),
+                         1.0/linAccelerometersCovariance);
+    double angAccelerometersCovariance = 1e-6;
+    setDiagonalSubMatrix(pProbablisticEstimator->measurementsPriorCovarianceInverse(),
+                         probabilisticEstimatorHelper.getRangeSensorVariable(iDynTree::THREE_AXIS_ANGULAR_ACCELEROMETER, 0),
+                         1.0/angAccelerometersCovariance);
+    double jointAccCovariance = 1e-6;
+    for (iDynTree::DOFIndex dofIdx=0; dofIdx < model.getNrOfDOFs(); dofIdx++)
+    {
+        setDiagonalSubMatrix(pProbablisticEstimator->measurementsPriorCovarianceInverse(),
+                             probabilisticEstimatorHelper.getRangeDOFSensorVariable(iDynTree::DOF_ACCELERATION_SENSOR, dofIdx),
+                             1.0/jointAccCovariance);
+    }
+    // The covariances of the net external wrenches sensors are set online in updateExternalWrenchesCovariances
 
     return true;
 }
@@ -311,7 +462,7 @@ bool WholeBodyDynamicsDevice::openDefaultContactFrames(os::Searchable& config)
     defaultContactFramesIdx.clear();
     for(size_t i=0; i < defaultContactFrames.size(); i++)
     {
-        iDynTree::FrameIndex idx = estimator.model().getFrameIndex(defaultContactFrames[i]);
+        iDynTree::FrameIndex idx = deterministicEstimator.model().getFrameIndex(defaultContactFrames[i]);
 
         if( idx == iDynTree::FRAME_INVALID_INDEX )
         {
@@ -326,14 +477,14 @@ bool WholeBodyDynamicsDevice::openDefaultContactFrames(os::Searchable& config)
     // For each submodel, we find the first suitable contact frame
     // This is a n^2 algorithm, but given that is just used in
     // configuration it should be ok
-    size_t nrOfSubModels = estimator.submodels().getNrOfSubModels();
+    size_t nrOfSubModels = deterministicEstimator.submodels().getNrOfSubModels();
 
     // We indicate with FRAME_INVALID_INDEX the fact that we still don't have a default contact for the given submodel
     subModelIndex2DefaultContact.resize(nrOfSubModels,iDynTree::FRAME_INVALID_INDEX);
 
     for(size_t i=0; i < defaultContactFramesIdx.size(); i++)
     {
-        size_t subModelIdx = estimator.submodels().getSubModelOfFrame(estimator.model(),defaultContactFramesIdx[i]);
+        size_t subModelIdx = deterministicEstimator.submodels().getSubModelOfFrame(deterministicEstimator.model(),defaultContactFramesIdx[i]);
 
         // If the subModel of the frame still does not have a default contact, we add it
         if( subModelIndex2DefaultContact[subModelIdx] == iDynTree::FRAME_INVALID_INDEX )
@@ -349,11 +500,11 @@ bool WholeBodyDynamicsDevice::openDefaultContactFrames(os::Searchable& config)
         if( subModelIndex2DefaultContact[subModelIdx] == iDynTree::FRAME_INVALID_INDEX )
         {
             yError() << "wholeBodyDynamics : openDefaultContactFrames : missing default contact for submodel composed by the links: ";
-            const iDynTree::Traversal & subModelTraversal = estimator.submodels().getTraversal(subModelIdx);
+            const iDynTree::Traversal & subModelTraversal = deterministicEstimator.submodels().getTraversal(subModelIdx);
             for(iDynTree::TraversalIndex i = 0; i < (iDynTree::TraversalIndex) subModelTraversal.getNrOfVisitedLinks(); i++)
             {
                 iDynTree::LinkIndex linkIdx = subModelTraversal.getLink(i)->getIndex();
-                yError() << "wholeBodyDynamics : openDefaultContactFrames :" << estimator.model().getLinkName(linkIdx);
+                yError() << "wholeBodyDynamics : openDefaultContactFrames :" << deterministicEstimator.model().getLinkName(linkIdx);
             }
 
             return false;
@@ -388,7 +539,7 @@ bool WholeBodyDynamicsDevice::openSkinContactListPorts(os::Searchable& config)
         int skinDynLib_body_part = map_bot->get(1).asList()->get(1).asInt();
         int skinDynLib_link_index = map_bot->get(1).asList()->get(2).asInt();
 
-        bool ret_sdl = conversionHelper.addSkinDynLibAlias(estimator.model(),
+        bool ret_sdl = conversionHelper.addSkinDynLibAlias(deterministicEstimator.model(),
                                                            iDynTree_link_name,iDynTree_skinFrame_name,
                                                            skinDynLib_body_part,skinDynLib_link_index);
 
@@ -510,30 +661,38 @@ bool WholeBodyDynamicsDevice::openExternalWrenchesPorts(os::Searchable& config)
 
 void WholeBodyDynamicsDevice::resizeBuffers()
 {
-    this->jointPos.resize(estimator.model());
-    this->jointVel.resize(estimator.model());
-    this->jointAcc.resize(estimator.model());
-    this->measuredContactLocations.resize(estimator.model());
+    this->jointPos.resize(deterministicEstimator.model());
+    this->jointVel.resize(deterministicEstimator.model());
+    this->jointAcc.resize(deterministicEstimator.model());
+    this->measuredContactLocations.resize(deterministicEstimator.model());
     this->ftMeasurement.resize(wholeBodyDynamics_nrOfChannelsOfYARPFTSensor);
     this->imuMeasurement.resize(wholeBodyDynamics_nrOfChannelsOfAYARPIMUSensor);
-    this->rawSensorsMeasurements.resize(estimator.sensors());
-    this->filteredSensorMeasurements.resize(estimator.sensors());
-    this->estimatedJointTorques.resize(estimator.model());
+    this->rawSensorsMeasurements.resize(deterministicEstimator.sensors());
+    this->filteredSensorMeasurements.resize(deterministicEstimator.sensors());
+    this->estimatedJointTorques.resize(deterministicEstimator.model());
     this->estimatedJointTorquesYARP.resize(this->estimatedJointTorques.size(),0.0);
-    this->estimateExternalContactWrenches.resize(estimator.model());
+    this->estimateExternalContactWrenches.resize(deterministicEstimator.model());
+
+    // Probabilistic estimator related variables
+    this->filteredProbabilisticEstimatorMeasurementsVector.resize(probabilisticEstimatorHelper.getNrOfSensorsMeasurements());
+    this->zeroExternalWrenches.resize(deterministicEstimator.model());
+    this->zeroExternalWrenches.zero();
+    this->dummyInternalWrenches.resize(deterministicEstimator.model());
+    this->dummyJntTorques.resize(deterministicEstimator.model());
+
 
     // Resize F/T stuff
-    size_t nrOfFTSensors = estimator.sensors().getNrOfSensors(iDynTree::SIX_AXIS_FORCE_TORQUE);
+    size_t nrOfFTSensors = deterministicEstimator.sensors().getNrOfSensors(iDynTree::SIX_AXIS_FORCE_TORQUE);
     calibrationBuffers.calibratingFTsensor.resize(nrOfFTSensors,false);
     iDynTree::Wrench zeroWrench;
     zeroWrench.zero();
     calibrationBuffers.offsetSumBuffer.resize(nrOfFTSensors,zeroWrench.asVector());
     calibrationBuffers.measurementSumBuffer.resize(nrOfFTSensors,zeroWrench.asVector());
     calibrationBuffers.estimationSumBuffer.resize(nrOfFTSensors,zeroWrench.asVector());
-    calibrationBuffers.assumedContactLocationsForCalibration.resize(estimator.model());
-    calibrationBuffers.predictedExternalContactWrenchesForCalibration.resize(estimator.model());
-    calibrationBuffers.predictedJointTorquesForCalibration.resize(estimator.model());
-    calibrationBuffers.predictedSensorMeasurementsForCalibration.resize(estimator.sensors());
+    calibrationBuffers.assumedContactLocationsForCalibration.resize(deterministicEstimator.model());
+    calibrationBuffers.predictedExternalContactWrenchesForCalibration.resize(deterministicEstimator.model());
+    calibrationBuffers.predictedJointTorquesForCalibration.resize(deterministicEstimator.model());
+    calibrationBuffers.predictedSensorMeasurementsForCalibration.resize(deterministicEstimator.sensors());
 
     ftProcessors.resize(nrOfFTSensors);
 
@@ -541,14 +700,14 @@ void WholeBodyDynamicsDevice::resizeBuffers()
     filters.init(nrOfFTSensors,
                  settings.forceTorqueFilterCutoffInHz,
                  settings.imuFilterCutoffInHz,
-                 estimator.model().getNrOfDOFs(),
+                 deterministicEstimator.model().getNrOfDOFs(),
                  settings.jointVelFilterCutoffInHz,
                  settings.jointAccFilterCutoffInHz,
                  getRate()/1000.0);
 
     // Resize external wrenches publishing software
-    this->netExternalWrenchesExertedByTheEnviroment.resize(estimator.model());
-    bool ok = this->kinDynComp.loadRobotModel(estimator.model());
+    this->netExternalWrenchesExertedByTheEnviroment.resize(deterministicEstimator.model());
+    bool ok = this->kinDynComp.loadRobotModel(deterministicEstimator.model());
 
     if( !ok )
     {
@@ -567,6 +726,7 @@ bool WholeBodyDynamicsDevice::loadSettingsFromConfig(os::Searchable& config)
     settings.forceTorqueFilterCutoffInHz = 3.0;
     settings.jointVelFilterCutoffInHz    = 3.0;
     settings.jointAccFilterCutoffInHz    = 3.0;
+    settings.estimationAlgorithm         = DETERMINISTIC_ALGORITHM;
 
     yarp::os::Property prop;
     prop.fromString(config.toString().c_str());
@@ -582,7 +742,7 @@ bool WholeBodyDynamicsDevice::loadSettingsFromConfig(os::Searchable& config)
 
         std::string fixedFrameName = prop.find("assume_fixed").asString();
 
-        iDynTree::FrameIndex fixedFrameIndex = estimator.model().getFrameIndex(fixedFrameName);
+        iDynTree::FrameIndex fixedFrameIndex = deterministicEstimator.model().getFrameIndex(fixedFrameName);
 
         if( fixedFrameIndex == iDynTree::FRAME_INVALID_INDEX )
         {
@@ -671,9 +831,9 @@ bool WholeBodyDynamicsDevice::loadSecondaryCalibrationSettingsFromConfig(os::Sea
 
             // Linearly search for the specified sensor
             bool sensorFound = false;
-            for(int ft=0; ft < estimator.sensors().getNrOfSensors(iDynTree::SIX_AXIS_FORCE_TORQUE); ft++ )
+            for(int ft=0; ft < deterministicEstimator.sensors().getNrOfSensors(iDynTree::SIX_AXIS_FORCE_TORQUE); ft++ )
             {
-                if( estimator.sensors().getSensor(iDynTree::SIX_AXIS_FORCE_TORQUE,ft)->getName() == iDynTree_sensorName )
+                if( deterministicEstimator.sensors().getSensor(iDynTree::SIX_AXIS_FORCE_TORQUE,ft)->getName() == iDynTree_sensorName )
                 {
                     yDebug() << "wholeBodyDynamics: using secondary calibration matrix for sensor " << iDynTree_sensorName;
 
@@ -763,11 +923,11 @@ bool WholeBodyDynamicsDevice::loadGravityCompensationSettingsFromConfig(os::Sear
             m_gravityCompesationJoints.push_back(dofOffset);
         }
 
-        // We use the kinDynComp class that was opened together with the estimator
+        // We use the kinDynComp class that was opened together with the deterministicEstimator
         std::string gravityCompensationBaseLink = propGravComp.find("gravityCompensationBaseLink").asString().c_str();
 
-        ret = m_gravCompHelper.loadModel(this->estimator.model(),gravityCompensationBaseLink);
-        m_gravityCompensationTorques.resize(this->estimator.model());
+        ret = m_gravCompHelper.loadModel(this->deterministicEstimator.model(),gravityCompensationBaseLink);
+        m_gravityCompensationTorques.resize(this->deterministicEstimator.model());
 
         if( !ret )
         {
@@ -794,15 +954,15 @@ bool WholeBodyDynamicsDevice::open(os::Searchable& config)
         return false;
     }
 
-    // Create the estimator
-    ok = this->openEstimator(config);
+    // Create the deterministicEstimator
+    ok = this->openEstimators(config);
      if( !ok ) 
     {
-        yError() << "wholeBodyDynamics: Problem in opening estimator object.";
+        yError() << "wholeBodyDynamics: Problem in opening deterministicEstimator object.";
         return false;
     } 
 
-    // Open settings related to gravity compensation (we need the estimator to be open)
+    // Open settings related to gravity compensation (we need the deterministicEstimator to be open)
     ok = this->loadGravityCompensationSettingsFromConfig(config);
     if( !ok ) 
     {
@@ -810,7 +970,7 @@ bool WholeBodyDynamicsDevice::open(os::Searchable& config)
         return false;
     } 
 
-    // Open settings related to gravity compensation (we need the estimator to be open)
+    // Open settings related to gravity compensation (we need the deterministicEstimator to be open)
     ok = this->loadSecondaryCalibrationSettingsFromConfig(config);
     if( !ok ) 
     {
@@ -932,10 +1092,10 @@ bool WholeBodyDynamicsDevice::attachAllFTs(const PolyDriverList& p)
         }
     }
 
-    if( ftList.size() != estimator.sensors().getNrOfSensors(iDynTree::SIX_AXIS_FORCE_TORQUE) )
+    if( ftList.size() != deterministicEstimator.sensors().getNrOfSensors(iDynTree::SIX_AXIS_FORCE_TORQUE) )
     {
         yError() << "wholeBodyDynamicsDevice : was expecting "
-                 << estimator.sensors().getNrOfSensors(iDynTree::SIX_AXIS_FORCE_TORQUE)
+                 << deterministicEstimator.sensors().getNrOfSensors(iDynTree::SIX_AXIS_FORCE_TORQUE)
                  << " from the model, but got " << ftList.size() << " FT sensor in the attach list.";
         return false;
     }
@@ -945,7 +1105,7 @@ bool WholeBodyDynamicsDevice::attachAllFTs(const PolyDriverList& p)
     ftSensors.resize(ftList.size());
     for(size_t IDTsensIdx=0; IDTsensIdx < ftSensors.size(); IDTsensIdx++)
     {
-        std::string sensorName = estimator.sensors().getSensor(iDynTree::SIX_AXIS_FORCE_TORQUE,IDTsensIdx)->getName();
+        std::string sensorName = deterministicEstimator.sensors().getSensor(iDynTree::SIX_AXIS_FORCE_TORQUE,IDTsensIdx)->getName();
 
         // Search for a suitable device
         int deviceThatHasTheSameNameOfTheSensor = -1;
@@ -1072,7 +1232,7 @@ void convertVectorFromDegreesToRadians(iDynTree::VectorDynSize & vector)
 bool WholeBodyDynamicsDevice::readFTSensors(bool verbose)
 {
     bool FTSensorsReadCorrectly = true;
-    for(size_t ft=0; ft < estimator.sensors().getNrOfSensors(iDynTree::SIX_AXIS_FORCE_TORQUE); ft++ )
+    for(size_t ft=0; ft < deterministicEstimator.sensors().getNrOfSensors(iDynTree::SIX_AXIS_FORCE_TORQUE); ft++ )
     {
         iDynTree::Wrench bufWrench;
         int ftRetVal = ftSensors[ft]->read(ftMeasurement);
@@ -1083,7 +1243,7 @@ bool WholeBodyDynamicsDevice::readFTSensors(bool verbose)
 
         if( !ok && verbose )
         {
-            std::string sensorName = estimator.sensors().getSensor(iDynTree::SIX_AXIS_FORCE_TORQUE,ft)->getName();
+            std::string sensorName = deterministicEstimator.sensors().getSensor(iDynTree::SIX_AXIS_FORCE_TORQUE,ft)->getName();
             yWarning() << "wholeBodyDynamics warning : FT sensor " << sensorName << " was not readed correctly, using old measurement";
         }
 
@@ -1112,7 +1272,7 @@ bool WholeBodyDynamicsDevice::readIMUSensors(bool verbose)
         yWarning() << "wholeBodyDynamics warning : imu sensor was not readed correctly, using old measurement";
     }
 
-    if( ok )
+    if (ok)
     {
         // Check format of IMU in YARP http://wiki.icub.org/wiki/Inertial_Sensor
         rawIMUMeasurements.angularVel(0) = deg2rad(imuMeasurement[6]);
@@ -1185,7 +1345,7 @@ void WholeBodyDynamicsDevice::readSensors()
     sensorReadCorrectly = ok && sensorReadCorrectly;
 
     // Read IMU Sensor
-    if( settings.kinematicSource == IMU )
+    if( settings.kinematicSource == IMU || settings.estimationAlgorithm == PROBABILISTIC_ALGORITHM )
     {
         ok = readIMUSensors();
         sensorReadCorrectly = ok && sensorReadCorrectly;
@@ -1202,7 +1362,7 @@ void WholeBodyDynamicsDevice::filterSensorsAndRemoveSensorOffsets()
                                   settings.jointAccFilterCutoffInHz);
 
     // Filter and remove offset fromn F/T sensors
-    for(size_t ft=0; ft < estimator.sensors().getNrOfSensors(iDynTree::SIX_AXIS_FORCE_TORQUE); ft++ )
+    for(size_t ft=0; ft < deterministicEstimator.sensors().getNrOfSensors(iDynTree::SIX_AXIS_FORCE_TORQUE); ft++ )
     {
         iDynTree::Wrench rawFTMeasure;
         rawSensorsMeasurements.getMeasurement(iDynTree::SIX_AXIS_FORCE_TORQUE,ft,rawFTMeasure);
@@ -1243,7 +1403,7 @@ void WholeBodyDynamicsDevice::filterSensorsAndRemoveSensorOffsets()
     }
 
     // Filter IMU Sensor
-    if( settings.kinematicSource == IMU )
+    if( settings.kinematicSource == IMU || settings.estimationAlgorithm == PROBABILISTIC_ALGORITHM )
     {
         iDynTree::toYarp(rawIMUMeasurements.linProperAcc,filters.bufferYarp3);
 
@@ -1262,16 +1422,56 @@ void WholeBodyDynamicsDevice::filterSensorsAndRemoveSensorOffsets()
     }
 }
 
-void WholeBodyDynamicsDevice::updateKinematics()
+void WholeBodyDynamicsDevice::updateProbabilisticEstimatorMeasurementsVector()
 {
+    // Copy measurements from the filteredIMUMeasurements structure
+    // todo(traversaro) : we should remove the filteredIMUMeasurements structure and just keep all the
+    //                    information in the SensorsMeasurements class. Unfortunatly to do so we need to
+    //                    have the Gyroscope in the SensorsList, but that would introduce rows that are identically
+    //                    zero in the Y matrix of the Berdy estimator, and that is not ideal.
+    //                    BerdyHelper should be modified to ignore the Gyroscope in SensorsList, but this means
+    //                    that serializeSensorVariables should be modified
+    filteredSensorMeasurements.setMeasurement(iDynTree::ACCELEROMETER, 0, filteredIMUMeasurements.linProperAcc);
+    filteredSensorMeasurements.setMeasurement(iDynTree::THREE_AXIS_ANGULAR_ACCELEROMETER, 0,
+                                              filteredIMUMeasurements.angularAcc);
+
+    // The dummy variable are not considered in the probabilistic estimator
+    probabilisticEstimatorHelper.serializeSensorVariables(filteredSensorMeasurements,
+                                                          zeroExternalWrenches,
+                                                          dummyJntTorques,
+                                                          jointAcc,
+                                                          dummyInternalWrenches,
+                                                          filteredProbabilisticEstimatorMeasurementsVector);
+}
+
+
+
+void WholeBodyDynamicsDevice::updateSensorsMeasurements()
+{
+    // Copy the filtered sensors measurements in the vector used for the probabilistic estimator
+    if (settings.estimationAlgorithm == PROBABILISTIC_ALGORITHM)
+    {
+        this->updateProbabilisticEstimatorMeasurementsVector();
+    }
+
     // Read IMU Sensor and update the kinematics in the model
     if( settings.kinematicSource == IMU )
     {
         // Hardcode for the meanwhile
-        iDynTree::FrameIndex imuFrameIndex = estimator.model().getFrameIndex(settings.imuFrameName);
+        iDynTree::FrameIndex imuFrameIndex = deterministicEstimator.model().getFrameIndex(settings.imuFrameName);
 
-        estimator.updateKinematicsFromFloatingBase(jointPos,jointVel,jointAcc,imuFrameIndex,
-                                                   filteredIMUMeasurements.linProperAcc,filteredIMUMeasurements.angularVel,filteredIMUMeasurements.angularAcc);
+
+        if (settings.estimationAlgorithm == DETERMINISTIC_ALGORITHM)
+        {
+            deterministicEstimator.updateKinematicsFromFloatingBase(jointPos,jointVel,jointAcc,imuFrameIndex,
+                                                                    filteredIMUMeasurements.linProperAcc,filteredIMUMeasurements.angularVel,filteredIMUMeasurements.angularAcc);
+        }
+        else if(settings.estimationAlgorithm == PROBABILISTIC_ALGORITHM)
+        {
+            pProbablisticEstimator->updateEstimateInformationFloatingBase(jointPos, jointVel, imuFrameIndex,
+                                                                          filteredIMUMeasurements.angularVel,
+                                                                          filteredProbabilisticEstimatorMeasurementsVector);
+        }
 
         if( m_gravityCompensationEnabled )
         {
@@ -1285,13 +1485,26 @@ void WholeBodyDynamicsDevice::updateKinematics()
         iDynTree::Vector3 gravity;
 
         // this should be valid because it was validated when set
-        iDynTree::FrameIndex fixedFrameIndex = estimator.model().getFrameIndex(settings.fixedFrameName);
+        iDynTree::FrameIndex fixedFrameIndex = deterministicEstimator.model().getFrameIndex(settings.fixedFrameName);
 
         gravity(0) = settings.fixedFrameGravity.x;
         gravity(1) = settings.fixedFrameGravity.y;
         gravity(2) = settings.fixedFrameGravity.z;
 
-        estimator.updateKinematicsFromFixedBase(jointPos,jointVel,jointAcc,fixedFrameIndex,gravity);
+        if (settings.estimationAlgorithm == DETERMINISTIC_ALGORITHM)
+        {
+            deterministicEstimator.updateKinematicsFromFixedBase(jointPos, jointVel, jointAcc, fixedFrameIndex,
+                                                                 gravity);
+        }
+        else if(settings.estimationAlgorithm == PROBABILISTIC_ALGORITHM)
+        {
+            pProbablisticEstimator->updateEstimateInformationFixedBase(jointPos, jointVel, fixedFrameIndex,
+                                                                       gravity, filteredProbabilisticEstimatorMeasurementsVector);
+        }
+        else
+        {
+            yWarning("wholeBodyDynamics: unknown estimation algorithm selected");
+        }
 
         if( m_gravityCompensationEnabled )
         {
@@ -1311,7 +1524,7 @@ void WholeBodyDynamicsDevice::readContactPoints()
 
     measuredContactLocations.clear();
     int numberOfContacts=0;
-    size_t nrOfSubModels = estimator.submodels().getNrOfSubModels();
+    size_t nrOfSubModels = deterministicEstimator.submodels().getNrOfSubModels();
 
     // read skin
     iCub::skinDynLib::skinContactList *scl =this->portContactsInput.read(false); //scl=null could also mean no new message
@@ -1326,7 +1539,7 @@ void WholeBodyDynamicsDevice::readContactPoints()
 
                 for(size_t subModel = 0; subModel < nrOfSubModels; subModel++)
                 {
-                    bool ok = measuredContactLocations.addNewContactInFrame(estimator.model(),
+                    bool ok = measuredContactLocations.addNewContactInFrame(deterministicEstimator.model(),
                                                                             subModelIndex2DefaultContact[subModel], //frameIndex in iDynTree
                                                                             iDynTree::UnknownWrenchContact(iDynTree::FULL_WRENCH,iDynTree::Position::Zero()));
                     if( !ok )
@@ -1376,7 +1589,7 @@ void WholeBodyDynamicsDevice::readContactPoints()
         {
             for(size_t subModel = 0; subModel < nrOfSubModels; subModel++)
             {
-                bool ok = measuredContactLocations.addNewContactInFrame(estimator.model(),
+                bool ok = measuredContactLocations.addNewContactInFrame(deterministicEstimator.model(),
                                                                         subModelIndex2DefaultContact[subModel], //frameIndex in iDynTree
                                                                         iDynTree::UnknownWrenchContact(iDynTree::FULL_WRENCH,iDynTree::Position::Zero()));
                 if( !ok )
@@ -1404,7 +1617,7 @@ void WholeBodyDynamicsDevice::readContactPoints()
     }
 
     // convert skinContactList into LinkUnknownWrenchContacts TODO: change function to keep and store wrench information only contact location and force directionis kept
-    conversionHelper.fromSkinDynLibToiDynTree(estimator.model(),contactsReadFromSkin,measuredContactLocations);
+    conversionHelper.fromSkinDynLibToiDynTree(deterministicEstimator.model(),contactsReadFromSkin,measuredContactLocations);
 
     //declare and initialize contact count to 0
     std::vector<int> contacts_for_given_subModel(nrOfSubModels,0);
@@ -1412,12 +1625,12 @@ void WholeBodyDynamicsDevice::readContactPoints()
     numberOfContacts=0;
     int subModelIndex=0;
     // check each link to see if they have and assigned contact in which case check the subModelIndex
-    for(size_t linkIndex = 0; linkIndex < estimator.model().getNrOfLinks(); linkIndex++)
+    for(size_t linkIndex = 0; linkIndex < deterministicEstimator.model().getNrOfLinks(); linkIndex++)
     {
         numberOfContacts= measuredContactLocations.getNrOfContactsForLink(linkIndex);
         if( numberOfContacts >0)
         {
-            subModelIndex = estimator.submodels().getSubModelOfLink(linkIndex);
+            subModelIndex = deterministicEstimator.submodels().getSubModelOfLink(linkIndex);
             contacts_for_given_subModel[subModelIndex]++;
         }
     }
@@ -1426,7 +1639,7 @@ void WholeBodyDynamicsDevice::readContactPoints()
     {
         if( contacts_for_given_subModel[subModel] == 0 )
         {
-            bool ok = measuredContactLocations.addNewContactInFrame(estimator.model(),
+            bool ok = measuredContactLocations.addNewContactInFrame(deterministicEstimator.model(),
                                                                     subModelIndex2DefaultContact[subModel], //frameIndex in iDynTree
                                                                     iDynTree::UnknownWrenchContact(iDynTree::FULL_WRENCH,iDynTree::Position::Zero()));
             if( !ok )
@@ -1440,7 +1653,38 @@ void WholeBodyDynamicsDevice::readContactPoints()
         }*/
     }
 
+    // If we are using the probabilistic estimator, we should update the covariances of the zero external wrenches "measurements"
+    // This are used to easily insert in the estimator the prior information that the external force in zero on most links
+    if (settings.estimationAlgorithm == PROBABILISTIC_ALGORITHM)
+    {
+        this->updateExternalWrenchesCovariances();
+    }
+
     return;
+}
+
+void WholeBodyDynamicsDevice::updateExternalWrenchesCovariances()
+{
+    const iDynTree::Model& model = deterministicEstimator.model();
+    for (iDynTree::LinkIndex lnkIdx=0; lnkIdx < static_cast<iDynTree::LinkIndex>(model.getNrOfLinks()); lnkIdx++)
+    {
+        if (measuredContactLocations.getNrOfContactsForLink(lnkIdx) > 0)
+        {
+            double unknownWrenchCovariance = 1e6;
+            setDiagonalSubMatrix(pProbablisticEstimator->measurementsPriorCovarianceInverse(),
+                                 probabilisticEstimatorHelper.getRangeLinkSensorVariable(
+                                         iDynTree::NET_EXT_WRENCH_SENSOR, lnkIdx),
+                                 1.0 / unknownWrenchCovariance);
+        }
+        else
+        {
+            double knownZeroWrenchCovariance = 1e-6;
+            setDiagonalSubMatrix(pProbablisticEstimator->measurementsPriorCovarianceInverse(),
+                                 probabilisticEstimatorHelper.getRangeLinkSensorVariable(
+                                         iDynTree::NET_EXT_WRENCH_SENSOR, lnkIdx),
+                                 1.0 / knownZeroWrenchCovariance);
+        }
+    }
 }
 
 void addToSummer(iDynTree::Vector6 & buffer, const iDynTree::Wrench & addedWrench)
@@ -1467,7 +1711,7 @@ void WholeBodyDynamicsDevice::computeCalibration()
         // Todo: Check that the model is actually still during calibration
 
         // Run the calibration
-        estimator.computeExpectedFTSensorsMeasurements(calibrationBuffers.assumedContactLocationsForCalibration,
+        deterministicEstimator.computeExpectedFTSensorsMeasurements(calibrationBuffers.assumedContactLocationsForCalibration,
                                                        calibrationBuffers.predictedSensorMeasurementsForCalibration,
                                                        calibrationBuffers.predictedExternalContactWrenchesForCalibration,
                                                        calibrationBuffers.predictedJointTorquesForCalibration);
@@ -1506,7 +1750,7 @@ void WholeBodyDynamicsDevice::computeCalibration()
                     computeMean(calibrationBuffers.measurementSumBuffer[ft],calibrationBuffers.nrOfSamplesUsedUntilNowForCalibration,measurementMean);
                     computeMean(calibrationBuffers.estimationSumBuffer[ft],calibrationBuffers.nrOfSamplesUsedUntilNowForCalibration,estimationMean);
 
-                    yInfo() << "wholeBodyDynamics: Offset for sensor " << estimator.sensors().getSensor(iDynTree::SIX_AXIS_FORCE_TORQUE,ft)->getName() << " " << ftProcessors[ft].offset().toString();
+                    yInfo() << "wholeBodyDynamics: Offset for sensor " << deterministicEstimator.sensors().getSensor(iDynTree::SIX_AXIS_FORCE_TORQUE,ft)->getName() << " " << ftProcessors[ft].offset().toString();
                     yInfo() << "wholeBodyDynamics: obtained assuming a measurement of " << measurementMean.asVector().toString() << " and an estimated ft of " << estimationMean.asVector().toString();
                 }
             }
@@ -1521,10 +1765,32 @@ void WholeBodyDynamicsDevice::computeCalibration()
 
 void WholeBodyDynamicsDevice::computeExternalForcesAndJointTorques()
 {
-    // The kinematics information was already set by the readSensorsAndUpdateKinematics method
-    //This is receiving contact location but no wrench information from the contacts TODO: integrate dynContact info
-    estimationWentWell = estimator.estimateExtWrenchesAndJointTorques(measuredContactLocations,filteredSensorMeasurements,
-                                                                       estimateExternalContactWrenches,estimatedJointTorques);
+    if (settings.estimationAlgorithm == DETERMINISTIC_ALGORITHM)
+    {
+        // The kinematics information was already set by the readSensorsAndUpdateKinematics method
+        // This is receiving contact location but no wrench information from the contacts TODO: integrate dynContact info
+        estimationWentWell = deterministicEstimator.estimateExtWrenchesAndJointTorques(measuredContactLocations,filteredSensorMeasurements,
+                                                                                   estimateExternalContactWrenches,estimatedJointTorques);
+    }
+    else
+    {
+        if (pProbablisticEstimator)
+        {
+            estimationWentWell = pProbablisticEstimator->doEstimate();
+            // Store the results of estimation
+            estimationWentWell = estimationWentWell && probabilisticEstimatorHelper.extractJointTorquesFromDynamicVariables(pProbablisticEstimator->getLastEstimate(),
+                                                                                 jointPos, estimatedJointTorques);
+            estimationWentWell = estimationWentWell && probabilisticEstimatorHelper.extractLinkNetExternalWrenchesFromDynamicVariables(pProbablisticEstimator->getLastEstimate(),
+                                                                                            netExternalWrenchesExertedByTheEnviroment);
+            estimationWentWell = estimationWentWell &&
+                    iDynTree::estimateLinkContactWrenchesFromLinkNetExternalWrenches(probabilisticEstimatorHelper.model(), measuredContactLocations,
+                                                                                     netExternalWrenchesExertedByTheEnviroment, estimateExternalContactWrenches);
+        }
+        else
+        {
+            estimationWentWell = false;
+        }
+    }
 }
 
 void WholeBodyDynamicsDevice::publishEstimatedQuantities()
@@ -1643,7 +1909,7 @@ void WholeBodyDynamicsDevice::publishContacts()
     contactsEstimated.clear();
 
     // Convert the result of estimation
-    bool ok = conversionHelper.updateSkinContactListFromLinkContactWrenches(estimator.model(),estimateExternalContactWrenches,contactsEstimated);
+    bool ok = conversionHelper.updateSkinContactListFromLinkContactWrenches(deterministicEstimator.model(),estimateExternalContactWrenches,contactsEstimated);
 
     if( !ok )
     {
@@ -1670,7 +1936,7 @@ void WholeBodyDynamicsDevice::publishExternalWrenches()
     }
 
 
-    // Get wrenches from the estimator and publish it on the port
+    // Get wrenches from the deterministicEstimator and publish it on the port
     for(size_t i=0; i < this->outputWrenchPorts.size(); i++ )
     {
         // Get the wrench in the link frame
@@ -1704,8 +1970,8 @@ void WholeBodyDynamicsDevice::run()
         // Filter sensor and remove offset
         this->filterSensorsAndRemoveSensorOffsets();
 
-        // Update kinematics
-        this->updateKinematics();
+        // Update sensors measurements
+        this->updateSensorsMeasurements();
 
         // Read contacts info from the skin or from assume contact location
         this->readContactPoints();
@@ -1766,7 +2032,7 @@ bool WholeBodyDynamicsDevice::setupCalibrationWithExternalWrenchOnOneFrame(const
     calibrationBuffers.assumedContactLocationsForCalibration.clear();
 
     // Check if the frame exist
-    iDynTree::FrameIndex frameIndex = estimator.model().getFrameIndex(frameName);
+    iDynTree::FrameIndex frameIndex = deterministicEstimator.model().getFrameIndex(frameName);
     if( frameIndex == iDynTree::FRAME_INVALID_INDEX )
     {
         yError() << "wholeBodyDynamics : setupCalibrationWithExternalWrenchOnOneFrame impossible to find frame " << frameName;
@@ -1776,7 +2042,7 @@ bool WholeBodyDynamicsDevice::setupCalibrationWithExternalWrenchOnOneFrame(const
     // We assume that the contact is a 6-D the origin of the frame
     iDynTree::UnknownWrenchContact calibrationAssumedContact(iDynTree::FULL_WRENCH,iDynTree::Position::Zero());
 
-    bool ok = calibrationBuffers.assumedContactLocationsForCalibration.addNewContactInFrame(estimator.model(),frameIndex,calibrationAssumedContact);
+    bool ok = calibrationBuffers.assumedContactLocationsForCalibration.addNewContactInFrame(deterministicEstimator.model(),frameIndex,calibrationAssumedContact);
 
     if( !ok )
     {
@@ -1816,14 +2082,14 @@ bool WholeBodyDynamicsDevice::setupCalibrationWithExternalWrenchesOnTwoFrames(co
     calibrationBuffers.assumedContactLocationsForCalibration.clear();
 
     // Check if the frame exist
-    iDynTree::FrameIndex frame1Index = estimator.model().getFrameIndex(frame1Name);
+    iDynTree::FrameIndex frame1Index = deterministicEstimator.model().getFrameIndex(frame1Name);
     if( frame1Index == iDynTree::FRAME_INVALID_INDEX )
     {
         yError() << "wholeBodyDynamics : setupCalibrationWithExternalWrenchesOnTwoFrames impossible to find frame " << frame1Name;
         return false;
     }
 
-    iDynTree::FrameIndex frame2Index = estimator.model().getFrameIndex(frame2Name);
+    iDynTree::FrameIndex frame2Index = deterministicEstimator.model().getFrameIndex(frame2Name);
     if( frame2Index == iDynTree::FRAME_INVALID_INDEX )
     {
         yError() << "wholeBodyDynamics : setupCalibrationWithExternalWrenchesOnTwoFrames impossible to find frame " << frame2Name;
@@ -1833,8 +2099,8 @@ bool WholeBodyDynamicsDevice::setupCalibrationWithExternalWrenchesOnTwoFrames(co
     // We assume that both  contacts are a 6-D Wrench the origin of the frame
     iDynTree::UnknownWrenchContact calibrationAssumedContact(iDynTree::FULL_WRENCH,iDynTree::Position::Zero());
 
-    bool ok = calibrationBuffers.assumedContactLocationsForCalibration.addNewContactInFrame(estimator.model(),frame1Index,calibrationAssumedContact);
-    ok = ok && calibrationBuffers.assumedContactLocationsForCalibration.addNewContactInFrame(estimator.model(),frame2Index,calibrationAssumedContact);
+    bool ok = calibrationBuffers.assumedContactLocationsForCalibration.addNewContactInFrame(deterministicEstimator.model(),frame1Index,calibrationAssumedContact);
+    ok = ok && calibrationBuffers.assumedContactLocationsForCalibration.addNewContactInFrame(deterministicEstimator.model(),frame2Index,calibrationAssumedContact);
 
     if( !ok )
     {
@@ -2034,7 +2300,7 @@ bool WholeBodyDynamicsDevice::useFixedFrameAsKinematicSource(const std::string& 
 {
     yarp::os::LockGuard guard(this->deviceMutex);
 
-    iDynTree::FrameIndex fixedFrameIndex = estimator.model().getFrameIndex(fixedFrame);
+    iDynTree::FrameIndex fixedFrameIndex = deterministicEstimator.model().getFrameIndex(fixedFrame);
 
     if( fixedFrameIndex == iDynTree::FRAME_INVALID_INDEX )
     {
