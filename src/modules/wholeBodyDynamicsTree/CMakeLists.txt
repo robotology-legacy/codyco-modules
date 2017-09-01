@@ -19,6 +19,9 @@ file(GLOB folder_header ./include/wholeBodyDynamicsTree/*.h ./include/ctrlLibRT/
 SOURCE_GROUP("Source Files" FILES ${folder_source})
 SOURCE_GROUP("Header Files" FILES ${folder_header})
 
+# This is a deprecated module using deprecated parts of iDynTree, removing deprecating warnings
+codyco_disable_deprecation_warnings()
+
 add_definitions(-D_USE_MATH_DEFINES)
 
 include_directories(${PROJECT_SOURCE_DIR}/include)
