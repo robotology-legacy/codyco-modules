@@ -24,7 +24,7 @@ public:
    * \note This is just an shorted alias for the sendEvent method
    */
   virtual bool se(const std::string& event);
-  virtual bool read(yarp::os::ConnectionReader& connection);
+  virtual bool read(yarp::os::ConnectionReader& connection) override;
   virtual std::vector<std::string> help(const std::string& functionName="--all");
 };
 

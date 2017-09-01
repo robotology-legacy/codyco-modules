@@ -81,10 +81,10 @@ public:
   }
 
   // read and write structure on a connection
-  bool read(yarp::os::idl::WireReader& reader);
-  bool read(yarp::os::ConnectionReader& connection);
-  bool write(yarp::os::idl::WireWriter& writer);
-  bool write(yarp::os::ConnectionWriter& connection);
+  bool read(yarp::os::idl::WireReader& reader) override;
+  bool read(yarp::os::ConnectionReader& connection) override;
+  bool write(yarp::os::idl::WireWriter& writer) override;
+  bool write(yarp::os::ConnectionWriter& connection) override;
 
 private:
   bool write_x(yarp::os::idl::WireWriter& writer);
@@ -332,8 +332,8 @@ public:
     void clean() {
       dirty_flags(false);
     }
-    bool read(yarp::os::ConnectionReader& connection);
-    bool write(yarp::os::ConnectionWriter& connection);
+    bool read(yarp::os::ConnectionReader& connection) override;
+    bool write(yarp::os::ConnectionWriter& connection) override;
   private:
 
     HomTransform *obj;

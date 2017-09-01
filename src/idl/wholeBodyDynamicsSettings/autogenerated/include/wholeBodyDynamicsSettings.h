@@ -6,6 +6,7 @@
 
 #include <yarp/os/Wire.h>
 #include <yarp/os/idl/WireTypes.h>
+#include <EstimationAlgorithmType.h>
 #include <Gravity.h>
 #include <KinematicSourceType.h>
 
@@ -52,13 +53,17 @@ public:
    * Use the joint velocity measurement if this is true, assume they are zero otherwise.
    */
   bool useJointAcceleration;
+  /**
+   * Use the joint acceleration measurment if this is true, assume they are zero otherwise.
+   */
+  EstimationAlgorithmType estimationAlgorithm;
 
   // Default constructor
-  wholeBodyDynamicsSettings() : kinematicSource((KinematicSourceType)0), fixedFrameName(""), imuFrameName(""), imuFilterCutoffInHz(0), forceTorqueFilterCutoffInHz(0), jointVelFilterCutoffInHz(0), jointAccFilterCutoffInHz(0), useJointVelocity(0), useJointAcceleration(0) {
+  wholeBodyDynamicsSettings() : kinematicSource((KinematicSourceType)0), fixedFrameName(""), imuFrameName(""), imuFilterCutoffInHz(0), forceTorqueFilterCutoffInHz(0), jointVelFilterCutoffInHz(0), jointAccFilterCutoffInHz(0), useJointVelocity(0), useJointAcceleration(0), estimationAlgorithm((EstimationAlgorithmType)0) {
   }
 
   // Constructor with field values
-  wholeBodyDynamicsSettings(const KinematicSourceType kinematicSource,const std::string& fixedFrameName,const Gravity& fixedFrameGravity,const std::string& imuFrameName,const double imuFilterCutoffInHz,const double forceTorqueFilterCutoffInHz,const double jointVelFilterCutoffInHz,const double jointAccFilterCutoffInHz,const bool useJointVelocity,const bool useJointAcceleration) : kinematicSource(kinematicSource), fixedFrameName(fixedFrameName), fixedFrameGravity(fixedFrameGravity), imuFrameName(imuFrameName), imuFilterCutoffInHz(imuFilterCutoffInHz), forceTorqueFilterCutoffInHz(forceTorqueFilterCutoffInHz), jointVelFilterCutoffInHz(jointVelFilterCutoffInHz), jointAccFilterCutoffInHz(jointAccFilterCutoffInHz), useJointVelocity(useJointVelocity), useJointAcceleration(useJointAcceleration) {
+  wholeBodyDynamicsSettings(const KinematicSourceType kinematicSource,const std::string& fixedFrameName,const Gravity& fixedFrameGravity,const std::string& imuFrameName,const double imuFilterCutoffInHz,const double forceTorqueFilterCutoffInHz,const double jointVelFilterCutoffInHz,const double jointAccFilterCutoffInHz,const bool useJointVelocity,const bool useJointAcceleration,const EstimationAlgorithmType estimationAlgorithm) : kinematicSource(kinematicSource), fixedFrameName(fixedFrameName), fixedFrameGravity(fixedFrameGravity), imuFrameName(imuFrameName), imuFilterCutoffInHz(imuFilterCutoffInHz), forceTorqueFilterCutoffInHz(forceTorqueFilterCutoffInHz), jointVelFilterCutoffInHz(jointVelFilterCutoffInHz), jointAccFilterCutoffInHz(jointAccFilterCutoffInHz), useJointVelocity(useJointVelocity), useJointAcceleration(useJointAcceleration), estimationAlgorithm(estimationAlgorithm) {
   }
 
   // Copy constructor
@@ -73,6 +78,7 @@ public:
     this->jointAccFilterCutoffInHz = __alt.jointAccFilterCutoffInHz;
     this->useJointVelocity = __alt.useJointVelocity;
     this->useJointAcceleration = __alt.useJointAcceleration;
+    this->estimationAlgorithm = __alt.estimationAlgorithm;
   }
 
   // Assignment operator
@@ -87,14 +93,15 @@ public:
     this->jointAccFilterCutoffInHz = __alt.jointAccFilterCutoffInHz;
     this->useJointVelocity = __alt.useJointVelocity;
     this->useJointAcceleration = __alt.useJointAcceleration;
+    this->estimationAlgorithm = __alt.estimationAlgorithm;
     return *this;
   }
 
   // read and write structure on a connection
-  bool read(yarp::os::idl::WireReader& reader);
-  bool read(yarp::os::ConnectionReader& connection);
-  bool write(yarp::os::idl::WireWriter& writer);
-  bool write(yarp::os::ConnectionWriter& connection);
+  bool read(yarp::os::idl::WireReader& reader) override;
+  bool read(yarp::os::ConnectionReader& connection) override;
+  bool write(yarp::os::idl::WireWriter& writer) override;
+  bool write(yarp::os::ConnectionWriter& connection) override;
 
 private:
   bool write_kinematicSource(yarp::os::idl::WireWriter& writer);
@@ -117,6 +124,8 @@ private:
   bool nested_write_useJointVelocity(yarp::os::idl::WireWriter& writer);
   bool write_useJointAcceleration(yarp::os::idl::WireWriter& writer);
   bool nested_write_useJointAcceleration(yarp::os::idl::WireWriter& writer);
+  bool write_estimationAlgorithm(yarp::os::idl::WireWriter& writer);
+  bool nested_write_estimationAlgorithm(yarp::os::idl::WireWriter& writer);
   bool read_kinematicSource(yarp::os::idl::WireReader& reader);
   bool nested_read_kinematicSource(yarp::os::idl::WireReader& reader);
   bool read_fixedFrameName(yarp::os::idl::WireReader& reader);
@@ -137,6 +146,8 @@ private:
   bool nested_read_useJointVelocity(yarp::os::idl::WireReader& reader);
   bool read_useJointAcceleration(yarp::os::idl::WireReader& reader);
   bool nested_read_useJointAcceleration(yarp::os::idl::WireReader& reader);
+  bool read_estimationAlgorithm(yarp::os::idl::WireReader& reader);
+  bool nested_read_estimationAlgorithm(yarp::os::idl::WireReader& reader);
 
 public:
 
@@ -257,6 +268,13 @@ public:
       communicate();
       did_set_useJointAcceleration();
     }
+    void set_estimationAlgorithm(const EstimationAlgorithmType estimationAlgorithm) {
+      will_set_estimationAlgorithm();
+      obj->estimationAlgorithm = estimationAlgorithm;
+      mark_dirty_estimationAlgorithm();
+      communicate();
+      did_set_estimationAlgorithm();
+    }
     const KinematicSourceType get_kinematicSource() {
       return obj->kinematicSource;
     }
@@ -287,6 +305,9 @@ public:
     bool get_useJointAcceleration() {
       return obj->useJointAcceleration;
     }
+    const EstimationAlgorithmType get_estimationAlgorithm() {
+      return obj->estimationAlgorithm;
+    }
     virtual bool will_set_kinematicSource() { return true; }
     virtual bool will_set_fixedFrameName() { return true; }
     virtual bool will_set_fixedFrameGravity() { return true; }
@@ -297,6 +318,7 @@ public:
     virtual bool will_set_jointAccFilterCutoffInHz() { return true; }
     virtual bool will_set_useJointVelocity() { return true; }
     virtual bool will_set_useJointAcceleration() { return true; }
+    virtual bool will_set_estimationAlgorithm() { return true; }
     virtual bool did_set_kinematicSource() { return true; }
     virtual bool did_set_fixedFrameName() { return true; }
     virtual bool did_set_fixedFrameGravity() { return true; }
@@ -307,11 +329,12 @@ public:
     virtual bool did_set_jointAccFilterCutoffInHz() { return true; }
     virtual bool did_set_useJointVelocity() { return true; }
     virtual bool did_set_useJointAcceleration() { return true; }
+    virtual bool did_set_estimationAlgorithm() { return true; }
     void clean() {
       dirty_flags(false);
     }
-    bool read(yarp::os::ConnectionReader& connection);
-    bool write(yarp::os::ConnectionWriter& connection);
+    bool read(yarp::os::ConnectionReader& connection) override;
+    bool write(yarp::os::ConnectionWriter& connection) override;
   private:
 
     wholeBodyDynamicsSettings *obj;
@@ -389,6 +412,12 @@ public:
       is_dirty_useJointAcceleration = true;
       mark_dirty();
     }
+    void mark_dirty_estimationAlgorithm() {
+      if (is_dirty_estimationAlgorithm) return;
+      dirty_count++;
+      is_dirty_estimationAlgorithm = true;
+      mark_dirty();
+    }
     void dirty_flags(bool flag) {
       is_dirty = flag;
       is_dirty_kinematicSource = flag;
@@ -401,7 +430,8 @@ public:
       is_dirty_jointAccFilterCutoffInHz = flag;
       is_dirty_useJointVelocity = flag;
       is_dirty_useJointAcceleration = flag;
-      dirty_count = flag ? 10 : 0;
+      is_dirty_estimationAlgorithm = flag;
+      dirty_count = flag ? 11 : 0;
     }
     bool is_dirty;
     int dirty_count;
@@ -415,6 +445,7 @@ public:
     bool is_dirty_jointAccFilterCutoffInHz;
     bool is_dirty_useJointVelocity;
     bool is_dirty_useJointAcceleration;
+    bool is_dirty_estimationAlgorithm;
   };
 };
 

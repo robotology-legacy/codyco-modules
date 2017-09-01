@@ -11,8 +11,8 @@ public:
   std::string event;
   bool _return;
   void init(const std::string& event);
-  virtual bool write(yarp::os::ConnectionWriter& connection);
-  virtual bool read(yarp::os::ConnectionReader& connection);
+  virtual bool write(yarp::os::ConnectionWriter& connection) override;
+  virtual bool read(yarp::os::ConnectionReader& connection) override;
 };
 
 class eventRepeater_se : public yarp::os::Portable {
@@ -20,8 +20,8 @@ public:
   std::string event;
   bool _return;
   void init(const std::string& event);
-  virtual bool write(yarp::os::ConnectionWriter& connection);
-  virtual bool read(yarp::os::ConnectionReader& connection);
+  virtual bool write(yarp::os::ConnectionWriter& connection) override;
+  virtual bool read(yarp::os::ConnectionReader& connection) override;
 };
 
 bool eventRepeater_sendEvent::write(yarp::os::ConnectionWriter& connection) {

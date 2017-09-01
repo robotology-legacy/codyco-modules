@@ -16,8 +16,8 @@ class KinematicSourceTypeVocab;
 
 class KinematicSourceTypeVocab : public yarp::os::idl::WireVocab {
 public:
-  virtual int fromString(const std::string& input);
-  virtual std::string toString(int input);
+  virtual int fromString(const std::string& input) override;
+  virtual std::string toString(int input) override;
 };
 
 

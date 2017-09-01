@@ -151,6 +151,28 @@ bool wholeBodyDynamicsSettings::nested_read_useJointAcceleration(yarp::os::idl::
   }
   return true;
 }
+bool wholeBodyDynamicsSettings::read_estimationAlgorithm(yarp::os::idl::WireReader& reader) {
+  int32_t ecast4;
+  EstimationAlgorithmTypeVocab cvrt5;
+  if (!reader.readEnum(ecast4,cvrt5)) {
+    reader.fail();
+    return false;
+  } else {
+    estimationAlgorithm = (EstimationAlgorithmType)ecast4;
+  }
+  return true;
+}
+bool wholeBodyDynamicsSettings::nested_read_estimationAlgorithm(yarp::os::idl::WireReader& reader) {
+  int32_t ecast6;
+  EstimationAlgorithmTypeVocab cvrt7;
+  if (!reader.readEnum(ecast6,cvrt7)) {
+    reader.fail();
+    return false;
+  } else {
+    estimationAlgorithm = (EstimationAlgorithmType)ecast6;
+  }
+  return true;
+}
 bool wholeBodyDynamicsSettings::read(yarp::os::idl::WireReader& reader) {
   if (!read_kinematicSource(reader)) return false;
   if (!read_fixedFrameName(reader)) return false;
@@ -162,12 +184,13 @@ bool wholeBodyDynamicsSettings::read(yarp::os::idl::WireReader& reader) {
   if (!read_jointAccFilterCutoffInHz(reader)) return false;
   if (!read_useJointVelocity(reader)) return false;
   if (!read_useJointAcceleration(reader)) return false;
+  if (!read_estimationAlgorithm(reader)) return false;
   return !reader.isError();
 }
 
 bool wholeBodyDynamicsSettings::read(yarp::os::ConnectionReader& connection) {
   yarp::os::idl::WireReader reader(connection);
-  if (!reader.readListHeader(12)) return false;
+  if (!reader.readListHeader(13)) return false;
   return read(reader);
 }
 
@@ -251,6 +274,14 @@ bool wholeBodyDynamicsSettings::nested_write_useJointAcceleration(yarp::os::idl:
   if (!writer.writeBool(useJointAcceleration)) return false;
   return true;
 }
+bool wholeBodyDynamicsSettings::write_estimationAlgorithm(yarp::os::idl::WireWriter& writer) {
+  if (!writer.writeI32((int32_t)estimationAlgorithm)) return false;
+  return true;
+}
+bool wholeBodyDynamicsSettings::nested_write_estimationAlgorithm(yarp::os::idl::WireWriter& writer) {
+  if (!writer.writeI32((int32_t)estimationAlgorithm)) return false;
+  return true;
+}
 bool wholeBodyDynamicsSettings::write(yarp::os::idl::WireWriter& writer) {
   if (!write_kinematicSource(writer)) return false;
   if (!write_fixedFrameName(writer)) return false;
@@ -262,12 +293,13 @@ bool wholeBodyDynamicsSettings::write(yarp::os::idl::WireWriter& writer) {
   if (!write_jointAccFilterCutoffInHz(writer)) return false;
   if (!write_useJointVelocity(writer)) return false;
   if (!write_useJointAcceleration(writer)) return false;
+  if (!write_estimationAlgorithm(writer)) return false;
   return !writer.isError();
 }
 
 bool wholeBodyDynamicsSettings::write(yarp::os::ConnectionWriter& connection) {
   yarp::os::idl::WireWriter writer(connection);
-  if (!writer.writeListHeader(12)) return false;
+  if (!writer.writeListHeader(13)) return false;
   return write(writer);
 }
 bool wholeBodyDynamicsSettings::Editor::write(yarp::os::ConnectionWriter& connection) {
@@ -334,6 +366,12 @@ bool wholeBodyDynamicsSettings::Editor::write(yarp::os::ConnectionWriter& connec
     if (!writer.writeString("set")) return false;
     if (!writer.writeString("useJointAcceleration")) return false;
     if (!obj->nested_write_useJointAcceleration(writer)) return false;
+  }
+  if (is_dirty_estimationAlgorithm) {
+    if (!writer.writeListHeader(3)) return false;
+    if (!writer.writeString("set")) return false;
+    if (!writer.writeString("estimationAlgorithm")) return false;
+    if (!obj->nested_write_estimationAlgorithm(writer)) return false;
   }
   return !writer.isError();
 }
@@ -409,8 +447,13 @@ bool wholeBodyDynamicsSettings::Editor::read(yarp::os::ConnectionReader& connect
         if (!writer.writeString("bool useJointAcceleration")) return false;
         if (!writer.writeString("Use the joint velocity measurement if this is true, assume they are zero otherwise.")) return false;
       }
+      if (field=="estimationAlgorithm") {
+        if (!writer.writeListHeader(2)) return false;
+        if (!writer.writeString("EstimationAlgorithmType estimationAlgorithm")) return false;
+        if (!writer.writeString("Use the joint acceleration measurment if this is true, assume they are zero otherwise.")) return false;
+      }
     }
-    if (!writer.writeListHeader(11)) return false;
+    if (!writer.writeListHeader(12)) return false;
     writer.writeString("*** Available fields:");
     writer.writeString("kinematicSource");
     writer.writeString("fixedFrameName");
@@ -422,6 +465,7 @@ bool wholeBodyDynamicsSettings::Editor::read(yarp::os::ConnectionReader& connect
     writer.writeString("jointAccFilterCutoffInHz");
     writer.writeString("useJointVelocity");
     writer.writeString("useJointAcceleration");
+    writer.writeString("estimationAlgorithm");
     return true;
   }
   bool nested = true;
@@ -483,6 +527,10 @@ bool wholeBodyDynamicsSettings::Editor::read(yarp::os::ConnectionReader& connect
       will_set_useJointAcceleration();
       if (!obj->nested_read_useJointAcceleration(reader)) return false;
       did_set_useJointAcceleration();
+    } else if (key == "estimationAlgorithm") {
+      will_set_estimationAlgorithm();
+      if (!obj->nested_read_estimationAlgorithm(reader)) return false;
+      did_set_estimationAlgorithm();
     } else {
       // would be useful to have a fallback here
     }

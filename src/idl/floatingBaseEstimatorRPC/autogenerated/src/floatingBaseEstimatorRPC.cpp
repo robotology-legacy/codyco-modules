@@ -13,8 +13,8 @@ public:
   std::string initial_fixed_frame;
   bool _return;
   void init(const std::string& initial_world_frame, const std::string& initial_fixed_frame);
-  virtual bool write(yarp::os::ConnectionWriter& connection);
-  virtual bool read(yarp::os::ConnectionReader& connection);
+  virtual bool write(yarp::os::ConnectionWriter& connection) override;
+  virtual bool read(yarp::os::ConnectionReader& connection) override;
 };
 
 class floatingBaseEstimatorRPC_resetSimpleLeggedOdometryToArbitraryFrame : public yarp::os::Portable {
@@ -24,8 +24,8 @@ public:
   std::string initial_fixed_frame;
   bool _return;
   void init(const std::string& initial_reference_frame, const HomTransform& initial_reference_frame_H_world, const std::string& initial_fixed_frame);
-  virtual bool write(yarp::os::ConnectionWriter& connection);
-  virtual bool read(yarp::os::ConnectionReader& connection);
+  virtual bool write(yarp::os::ConnectionWriter& connection) override;
+  virtual bool read(yarp::os::ConnectionReader& connection) override;
 };
 
 class floatingBaseEstimatorRPC_changeFixedLinkSimpleLeggedOdometry : public yarp::os::Portable {
@@ -33,16 +33,16 @@ public:
   std::string new_fixed_frame;
   bool _return;
   void init(const std::string& new_fixed_frame);
-  virtual bool write(yarp::os::ConnectionWriter& connection);
-  virtual bool read(yarp::os::ConnectionReader& connection);
+  virtual bool write(yarp::os::ConnectionWriter& connection) override;
+  virtual bool read(yarp::os::ConnectionReader& connection) override;
 };
 
 class floatingBaseEstimatorRPC_getCurrentSettingsString : public yarp::os::Portable {
 public:
   std::string _return;
   void init();
-  virtual bool write(yarp::os::ConnectionWriter& connection);
-  virtual bool read(yarp::os::ConnectionReader& connection);
+  virtual bool write(yarp::os::ConnectionWriter& connection) override;
+  virtual bool read(yarp::os::ConnectionReader& connection) override;
 };
 
 bool floatingBaseEstimatorRPC_resetSimpleLeggedOdometry::write(yarp::os::ConnectionWriter& connection) {
