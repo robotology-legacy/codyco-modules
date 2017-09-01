@@ -12,8 +12,8 @@ public:
   int32_t nr_of_samples;
   bool _return;
   void init(const std::string& calib_code, const int32_t nr_of_samples);
-  virtual bool write(yarp::os::ConnectionWriter& connection);
-  virtual bool read(yarp::os::ConnectionReader& connection);
+  virtual bool write(yarp::os::ConnectionWriter& connection) override;
+  virtual bool read(yarp::os::ConnectionReader& connection) override;
 };
 
 class wholeBodyDynamics_IDLServer_calibStanding : public yarp::os::Portable {
@@ -22,8 +22,8 @@ public:
   int32_t nr_of_samples;
   bool _return;
   void init(const std::string& calib_code, const int32_t nr_of_samples);
-  virtual bool write(yarp::os::ConnectionWriter& connection);
-  virtual bool read(yarp::os::ConnectionReader& connection);
+  virtual bool write(yarp::os::ConnectionWriter& connection) override;
+  virtual bool read(yarp::os::ConnectionReader& connection) override;
 };
 
 class wholeBodyDynamics_IDLServer_calibStandingLeftFoot : public yarp::os::Portable {
@@ -32,8 +32,8 @@ public:
   int32_t nr_of_samples;
   bool _return;
   void init(const std::string& calib_code, const int32_t nr_of_samples);
-  virtual bool write(yarp::os::ConnectionWriter& connection);
-  virtual bool read(yarp::os::ConnectionReader& connection);
+  virtual bool write(yarp::os::ConnectionWriter& connection) override;
+  virtual bool read(yarp::os::ConnectionReader& connection) override;
 };
 
 class wholeBodyDynamics_IDLServer_calibStandingRightFoot : public yarp::os::Portable {
@@ -42,8 +42,8 @@ public:
   int32_t nr_of_samples;
   bool _return;
   void init(const std::string& calib_code, const int32_t nr_of_samples);
-  virtual bool write(yarp::os::ConnectionWriter& connection);
-  virtual bool read(yarp::os::ConnectionReader& connection);
+  virtual bool write(yarp::os::ConnectionWriter& connection) override;
+  virtual bool read(yarp::os::ConnectionReader& connection) override;
 };
 
 class wholeBodyDynamics_IDLServer_calibStandingOnOneLink : public yarp::os::Portable {
@@ -52,8 +52,8 @@ public:
   int32_t nr_of_samples;
   bool _return;
   void init(const std::string& standing_frame, const int32_t nr_of_samples);
-  virtual bool write(yarp::os::ConnectionWriter& connection);
-  virtual bool read(yarp::os::ConnectionReader& connection);
+  virtual bool write(yarp::os::ConnectionWriter& connection) override;
+  virtual bool read(yarp::os::ConnectionReader& connection) override;
 };
 
 class wholeBodyDynamics_IDLServer_calibStandingOnTwoLinks : public yarp::os::Portable {
@@ -63,8 +63,8 @@ public:
   int32_t nr_of_samples;
   bool _return;
   void init(const std::string& first_standing_frame, const std::string& second_standing_frame, const int32_t nr_of_samples);
-  virtual bool write(yarp::os::ConnectionWriter& connection);
-  virtual bool read(yarp::os::ConnectionReader& connection);
+  virtual bool write(yarp::os::ConnectionWriter& connection) override;
+  virtual bool read(yarp::os::ConnectionReader& connection) override;
 };
 
 class wholeBodyDynamics_IDLServer_resetOffset : public yarp::os::Portable {
@@ -72,16 +72,16 @@ public:
   std::string calib_code;
   bool _return;
   void init(const std::string& calib_code);
-  virtual bool write(yarp::os::ConnectionWriter& connection);
-  virtual bool read(yarp::os::ConnectionReader& connection);
+  virtual bool write(yarp::os::ConnectionWriter& connection) override;
+  virtual bool read(yarp::os::ConnectionReader& connection) override;
 };
 
 class wholeBodyDynamics_IDLServer_quit : public yarp::os::Portable {
 public:
   bool _return;
   void init();
-  virtual bool write(yarp::os::ConnectionWriter& connection);
-  virtual bool read(yarp::os::ConnectionReader& connection);
+  virtual bool write(yarp::os::ConnectionWriter& connection) override;
+  virtual bool read(yarp::os::ConnectionReader& connection) override;
 };
 
 class wholeBodyDynamics_IDLServer_resetSimpleLeggedOdometry : public yarp::os::Portable {
@@ -90,8 +90,8 @@ public:
   std::string initial_fixed_link;
   bool _return;
   void init(const std::string& initial_world_frame, const std::string& initial_fixed_link);
-  virtual bool write(yarp::os::ConnectionWriter& connection);
-  virtual bool read(yarp::os::ConnectionReader& connection);
+  virtual bool write(yarp::os::ConnectionWriter& connection) override;
+  virtual bool read(yarp::os::ConnectionReader& connection) override;
 };
 
 class wholeBodyDynamics_IDLServer_changeFixedLinkSimpleLeggedOdometry : public yarp::os::Portable {
@@ -99,8 +99,8 @@ public:
   std::string new_fixed_link;
   bool _return;
   void init(const std::string& new_fixed_link);
-  virtual bool write(yarp::os::ConnectionWriter& connection);
-  virtual bool read(yarp::os::ConnectionReader& connection);
+  virtual bool write(yarp::os::ConnectionWriter& connection) override;
+  virtual bool read(yarp::os::ConnectionReader& connection) override;
 };
 
 class wholeBodyDynamics_IDLServer_set_imuFilterCutoffInHz : public yarp::os::Portable {
@@ -108,16 +108,16 @@ public:
   double newCutoff;
   bool _return;
   void init(const double newCutoff);
-  virtual bool write(yarp::os::ConnectionWriter& connection);
-  virtual bool read(yarp::os::ConnectionReader& connection);
+  virtual bool write(yarp::os::ConnectionWriter& connection) override;
+  virtual bool read(yarp::os::ConnectionReader& connection) override;
 };
 
 class wholeBodyDynamics_IDLServer_get_imuFilterCutoffInHz : public yarp::os::Portable {
 public:
   double _return;
   void init();
-  virtual bool write(yarp::os::ConnectionWriter& connection);
-  virtual bool read(yarp::os::ConnectionReader& connection);
+  virtual bool write(yarp::os::ConnectionWriter& connection) override;
+  virtual bool read(yarp::os::ConnectionReader& connection) override;
 };
 
 class wholeBodyDynamics_IDLServer_set_forceTorqueFilterCutoffInHz : public yarp::os::Portable {
@@ -125,16 +125,16 @@ public:
   double newCutoff;
   bool _return;
   void init(const double newCutoff);
-  virtual bool write(yarp::os::ConnectionWriter& connection);
-  virtual bool read(yarp::os::ConnectionReader& connection);
+  virtual bool write(yarp::os::ConnectionWriter& connection) override;
+  virtual bool read(yarp::os::ConnectionReader& connection) override;
 };
 
 class wholeBodyDynamics_IDLServer_get_forceTorqueFilterCutoffInHz : public yarp::os::Portable {
 public:
   double _return;
   void init();
-  virtual bool write(yarp::os::ConnectionWriter& connection);
-  virtual bool read(yarp::os::ConnectionReader& connection);
+  virtual bool write(yarp::os::ConnectionWriter& connection) override;
+  virtual bool read(yarp::os::ConnectionReader& connection) override;
 };
 
 class wholeBodyDynamics_IDLServer_set_jointVelFilterCutoffInHz : public yarp::os::Portable {
@@ -142,16 +142,16 @@ public:
   double newCutoff;
   bool _return;
   void init(const double newCutoff);
-  virtual bool write(yarp::os::ConnectionWriter& connection);
-  virtual bool read(yarp::os::ConnectionReader& connection);
+  virtual bool write(yarp::os::ConnectionWriter& connection) override;
+  virtual bool read(yarp::os::ConnectionReader& connection) override;
 };
 
 class wholeBodyDynamics_IDLServer_get_jointVelFilterCutoffInHz : public yarp::os::Portable {
 public:
   double _return;
   void init();
-  virtual bool write(yarp::os::ConnectionWriter& connection);
-  virtual bool read(yarp::os::ConnectionReader& connection);
+  virtual bool write(yarp::os::ConnectionWriter& connection) override;
+  virtual bool read(yarp::os::ConnectionReader& connection) override;
 };
 
 class wholeBodyDynamics_IDLServer_set_jointAccFilterCutoffInHz : public yarp::os::Portable {
@@ -159,24 +159,24 @@ public:
   double newCutoff;
   bool _return;
   void init(const double newCutoff);
-  virtual bool write(yarp::os::ConnectionWriter& connection);
-  virtual bool read(yarp::os::ConnectionReader& connection);
+  virtual bool write(yarp::os::ConnectionWriter& connection) override;
+  virtual bool read(yarp::os::ConnectionReader& connection) override;
 };
 
 class wholeBodyDynamics_IDLServer_get_jointAccFilterCutoffInHz : public yarp::os::Portable {
 public:
   double _return;
   void init();
-  virtual bool write(yarp::os::ConnectionWriter& connection);
-  virtual bool read(yarp::os::ConnectionReader& connection);
+  virtual bool write(yarp::os::ConnectionWriter& connection) override;
+  virtual bool read(yarp::os::ConnectionReader& connection) override;
 };
 
 class wholeBodyDynamics_IDLServer_useIMUAsKinematicSource : public yarp::os::Portable {
 public:
   bool _return;
   void init();
-  virtual bool write(yarp::os::ConnectionWriter& connection);
-  virtual bool read(yarp::os::ConnectionReader& connection);
+  virtual bool write(yarp::os::ConnectionWriter& connection) override;
+  virtual bool read(yarp::os::ConnectionReader& connection) override;
 };
 
 class wholeBodyDynamics_IDLServer_useFixedFrameAsKinematicSource : public yarp::os::Portable {
@@ -184,8 +184,8 @@ public:
   std::string fixedFrame;
   bool _return;
   void init(const std::string& fixedFrame);
-  virtual bool write(yarp::os::ConnectionWriter& connection);
-  virtual bool read(yarp::os::ConnectionReader& connection);
+  virtual bool write(yarp::os::ConnectionWriter& connection) override;
+  virtual bool read(yarp::os::ConnectionReader& connection) override;
 };
 
 class wholeBodyDynamics_IDLServer_setUseOfJointVelocities : public yarp::os::Portable {
@@ -193,8 +193,8 @@ public:
   bool enable;
   bool _return;
   void init(const bool enable);
-  virtual bool write(yarp::os::ConnectionWriter& connection);
-  virtual bool read(yarp::os::ConnectionReader& connection);
+  virtual bool write(yarp::os::ConnectionWriter& connection) override;
+  virtual bool read(yarp::os::ConnectionReader& connection) override;
 };
 
 class wholeBodyDynamics_IDLServer_setUseOfJointAccelerations : public yarp::os::Portable {
@@ -202,16 +202,16 @@ public:
   bool enable;
   bool _return;
   void init(const bool enable);
-  virtual bool write(yarp::os::ConnectionWriter& connection);
-  virtual bool read(yarp::os::ConnectionReader& connection);
+  virtual bool write(yarp::os::ConnectionWriter& connection) override;
+  virtual bool read(yarp::os::ConnectionReader& connection) override;
 };
 
 class wholeBodyDynamics_IDLServer_getCurrentSettingsString : public yarp::os::Portable {
 public:
   std::string _return;
   void init();
-  virtual bool write(yarp::os::ConnectionWriter& connection);
-  virtual bool read(yarp::os::ConnectionReader& connection);
+  virtual bool write(yarp::os::ConnectionWriter& connection) override;
+  virtual bool read(yarp::os::ConnectionReader& connection) override;
 };
 
 bool wholeBodyDynamics_IDLServer_calib::write(yarp::os::ConnectionWriter& connection) {
