@@ -16,8 +16,8 @@ endforeach()
 
 set(generated_libs_include_dir ${CMAKE_CURRENT_SOURCE_DIR}/include CACHE INTERNAL "Generated-files libraries include directory")
 include_directories(${generated_libs_include_dir} ${YARP_INCLUDE_DIRS})
-
 add_library(${PROJECTNAME} STATIC ${THRIFT_HEADERS} ${THRIFT_SOURCES})
+target_link_libraries(${PROJECT_NAME} ${YARP_LIBRARIES})
 set_target_properties(${PROJECTNAME} PROPERTIES LINKER_LANGUAGE CXX)
 
 
