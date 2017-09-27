@@ -31,6 +31,7 @@ WholeBodyDynamicsDevice::WholeBodyDynamicsDevice(): RateThread(10),
                                                     sensorReadCorrectly(false),
                                                     estimationWentWell(false),
                                                     validOffsetAvailable(false),
+                                                    lastReadingSkinContactListStamp(0.0),
                                                     settingsEditor(settings)
 {
     // Calibration quantities
