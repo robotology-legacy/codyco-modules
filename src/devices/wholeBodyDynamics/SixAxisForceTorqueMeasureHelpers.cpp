@@ -8,7 +8,7 @@ SixAxisForceTorqueMeasureProcessor::SixAxisForceTorqueMeasureProcessor()
 {
     // Initialize the affice function to be the identity
     toEigen(m_secondaryCalibrationMatrix).setIdentity();
-    toEigen(m_offset).setZero();
+    m_offset.zero();
 }
 
 iDynTree::Matrix6x6& SixAxisForceTorqueMeasureProcessor::secondaryCalibrationMatrix()
