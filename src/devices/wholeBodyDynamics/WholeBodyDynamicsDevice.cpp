@@ -31,6 +31,7 @@ WholeBodyDynamicsDevice::WholeBodyDynamicsDevice(): RateThread(10),
                                                     sensorReadCorrectly(false),
                                                     estimationWentWell(false),
                                                     validOffsetAvailable(false),
+                                                    lastReadingSkinContactListStamp(0.0),
                                                     settingsEditor(settings)
 {
     // Calibration quantities
@@ -1099,6 +1100,22 @@ bool WholeBodyDynamicsDevice::readFTSensors(bool verbose)
         {
             std::string sensorName = estimator.sensors().getSensor(iDynTree::SIX_AXIS_FORCE_TORQUE,ft)->getName();
             yWarning() << "wholeBodyDynamics warning : FT sensor " << sensorName << " was not readed correctly, using old measurement";
+        }
+
+        bool isNaN = false;
+        for (size_t i = 0; i < ftMeasurement.size(); i++)
+        {
+            if( std::isnan(ftMeasurement[i]) )
+            {
+                isNaN = true;
+                break;
+            }
+        }
+        if( isNaN )
+        {
+            std::string sensorName = estimator.sensors().getSensor(iDynTree::SIX_AXIS_FORCE_TORQUE,ft)->getName();
+            yError() << "wholeBodyDynamics : FT sensor " << sensorName << " contains nan: " << ftMeasurement.toString() << ", returning error.";
+            return false;
         }
 
         if( ok )
