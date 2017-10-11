@@ -1412,7 +1412,7 @@ void WholeBodyDynamicsDevice::readContactPoints()
             {
                 it->setPressure(0.0);
                 it->setActiveTaxels(0);
-                yWarning() << "wholeBodyDynamics: skincontactlist empty, setting pressure and active taxels to 0";
+                //yDebug() << "wholeBodyDynamics: skincontactlist empty, setting pressure and active taxels to 0";
                 numberOfContacts++;
             }
         }
