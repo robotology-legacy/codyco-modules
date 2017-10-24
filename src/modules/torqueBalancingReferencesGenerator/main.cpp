@@ -16,6 +16,7 @@
 
 #include "TorqueBalancingReferencesGenerator.h"
 #include <yarp/os/Network.h>
+#include <iostream>
 
 int main(int argc, char **argv)
 {
