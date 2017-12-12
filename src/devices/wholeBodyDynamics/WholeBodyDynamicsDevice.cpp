@@ -632,6 +632,14 @@ bool WholeBodyDynamicsDevice::loadSettingsFromConfig(os::Searchable& config)
         return false;
     }
 
+    // Set the port prefix. The default value "/wholeBodyDynamics"
+    // is set in the device constructor
+    if( prop.check("portPrefix") &&
+        prop.find("portPrefix").isString())
+    {
+        portPrefix = prop.find("portPrefix").asString();
+    }
+
     return true;
 }
 
