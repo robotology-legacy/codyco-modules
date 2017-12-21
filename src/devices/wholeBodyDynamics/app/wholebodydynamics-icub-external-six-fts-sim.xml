@@ -42,6 +42,8 @@
             <param name="/wholeBodyDynamics/right_arm/endEffectorWrench:o">(r_hand,r_hand_dh_frame)</param>
             <param name="/wholeBodyDynamics/left_leg/cartesianEndEffectorWrench:o">(l_foot,l_sole,root_link)</param>
             <param name="/wholeBodyDynamics/right_leg/cartesianEndEffectorWrench:o">(r_foot,r_sole,root_link)</param>
+            <param name="/wholeBodyDynamics/left_foot/cartesianEndEffectorWrench:o">(l_foot,l_sole,l_sole)</param>
+            <param name="/wholeBodyDynamics/right_foot/cartesianEndEffectorWrench:o">(r_foot,r_sole,r_sole)</param>
         </group>
 
         <action phase="startup" level="15" type="attach">
