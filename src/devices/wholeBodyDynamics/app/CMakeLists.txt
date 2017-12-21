@@ -89,3 +89,8 @@ install_wbd_robots_files(YARP_ROBOT_NAME icubGazeboSim
                          EXTERNAL_WBD_CONF wholebodydynamics-icub-external-six-fts-sim.xml
                          EXTERNAL_YRI_CONF launch-wholebodydynamics-icub-six-fts-sim.xml
                          NO_ROBOT)
+
+install_wbd_robots_files(YARP_ROBOT_NAME iCubGazeboV2_5
+                         EXTERNAL_WBD_CONF wholebodydynamics-icub-external-six-fts-sim.xml
+                         EXTERNAL_YRI_CONF launch-wholebodydynamics-icub-six-fts-sim.xml
+                         NO_ROBOT)
