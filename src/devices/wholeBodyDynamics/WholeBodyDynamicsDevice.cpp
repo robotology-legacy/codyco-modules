@@ -679,6 +679,14 @@ bool WholeBodyDynamicsDevice::loadSettingsFromConfig(os::Searchable& config)
         return false;
     }
 
+    yarp::os::Value falseValue;
+    falseValue.fromString("false");
+    if (prop.check("publishOnROS", falseValue, "Checking ROS enabled").asBool()) {
+        publisherNode = new yarp::os::Node("/wholeBodyDynamics");
+        rosTFPrefix = prop.check("rosTFPrefix", yarp::os::Value(""), "Checking TF prefix for ROS topics").asString();
+    }
+
+
     // Set the port prefix. The default value "/wholeBodyDynamics"
     // is set in the device constructor
     if( prop.check("portPrefix") &&
@@ -953,14 +961,6 @@ bool WholeBodyDynamicsDevice::attachAllControlBoard(const PolyDriverList& p)
         yError() << " WholeBodyDynamicsDevice::attachAll in attachAll of the remappedControlBoard";
         return false;
     }
-
-    yarp::os::Value falseValue;
-    falseValue.fromString("false");
-    if (prop.check("publishOnROS", falseValue, "Checking ROS enabled").asBool()) {
-        publisherNode = new yarp::os::Node("/wholeBodyDynamics");
-        rosTFPrefix = prop.check("rosTFPrefix", yarp::os::Value(""), "Checking TF prefix for ROS topics").asString();
-    }
-
 
     return true;
 }
