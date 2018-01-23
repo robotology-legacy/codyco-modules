@@ -242,7 +242,7 @@ bool WholeBodyDynamicsDevice::openRemapperVirtualSensors(os::Searchable& config)
     }
 
     // Check if the controlboard and the estimator have a consistent number of joints
-    int axes = remappedVirtualAnalogSensorsInterfaces.ivirtsens->getChannels();
+    int axes = remappedVirtualAnalogSensorsInterfaces.ivirtsens->getVirtualAnalogSensorChannels();
     if( axes != (int) estimator.model().getNrOfDOFs() )
     {
         yError() << "wholeBodyDynamics : open estimator model and the remapperVirtualAnalogSensor has an inconsistent number of joints";
@@ -1659,7 +1659,7 @@ template <class T> void broadcastData(T& _values, yarp::os::BufferedPort<T>& _po
 void WholeBodyDynamicsDevice::publishTorques()
 {
     iDynTree::toYarp(this->estimatedJointTorques,this->estimatedJointTorquesYARP);
-    this->remappedVirtualAnalogSensorsInterfaces.ivirtsens->updateMeasure(this->estimatedJointTorquesYARP);
+    this->remappedVirtualAnalogSensorsInterfaces.ivirtsens->updateVirtualAnalogSensorMeasure(this->estimatedJointTorquesYARP);
 }
 
 void WholeBodyDynamicsDevice::publishContacts()

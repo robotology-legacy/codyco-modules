@@ -82,10 +82,10 @@ public:
     virtual bool close();
 
     /* IVirtualAnalogSensor methods (documented in IVirtualAnalogSensor class) */
-    virtual int getState(int ch);
-    virtual int getChannels();
-    virtual bool updateMeasure(yarp::sig::Vector &measure);
-    virtual bool updateMeasure(int ch, double &measure);
+    virtual VAS_status getVirtualAnalogSensorStatus(int ch);
+    virtual int getVirtualAnalogSensorChannels();
+    virtual bool updateVirtualAnalogSensorMeasure(yarp::sig::Vector &measure);
+    virtual bool updateVirtualAnalogSensorMeasure(int ch, double &measure);
 
     /** IAxisInfo methods (documented in IVirtualAnalogSensor class) */
     virtual bool getAxisName(int axis, yarp::os::ConstString& name);

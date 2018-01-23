@@ -154,11 +154,11 @@ bool VirtualAnalogClient::close()
     return ok;
 }
 
-bool VirtualAnalogClient::updateMeasure(Vector& measure)
+bool VirtualAnalogClient::updateVirtualAnalogSensorMeasure(Vector& measure)
 {
-    if( (int) measure.size() != this->getChannels() )
+    if( (int) measure.size() != this->getVirtualAnalogSensorChannels() )
     {
-        yError() << "VirtualAnalogClient: updateMeasure failed : input measure has size " << measure.size() << " while the client is configured with " << this->getChannels() << " channels";
+        yError() << "VirtualAnalogClient: updateMeasure failed : input measure has size " << measure.size() << " while the client is configured with " << this->getVirtualAnalogSensorChannels() << " channels";
         return false;
     }
 
@@ -169,11 +169,11 @@ bool VirtualAnalogClient::updateMeasure(Vector& measure)
     return true;
 }
 
-bool VirtualAnalogClient::updateMeasure(int ch, double& measure)
+bool VirtualAnalogClient::updateVirtualAnalogSensorMeasure(int ch, double& measure)
 {
-    if( ch < 0 || ch >= this->getChannels() )
+    if( ch < 0 || ch >= this->getVirtualAnalogSensorChannels() )
     {
-        yError() << "VirtualAnalogClient: updateMeasure failed : requested channel " << ch << " while the client is configured with " << this->getChannels() << " channels";
+        yError() << "VirtualAnalogClient: updateMeasure failed : requested channel " << ch << " while the client is configured with " << this->getVirtualAnalogSensorChannels() << " channels";
     }
 
     measureBuffer[ch] = measure;
@@ -195,21 +195,21 @@ void VirtualAnalogClient::sendData()
     m_outputPort.write();
 }
 
-int VirtualAnalogClient::getChannels()
+int VirtualAnalogClient::getVirtualAnalogSensorChannels()
 {
     return this->m_axisName.size();
 }
 
-int VirtualAnalogClient::getState(int /*ch*/)
+IVirtualAnalogSensor::VAS_status VirtualAnalogClient::getVirtualAnalogSensorStatus(int /*ch*/)
 {
     return VAS_OK;
 }
 
 bool VirtualAnalogClient::getAxisName(int axis, ConstString& name)
 {
-    if( axis < 0 || axis >= this->getChannels() )
+    if( axis < 0 || axis >= this->getVirtualAnalogSensorChannels() )
     {
-        yError() << "VirtualAnalogClient: getAxisName failed : requested axis " << axis << " while the client is configured with " << this->getChannels() << " channels";
+        yError() << "VirtualAnalogClient: getAxisName failed : requested axis " << axis << " while the client is configured with " << this->getVirtualAnalogSensorChannels() << " channels";
         return false;
     }
 
@@ -220,9 +220,9 @@ bool VirtualAnalogClient::getAxisName(int axis, ConstString& name)
 
 bool VirtualAnalogClient::getJointType(int axis, JointTypeEnum& type)
 {
-    if( axis < 0 || axis >= this->getChannels() )
+    if( axis < 0 || axis >= this->getVirtualAnalogSensorChannels() )
     {
-        yError() << "VirtualAnalogClient: getJointType failed : requested axis " << axis << " while the client is configured with " << this->getChannels() << " channels";
+        yError() << "VirtualAnalogClient: getJointType failed : requested axis " << axis << " while the client is configured with " << this->getVirtualAnalogSensorChannels() << " channels";
         return false;
     }
 
