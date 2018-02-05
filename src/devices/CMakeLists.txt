@@ -31,7 +31,7 @@ add_subdirectory(genericSensorClient)
 yarp_end_plugin_library(codycomod)
 
 yarp_add_plugin_yarpdev_executable(codycomoddev codycomod)
-target_link_libraries(codycomoddev ${YARP_LIBRARIES})
+target_link_libraries(codycomoddev PRIVATE ${YARP_LIBRARIES})
 
 install(TARGETS codycomoddev DESTINATION bin)
 install(TARGETS codycomod EXPORT codycoMod
