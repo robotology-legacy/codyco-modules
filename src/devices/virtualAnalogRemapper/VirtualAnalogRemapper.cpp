@@ -84,7 +84,7 @@ bool VirtualAnalogRemapper::attachAll(const PolyDriverList& p)
 
     for(size_t devIdx = 0; devIdx < virtualAnalogList.size(); devIdx++)
     {
-        int nrOfVirtualAxes = virtualAnalogList[devIdx]->getChannels();
+        int nrOfVirtualAxes = virtualAnalogList[devIdx]->getVirtualAnalogSensorChannels();
         for(int localAxis=0; localAxis < nrOfVirtualAxes; localAxis++)
         {
             yarp::os::ConstString axisName;
@@ -131,8 +131,8 @@ bool VirtualAnalogRemapper::attachAll(const PolyDriverList& p)
     for(size_t subdev = 0; subdev < virtualAnalogList.size(); subdev++)
     {
         remappedSubdevices[subdev].dev = virtualAnalogList[subdev];
-        remappedSubdevices[subdev].measureBuffer.resize(remappedSubdevices[subdev].dev->getChannels(),0.0);
-        remappedSubdevices[subdev].local2globalIdx.resize(remappedSubdevices[subdev].dev->getChannels(),-1);
+        remappedSubdevices[subdev].measureBuffer.resize(remappedSubdevices[subdev].dev->getVirtualAnalogSensorChannels(),0.0);
+        remappedSubdevices[subdev].local2globalIdx.resize(remappedSubdevices[subdev].dev->getVirtualAnalogSensorChannels(),-1);
 
         // Let's fill the local2globalIdx vector by searching on all the vector
         // In the meanwhile, we also count the channels of the subdevices that are remapped:
@@ -153,7 +153,7 @@ bool VirtualAnalogRemapper::attachAll(const PolyDriverList& p)
         }
 
         // If all the axes of the subdevice are remapped, we can use the vector updateMeasure
-        if( axesOfSubDeviceThatAreRemapped == remappedSubdevices[subdev].dev->getChannels() )
+        if( axesOfSubDeviceThatAreRemapped == remappedSubdevices[subdev].dev->getVirtualAnalogSensorChannels() )
         {
             remappedSubdevices[subdev].useVectorUpdateMeasure = true;
             for(size_t localIndex = 0; localIndex < remappedSubdevices[subdev].local2globalIdx.size(); localIndex++)
@@ -196,13 +196,13 @@ bool VirtualAnalogRemapper::close()
     return true;
 }
 
-bool VirtualAnalogRemapper::updateMeasure(Vector& measure)
+bool VirtualAnalogRemapper::updateVirtualAnalogSensorMeasure(Vector& measure)
 {
     bool ret = true;
 
-    if( (int) measure.size() != this->getChannels() )
+    if( (int) measure.size() != this->getVirtualAnalogSensorChannels() )
     {
-        yError() << "VirtualAnalogClient: updateMeasure failed : input measure has size " << measure.size() << " while the client is configured with " << this->getChannels() << " channels";
+        yError() << "VirtualAnalogClient: updateMeasure failed : input measure has size " << measure.size() << " while the client is configured with " << this->getVirtualAnalogSensorChannels() << " channels";
         return false;
     }
 
@@ -221,13 +221,13 @@ bool VirtualAnalogRemapper::updateMeasure(Vector& measure)
                 this->remappedSubdevices[subdevIdx].measureBuffer[localIndex] = measure[globalIndex];
             }
 
-            bool ok = dev->updateMeasure(this->remappedSubdevices[subdevIdx].measureBuffer);
+            bool ok = dev->updateVirtualAnalogSensorMeasure(this->remappedSubdevices[subdevIdx].measureBuffer);
             ret = ok && ret;
         }
     }
 
     // use single axis method (for axis that are not already updated)
-    for(int jnt=0; jnt < this->getChannels(); jnt++)
+    for(int jnt=0; jnt < this->getVirtualAnalogSensorChannels(); jnt++)
     {
         if( !(this->remappedAxes[jnt].useVectorUpdateMeasure) )
         {
@@ -236,7 +236,7 @@ bool VirtualAnalogRemapper::updateMeasure(Vector& measure)
 
             if( dev )
             {
-                bool ok = dev->updateMeasure(localAxis,measure[jnt]);
+                bool ok = dev->updateVirtualAnalogSensorMeasure(localAxis,measure[jnt]);
                 ret = ok && ret;
             }
         }
@@ -245,11 +245,11 @@ bool VirtualAnalogRemapper::updateMeasure(Vector& measure)
     return ret;
 }
 
-bool VirtualAnalogRemapper::updateMeasure(int ch, double& measure)
+bool VirtualAnalogRemapper::updateVirtualAnalogSensorMeasure(int ch, double& measure)
 {
-    if( ch < 0 || ch >= this->getChannels() )
+    if( ch < 0 || ch >= this->getVirtualAnalogSensorChannels() )
     {
-        yError() << "VirtualAnalogRemapper: updateMeasure failed : requested channel " << ch << " while the client is configured with " << this->getChannels() << " channels";
+        yError() << "VirtualAnalogRemapper: updateMeasure failed : requested channel " << ch << " while the client is configured with " << this->getVirtualAnalogSensorChannels() << " channels";
     }
 
     // In this case we need to use the single axis method
@@ -259,7 +259,7 @@ bool VirtualAnalogRemapper::updateMeasure(int ch, double& measure)
     bool ret;
     if( dev )
     {
-        ret = dev->updateMeasure(localAxis,measure);
+        ret = dev->updateVirtualAnalogSensorMeasure(localAxis,measure);
     }
     else
     {
@@ -268,39 +268,39 @@ bool VirtualAnalogRemapper::updateMeasure(int ch, double& measure)
     return ret;
 }
 
-int VirtualAnalogRemapper::getChannels()
+int VirtualAnalogRemapper::getVirtualAnalogSensorChannels()
 {
     return this->m_axesNames.size();
 }
 
-int VirtualAnalogRemapper::getState(int ch)
+IVirtualAnalogSensor::VAS_status VirtualAnalogRemapper::getVirtualAnalogSensorStatus(int ch)
 {
-    if( ch < 0 || ch >= this->getChannels() )
+    if( ch < 0 || ch >= this->getVirtualAnalogSensorChannels() )
     {
-        yError() << "VirtualAnalogRemapper: getState failed : requested channel " << ch << " while the client is configured with " << this->getChannels() << " channels";
+        yError() << "VirtualAnalogRemapper: getState failed : requested channel " << ch << " while the client is configured with " << this->getVirtualAnalogSensorChannels() << " channels";
     }
 
     // In this case we need to use the single axis method
     IVirtualAnalogSensor * dev = this->remappedAxes[ch].dev;
     int localAxis = this->remappedAxes[ch].localAxis;
 
-    bool ret;
+    IVirtualAnalogSensor::VAS_status status;
     if( dev )
     {
-        ret = dev->getState(localAxis);
+        status = dev->getVirtualAnalogSensorStatus(localAxis);
     }
     else
     {
-        ret = false;
+        status = VAS_ERROR;
     }
-    return ret;
+    return status;
 }
 
 bool VirtualAnalogRemapper::getAxisName(int axis, ConstString& name)
 {
-    if( axis < 0 || axis >= this->getChannels() )
+    if( axis < 0 || axis >= this->getVirtualAnalogSensorChannels() )
     {
-        yError() << "VirtualAnalogRemapper: getAxisName failed : requested axis " << axis << " while the remapper is configured with " << this->getChannels() << " channels";
+        yError() << "VirtualAnalogRemapper: getAxisName failed : requested axis " << axis << " while the remapper is configured with " << this->getVirtualAnalogSensorChannels() << " channels";
         return false;
     }
 
@@ -322,9 +322,9 @@ bool VirtualAnalogRemapper::getAxisName(int axis, ConstString& name)
 
 bool VirtualAnalogRemapper::getJointType(int axis, JointTypeEnum& type)
 {
-    if( axis < 0 || axis >= this->getChannels() )
+    if( axis < 0 || axis >= this->getVirtualAnalogSensorChannels() )
     {
-        yError() << "VirtualAnalogRemapper: getJointType failed : requested axis " << axis << " while the remapper is configured with " << this->getChannels() << " channels";
+        yError() << "VirtualAnalogRemapper: getJointType failed : requested axis " << axis << " while the remapper is configured with " << this->getVirtualAnalogSensorChannels() << " channels";
         return false;
     }
 
