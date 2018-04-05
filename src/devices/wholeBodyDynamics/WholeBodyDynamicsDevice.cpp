@@ -562,8 +562,6 @@ bool WholeBodyDynamicsDevice::loadSettingsFromConfig(os::Searchable& config)
 {
     // Fill setting with their default values
     settings.kinematicSource             = IMU;
-    settings.useJointVelocity            = true;
-    settings.useJointAcceleration        = true;
     settings.imuFilterCutoffInHz         = 3.0;
     settings.forceTorqueFilterCutoffInHz = 3.0;
     settings.jointVelFilterCutoffInHz    = 3.0;
@@ -638,6 +636,30 @@ bool WholeBodyDynamicsDevice::loadSettingsFromConfig(os::Searchable& config)
         prop.find("portPrefix").isString())
     {
         portPrefix = prop.find("portPrefix").asString();
+    }
+
+    std::string useJointVelocityOptionName = "useJointVelocity";
+    if( !(prop.check(useJointVelocityOptionName.c_str()) && prop.find(useJointVelocityOptionName.c_str()).isBool()) )
+    {
+        yWarning() << "wholeBodyDynamics: useJointVelocity bool parameter missing, please specify it.";
+        yWarning() << "wholeBodyDynamics: setting useJointVelocity to the default value of true, but this is a deprecated behaviour that will be removed in the future.";
+        settings.useJointVelocity = true;
+    }
+    else
+    {
+        settings.useJointVelocity = prop.find(useJointVelocityOptionName.c_str()).asBool();
+    }
+
+    std::string useJointAccelerationOptionName = "useJointAcceleration";
+    if( !(prop.check(useJointAccelerationOptionName.c_str()) && prop.find(useJointAccelerationOptionName.c_str()).isBool()) )
+    {
+        yWarning() << "wholeBodyDynamics: useJointAcceleration bool parameter missing, please specify it.";
+        yWarning() << "wholeBodyDynamics: setting useJointAcceleration to the default value of true, but this is a deprecated behaviour that will be removed in the future.";
+        settings.useJointAcceleration = true;
+    }
+    else
+    {
+        settings.useJointAcceleration = prop.find(useJointAccelerationOptionName.c_str()).asBool();
     }
 
     return true;
