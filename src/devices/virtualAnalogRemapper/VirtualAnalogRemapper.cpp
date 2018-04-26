@@ -273,7 +273,7 @@ int VirtualAnalogRemapper::getVirtualAnalogSensorChannels()
     return this->m_axesNames.size();
 }
 
-IVirtualAnalogSensor::VAS_status VirtualAnalogRemapper::getVirtualAnalogSensorStatus(int ch)
+yarp::dev::VAS_status VirtualAnalogRemapper::getVirtualAnalogSensorStatus(int ch)
 {
     if( ch < 0 || ch >= this->getVirtualAnalogSensorChannels() )
     {
@@ -284,14 +284,14 @@ IVirtualAnalogSensor::VAS_status VirtualAnalogRemapper::getVirtualAnalogSensorSt
     IVirtualAnalogSensor * dev = this->remappedAxes[ch].dev;
     int localAxis = this->remappedAxes[ch].localAxis;
 
-    IVirtualAnalogSensor::VAS_status status;
+    yarp::dev::VAS_status status;
     if( dev )
     {
         status = dev->getVirtualAnalogSensorStatus(localAxis);
     }
     else
     {
-        status = VAS_ERROR;
+        status = yarp::dev::VAS_status::VAS_ERROR;
     }
     return status;
 }
