@@ -1,4 +1,12 @@
-// This is an automatically-generated file.
+/*
+ * Copyright (C) 2006-2018 Istituto Italiano di Tecnologia (IIT)
+ * All rights reserved.
+ *
+ * This software may be modified and distributed under the terms of the
+ * BSD-3-Clause license. See the accompanying LICENSE file for details.
+ */
+
+// This is an automatically generated file.
 // It could get re-generated if the ALLOW_IDL_GENERATION flag is on.
 
 #ifndef YARP_THRIFT_GENERATOR_wholeBodyDynamics_IDLServer
@@ -24,7 +32,7 @@ public:
    * @param nr_of_samples number of samples
    * @return true/false on success/failure
    */
-  virtual bool calib(const std::string& calib_code, const int32_t nr_of_samples = 100);
+  virtual bool calib(const std::string& calib_code, const std::int32_t nr_of_samples = 100);
   /**
    * Calibrate the force/torque sensors when on double support
    * (WARNING: calibrate the sensors when the only external forces acting on the robot are on the sole).
@@ -33,7 +41,7 @@ public:
    * @param nr_of_samples number of samples
    * @return true/false on success/failure
    */
-  virtual bool calibStanding(const std::string& calib_code, const int32_t nr_of_samples = 100);
+  virtual bool calibStanding(const std::string& calib_code, const std::int32_t nr_of_samples = 100);
   /**
    * Calibrate the force/torque sensors when on single support on left foot
    * (WARNING: calibrate the sensors when the only external forces acting on the robot are on the left sole).
@@ -41,7 +49,7 @@ public:
    * @param nr_of_samples number of samples
    * @return true/false on success/failure
    */
-  virtual bool calibStandingLeftFoot(const std::string& calib_code, const int32_t nr_of_samples = 100);
+  virtual bool calibStandingLeftFoot(const std::string& calib_code, const std::int32_t nr_of_samples = 100);
   /**
    * Calibrate the force/torque sensors when on single support on right foot
    * (WARNING: calibrate the sensors when the only external forces acting on the robot are on the right sole).
@@ -49,7 +57,7 @@ public:
    * @param nr_of_samples number of samples
    * @return true/false on success/failure
    */
-  virtual bool calibStandingRightFoot(const std::string& calib_code, const int32_t nr_of_samples = 100);
+  virtual bool calibStandingRightFoot(const std::string& calib_code, const std::int32_t nr_of_samples = 100);
   /**
    * Calibrate the force/torque sensors offsets when the external forces are acting on only one link.
    * This method is typically used when the robot is standing on only one feet,
@@ -59,7 +67,7 @@ public:
    * @param nr_of_samples number of samples to use for calibration.
    * @return true/false on success/failure.
    */
-  virtual bool calibStandingOnOneLink(const std::string& standing_frame, const int32_t nr_of_samples = 100);
+  virtual bool calibStandingOnOneLink(const std::string& standing_frame, const std::int32_t nr_of_samples = 100);
   /**
    * Calibrate the force/torque sensors offsets when the external forces are acting on only two links.
    * This method is not in general guaranteed to work, and it works in practice only when the robot and its internal
@@ -71,7 +79,7 @@ public:
    * @param nr_of_samples number of samples
    * @return true/false on success/failure
    */
-  virtual bool calibStandingOnTwoLinks(const std::string& first_standing_frame, const std::string& second_standing_frame, const int32_t nr_of_samples = 100);
+  virtual bool calibStandingOnTwoLinks(const std::string& first_standing_frame, const std::string& second_standing_frame, const std::int32_t nr_of_samples = 100);
   /**
    * Reset the sensor offset to 0 0 0 0 0 0 (six zeros).
    * @param calib_code argument to specify the sensors to reset (all,arms,legs,feet)
@@ -165,7 +173,7 @@ public:
    * @return the current settings as a human readable string.
    */
   virtual std::string getCurrentSettingsString();
-  virtual bool read(yarp::os::ConnectionReader& connection);
+  virtual bool read(yarp::os::ConnectionReader& connection) override;
   virtual std::vector<std::string> help(const std::string& functionName="--all");
 };
 
