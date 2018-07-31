@@ -200,9 +200,9 @@ int VirtualAnalogClient::getVirtualAnalogSensorChannels()
     return this->m_axisName.size();
 }
 
-IVirtualAnalogSensor::VAS_status VirtualAnalogClient::getVirtualAnalogSensorStatus(int /*ch*/)
+VAS_status VirtualAnalogClient::getVirtualAnalogSensorStatus(int /*ch*/)
 {
-    return VAS_OK;
+    return yarp::dev::VAS_status::VAS_OK;
 }
 
 bool VirtualAnalogClient::getAxisName(int axis, ConstString& name)

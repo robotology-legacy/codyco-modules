@@ -1,4 +1,12 @@
-// This is an automatically-generated file.
+/*
+ * Copyright (C) 2006-2018 Istituto Italiano di Tecnologia (IIT)
+ * All rights reserved.
+ *
+ * This software may be modified and distributed under the terms of the
+ * BSD-3-Clause license. See the accompanying LICENSE file for details.
+ */
+
+// This is an automatically generated file.
 // It could get re-generated if the ALLOW_IDL_GENERATION flag is on.
 
 #include <wholeBodyDynamicsSettings.h>
@@ -68,56 +76,56 @@ bool wholeBodyDynamicsSettings::nested_read_imuFrameName(yarp::os::idl::WireRead
   return true;
 }
 bool wholeBodyDynamicsSettings::read_imuFilterCutoffInHz(yarp::os::idl::WireReader& reader) {
-  if (!reader.readDouble(imuFilterCutoffInHz)) {
+  if (!reader.readFloat64(imuFilterCutoffInHz)) {
     reader.fail();
     return false;
   }
   return true;
 }
 bool wholeBodyDynamicsSettings::nested_read_imuFilterCutoffInHz(yarp::os::idl::WireReader& reader) {
-  if (!reader.readDouble(imuFilterCutoffInHz)) {
+  if (!reader.readFloat64(imuFilterCutoffInHz)) {
     reader.fail();
     return false;
   }
   return true;
 }
 bool wholeBodyDynamicsSettings::read_forceTorqueFilterCutoffInHz(yarp::os::idl::WireReader& reader) {
-  if (!reader.readDouble(forceTorqueFilterCutoffInHz)) {
+  if (!reader.readFloat64(forceTorqueFilterCutoffInHz)) {
     reader.fail();
     return false;
   }
   return true;
 }
 bool wholeBodyDynamicsSettings::nested_read_forceTorqueFilterCutoffInHz(yarp::os::idl::WireReader& reader) {
-  if (!reader.readDouble(forceTorqueFilterCutoffInHz)) {
+  if (!reader.readFloat64(forceTorqueFilterCutoffInHz)) {
     reader.fail();
     return false;
   }
   return true;
 }
 bool wholeBodyDynamicsSettings::read_jointVelFilterCutoffInHz(yarp::os::idl::WireReader& reader) {
-  if (!reader.readDouble(jointVelFilterCutoffInHz)) {
+  if (!reader.readFloat64(jointVelFilterCutoffInHz)) {
     reader.fail();
     return false;
   }
   return true;
 }
 bool wholeBodyDynamicsSettings::nested_read_jointVelFilterCutoffInHz(yarp::os::idl::WireReader& reader) {
-  if (!reader.readDouble(jointVelFilterCutoffInHz)) {
+  if (!reader.readFloat64(jointVelFilterCutoffInHz)) {
     reader.fail();
     return false;
   }
   return true;
 }
 bool wholeBodyDynamicsSettings::read_jointAccFilterCutoffInHz(yarp::os::idl::WireReader& reader) {
-  if (!reader.readDouble(jointAccFilterCutoffInHz)) {
+  if (!reader.readFloat64(jointAccFilterCutoffInHz)) {
     reader.fail();
     return false;
   }
   return true;
 }
 bool wholeBodyDynamicsSettings::nested_read_jointAccFilterCutoffInHz(yarp::os::idl::WireReader& reader) {
-  if (!reader.readDouble(jointAccFilterCutoffInHz)) {
+  if (!reader.readFloat64(jointAccFilterCutoffInHz)) {
     reader.fail();
     return false;
   }
@@ -171,87 +179,87 @@ bool wholeBodyDynamicsSettings::read(yarp::os::ConnectionReader& connection) {
   return read(reader);
 }
 
-bool wholeBodyDynamicsSettings::write_kinematicSource(yarp::os::idl::WireWriter& writer) {
+bool wholeBodyDynamicsSettings::write_kinematicSource(const yarp::os::idl::WireWriter& writer) const {
   if (!writer.writeI32((int32_t)kinematicSource)) return false;
   return true;
 }
-bool wholeBodyDynamicsSettings::nested_write_kinematicSource(yarp::os::idl::WireWriter& writer) {
+bool wholeBodyDynamicsSettings::nested_write_kinematicSource(const yarp::os::idl::WireWriter& writer) const {
   if (!writer.writeI32((int32_t)kinematicSource)) return false;
   return true;
 }
-bool wholeBodyDynamicsSettings::write_fixedFrameName(yarp::os::idl::WireWriter& writer) {
+bool wholeBodyDynamicsSettings::write_fixedFrameName(const yarp::os::idl::WireWriter& writer) const {
   if (!writer.writeString(fixedFrameName)) return false;
   return true;
 }
-bool wholeBodyDynamicsSettings::nested_write_fixedFrameName(yarp::os::idl::WireWriter& writer) {
+bool wholeBodyDynamicsSettings::nested_write_fixedFrameName(const yarp::os::idl::WireWriter& writer) const {
   if (!writer.writeString(fixedFrameName)) return false;
   return true;
 }
-bool wholeBodyDynamicsSettings::write_fixedFrameGravity(yarp::os::idl::WireWriter& writer) {
+bool wholeBodyDynamicsSettings::write_fixedFrameGravity(const yarp::os::idl::WireWriter& writer) const {
   if (!writer.write(fixedFrameGravity)) return false;
   return true;
 }
-bool wholeBodyDynamicsSettings::nested_write_fixedFrameGravity(yarp::os::idl::WireWriter& writer) {
+bool wholeBodyDynamicsSettings::nested_write_fixedFrameGravity(const yarp::os::idl::WireWriter& writer) const {
   if (!writer.writeNested(fixedFrameGravity)) return false;
   return true;
 }
-bool wholeBodyDynamicsSettings::write_imuFrameName(yarp::os::idl::WireWriter& writer) {
+bool wholeBodyDynamicsSettings::write_imuFrameName(const yarp::os::idl::WireWriter& writer) const {
   if (!writer.writeString(imuFrameName)) return false;
   return true;
 }
-bool wholeBodyDynamicsSettings::nested_write_imuFrameName(yarp::os::idl::WireWriter& writer) {
+bool wholeBodyDynamicsSettings::nested_write_imuFrameName(const yarp::os::idl::WireWriter& writer) const {
   if (!writer.writeString(imuFrameName)) return false;
   return true;
 }
-bool wholeBodyDynamicsSettings::write_imuFilterCutoffInHz(yarp::os::idl::WireWriter& writer) {
-  if (!writer.writeDouble(imuFilterCutoffInHz)) return false;
+bool wholeBodyDynamicsSettings::write_imuFilterCutoffInHz(const yarp::os::idl::WireWriter& writer) const {
+  if (!writer.writeFloat64(imuFilterCutoffInHz)) return false;
   return true;
 }
-bool wholeBodyDynamicsSettings::nested_write_imuFilterCutoffInHz(yarp::os::idl::WireWriter& writer) {
-  if (!writer.writeDouble(imuFilterCutoffInHz)) return false;
+bool wholeBodyDynamicsSettings::nested_write_imuFilterCutoffInHz(const yarp::os::idl::WireWriter& writer) const {
+  if (!writer.writeFloat64(imuFilterCutoffInHz)) return false;
   return true;
 }
-bool wholeBodyDynamicsSettings::write_forceTorqueFilterCutoffInHz(yarp::os::idl::WireWriter& writer) {
-  if (!writer.writeDouble(forceTorqueFilterCutoffInHz)) return false;
+bool wholeBodyDynamicsSettings::write_forceTorqueFilterCutoffInHz(const yarp::os::idl::WireWriter& writer) const {
+  if (!writer.writeFloat64(forceTorqueFilterCutoffInHz)) return false;
   return true;
 }
-bool wholeBodyDynamicsSettings::nested_write_forceTorqueFilterCutoffInHz(yarp::os::idl::WireWriter& writer) {
-  if (!writer.writeDouble(forceTorqueFilterCutoffInHz)) return false;
+bool wholeBodyDynamicsSettings::nested_write_forceTorqueFilterCutoffInHz(const yarp::os::idl::WireWriter& writer) const {
+  if (!writer.writeFloat64(forceTorqueFilterCutoffInHz)) return false;
   return true;
 }
-bool wholeBodyDynamicsSettings::write_jointVelFilterCutoffInHz(yarp::os::idl::WireWriter& writer) {
-  if (!writer.writeDouble(jointVelFilterCutoffInHz)) return false;
+bool wholeBodyDynamicsSettings::write_jointVelFilterCutoffInHz(const yarp::os::idl::WireWriter& writer) const {
+  if (!writer.writeFloat64(jointVelFilterCutoffInHz)) return false;
   return true;
 }
-bool wholeBodyDynamicsSettings::nested_write_jointVelFilterCutoffInHz(yarp::os::idl::WireWriter& writer) {
-  if (!writer.writeDouble(jointVelFilterCutoffInHz)) return false;
+bool wholeBodyDynamicsSettings::nested_write_jointVelFilterCutoffInHz(const yarp::os::idl::WireWriter& writer) const {
+  if (!writer.writeFloat64(jointVelFilterCutoffInHz)) return false;
   return true;
 }
-bool wholeBodyDynamicsSettings::write_jointAccFilterCutoffInHz(yarp::os::idl::WireWriter& writer) {
-  if (!writer.writeDouble(jointAccFilterCutoffInHz)) return false;
+bool wholeBodyDynamicsSettings::write_jointAccFilterCutoffInHz(const yarp::os::idl::WireWriter& writer) const {
+  if (!writer.writeFloat64(jointAccFilterCutoffInHz)) return false;
   return true;
 }
-bool wholeBodyDynamicsSettings::nested_write_jointAccFilterCutoffInHz(yarp::os::idl::WireWriter& writer) {
-  if (!writer.writeDouble(jointAccFilterCutoffInHz)) return false;
+bool wholeBodyDynamicsSettings::nested_write_jointAccFilterCutoffInHz(const yarp::os::idl::WireWriter& writer) const {
+  if (!writer.writeFloat64(jointAccFilterCutoffInHz)) return false;
   return true;
 }
-bool wholeBodyDynamicsSettings::write_useJointVelocity(yarp::os::idl::WireWriter& writer) {
+bool wholeBodyDynamicsSettings::write_useJointVelocity(const yarp::os::idl::WireWriter& writer) const {
   if (!writer.writeBool(useJointVelocity)) return false;
   return true;
 }
-bool wholeBodyDynamicsSettings::nested_write_useJointVelocity(yarp::os::idl::WireWriter& writer) {
+bool wholeBodyDynamicsSettings::nested_write_useJointVelocity(const yarp::os::idl::WireWriter& writer) const {
   if (!writer.writeBool(useJointVelocity)) return false;
   return true;
 }
-bool wholeBodyDynamicsSettings::write_useJointAcceleration(yarp::os::idl::WireWriter& writer) {
+bool wholeBodyDynamicsSettings::write_useJointAcceleration(const yarp::os::idl::WireWriter& writer) const {
   if (!writer.writeBool(useJointAcceleration)) return false;
   return true;
 }
-bool wholeBodyDynamicsSettings::nested_write_useJointAcceleration(yarp::os::idl::WireWriter& writer) {
+bool wholeBodyDynamicsSettings::nested_write_useJointAcceleration(const yarp::os::idl::WireWriter& writer) const {
   if (!writer.writeBool(useJointAcceleration)) return false;
   return true;
 }
-bool wholeBodyDynamicsSettings::write(yarp::os::idl::WireWriter& writer) {
+bool wholeBodyDynamicsSettings::write(const yarp::os::idl::WireWriter& writer) const {
   if (!write_kinematicSource(writer)) return false;
   if (!write_fixedFrameName(writer)) return false;
   if (!write_fixedFrameGravity(writer)) return false;
@@ -265,12 +273,12 @@ bool wholeBodyDynamicsSettings::write(yarp::os::idl::WireWriter& writer) {
   return !writer.isError();
 }
 
-bool wholeBodyDynamicsSettings::write(yarp::os::ConnectionWriter& connection) {
+bool wholeBodyDynamicsSettings::write(yarp::os::ConnectionWriter& connection) const {
   yarp::os::idl::WireWriter writer(connection);
   if (!writer.writeListHeader(12)) return false;
   return write(writer);
 }
-bool wholeBodyDynamicsSettings::Editor::write(yarp::os::ConnectionWriter& connection) {
+bool wholeBodyDynamicsSettings::Editor::write(yarp::os::ConnectionWriter& connection) const {
   if (!isValid()) return false;
   yarp::os::idl::WireWriter writer(connection);
   if (!writer.writeListHeader(dirty_count+1)) return false;
@@ -350,7 +358,7 @@ bool wholeBodyDynamicsSettings::Editor::read(yarp::os::ConnectionReader& connect
     writer.writeString("send: 'help' or 'patch (param1 val1) (param2 val2)'");
     return true;
   }
-  yarp::os::ConstString tag;
+  std::string tag;
   if (!reader.readString(tag)) return false;
   if (tag=="help") {
     yarp::os::idl::WireWriter writer(reader);
@@ -358,7 +366,7 @@ bool wholeBodyDynamicsSettings::Editor::read(yarp::os::ConnectionReader& connect
     if (!writer.writeListHeader(2)) return false;
     if (!writer.writeTag("many",1, 0)) return false;
     if (reader.getLength()>0) {
-      yarp::os::ConstString field;
+      std::string field;
       if (!reader.readString(field)) return false;
       if (field=="kinematicSource") {
         if (!writer.writeListHeader(1)) return false;
@@ -434,8 +442,8 @@ bool wholeBodyDynamicsSettings::Editor::read(yarp::os::ConnectionReader& connect
   }
   for (int i=1; i<len; i++) {
     if (nested && !reader.readListHeader(3)) return false;
-    yarp::os::ConstString act;
-    yarp::os::ConstString key;
+    std::string act;
+    std::string key;
     if (have_act) {
       act = tag;
     } else {
@@ -495,7 +503,7 @@ bool wholeBodyDynamicsSettings::Editor::read(yarp::os::ConnectionReader& connect
   return true;
 }
 
-yarp::os::ConstString wholeBodyDynamicsSettings::toString() {
+std::string wholeBodyDynamicsSettings::toString() const {
   yarp::os::Bottle b;
   b.read(*this);
   return b.toString();

@@ -1,4 +1,12 @@
-// This is an automatically-generated file.
+/*
+ * Copyright (C) 2006-2018 Istituto Italiano di Tecnologia (IIT)
+ * All rights reserved.
+ *
+ * This software may be modified and distributed under the terms of the
+ * BSD-3-Clause license. See the accompanying LICENSE file for details.
+ */
+
+// This is an automatically generated file.
 // It could get re-generated if the ALLOW_IDL_GENERATION flag is on.
 
 #include <wholeBodyDynamics_IDLServer.h>
@@ -9,62 +17,62 @@
 class wholeBodyDynamics_IDLServer_calib : public yarp::os::Portable {
 public:
   std::string calib_code;
-  int32_t nr_of_samples;
+  std::int32_t nr_of_samples;
   bool _return;
-  void init(const std::string& calib_code, const int32_t nr_of_samples);
-  virtual bool write(yarp::os::ConnectionWriter& connection);
-  virtual bool read(yarp::os::ConnectionReader& connection);
+  void init(const std::string& calib_code, const std::int32_t nr_of_samples);
+  virtual bool write(yarp::os::ConnectionWriter& connection) const override;
+  virtual bool read(yarp::os::ConnectionReader& connection) override;
 };
 
 class wholeBodyDynamics_IDLServer_calibStanding : public yarp::os::Portable {
 public:
   std::string calib_code;
-  int32_t nr_of_samples;
+  std::int32_t nr_of_samples;
   bool _return;
-  void init(const std::string& calib_code, const int32_t nr_of_samples);
-  virtual bool write(yarp::os::ConnectionWriter& connection);
-  virtual bool read(yarp::os::ConnectionReader& connection);
+  void init(const std::string& calib_code, const std::int32_t nr_of_samples);
+  virtual bool write(yarp::os::ConnectionWriter& connection) const override;
+  virtual bool read(yarp::os::ConnectionReader& connection) override;
 };
 
 class wholeBodyDynamics_IDLServer_calibStandingLeftFoot : public yarp::os::Portable {
 public:
   std::string calib_code;
-  int32_t nr_of_samples;
+  std::int32_t nr_of_samples;
   bool _return;
-  void init(const std::string& calib_code, const int32_t nr_of_samples);
-  virtual bool write(yarp::os::ConnectionWriter& connection);
-  virtual bool read(yarp::os::ConnectionReader& connection);
+  void init(const std::string& calib_code, const std::int32_t nr_of_samples);
+  virtual bool write(yarp::os::ConnectionWriter& connection) const override;
+  virtual bool read(yarp::os::ConnectionReader& connection) override;
 };
 
 class wholeBodyDynamics_IDLServer_calibStandingRightFoot : public yarp::os::Portable {
 public:
   std::string calib_code;
-  int32_t nr_of_samples;
+  std::int32_t nr_of_samples;
   bool _return;
-  void init(const std::string& calib_code, const int32_t nr_of_samples);
-  virtual bool write(yarp::os::ConnectionWriter& connection);
-  virtual bool read(yarp::os::ConnectionReader& connection);
+  void init(const std::string& calib_code, const std::int32_t nr_of_samples);
+  virtual bool write(yarp::os::ConnectionWriter& connection) const override;
+  virtual bool read(yarp::os::ConnectionReader& connection) override;
 };
 
 class wholeBodyDynamics_IDLServer_calibStandingOnOneLink : public yarp::os::Portable {
 public:
   std::string standing_frame;
-  int32_t nr_of_samples;
+  std::int32_t nr_of_samples;
   bool _return;
-  void init(const std::string& standing_frame, const int32_t nr_of_samples);
-  virtual bool write(yarp::os::ConnectionWriter& connection);
-  virtual bool read(yarp::os::ConnectionReader& connection);
+  void init(const std::string& standing_frame, const std::int32_t nr_of_samples);
+  virtual bool write(yarp::os::ConnectionWriter& connection) const override;
+  virtual bool read(yarp::os::ConnectionReader& connection) override;
 };
 
 class wholeBodyDynamics_IDLServer_calibStandingOnTwoLinks : public yarp::os::Portable {
 public:
   std::string first_standing_frame;
   std::string second_standing_frame;
-  int32_t nr_of_samples;
+  std::int32_t nr_of_samples;
   bool _return;
-  void init(const std::string& first_standing_frame, const std::string& second_standing_frame, const int32_t nr_of_samples);
-  virtual bool write(yarp::os::ConnectionWriter& connection);
-  virtual bool read(yarp::os::ConnectionReader& connection);
+  void init(const std::string& first_standing_frame, const std::string& second_standing_frame, const std::int32_t nr_of_samples);
+  virtual bool write(yarp::os::ConnectionWriter& connection) const override;
+  virtual bool read(yarp::os::ConnectionReader& connection) override;
 };
 
 class wholeBodyDynamics_IDLServer_resetOffset : public yarp::os::Portable {
@@ -72,16 +80,16 @@ public:
   std::string calib_code;
   bool _return;
   void init(const std::string& calib_code);
-  virtual bool write(yarp::os::ConnectionWriter& connection);
-  virtual bool read(yarp::os::ConnectionReader& connection);
+  virtual bool write(yarp::os::ConnectionWriter& connection) const override;
+  virtual bool read(yarp::os::ConnectionReader& connection) override;
 };
 
 class wholeBodyDynamics_IDLServer_quit : public yarp::os::Portable {
 public:
   bool _return;
   void init();
-  virtual bool write(yarp::os::ConnectionWriter& connection);
-  virtual bool read(yarp::os::ConnectionReader& connection);
+  virtual bool write(yarp::os::ConnectionWriter& connection) const override;
+  virtual bool read(yarp::os::ConnectionReader& connection) override;
 };
 
 class wholeBodyDynamics_IDLServer_resetSimpleLeggedOdometry : public yarp::os::Portable {
@@ -90,8 +98,8 @@ public:
   std::string initial_fixed_link;
   bool _return;
   void init(const std::string& initial_world_frame, const std::string& initial_fixed_link);
-  virtual bool write(yarp::os::ConnectionWriter& connection);
-  virtual bool read(yarp::os::ConnectionReader& connection);
+  virtual bool write(yarp::os::ConnectionWriter& connection) const override;
+  virtual bool read(yarp::os::ConnectionReader& connection) override;
 };
 
 class wholeBodyDynamics_IDLServer_changeFixedLinkSimpleLeggedOdometry : public yarp::os::Portable {
@@ -99,8 +107,8 @@ public:
   std::string new_fixed_link;
   bool _return;
   void init(const std::string& new_fixed_link);
-  virtual bool write(yarp::os::ConnectionWriter& connection);
-  virtual bool read(yarp::os::ConnectionReader& connection);
+  virtual bool write(yarp::os::ConnectionWriter& connection) const override;
+  virtual bool read(yarp::os::ConnectionReader& connection) override;
 };
 
 class wholeBodyDynamics_IDLServer_set_imuFilterCutoffInHz : public yarp::os::Portable {
@@ -108,16 +116,16 @@ public:
   double newCutoff;
   bool _return;
   void init(const double newCutoff);
-  virtual bool write(yarp::os::ConnectionWriter& connection);
-  virtual bool read(yarp::os::ConnectionReader& connection);
+  virtual bool write(yarp::os::ConnectionWriter& connection) const override;
+  virtual bool read(yarp::os::ConnectionReader& connection) override;
 };
 
 class wholeBodyDynamics_IDLServer_get_imuFilterCutoffInHz : public yarp::os::Portable {
 public:
   double _return;
   void init();
-  virtual bool write(yarp::os::ConnectionWriter& connection);
-  virtual bool read(yarp::os::ConnectionReader& connection);
+  virtual bool write(yarp::os::ConnectionWriter& connection) const override;
+  virtual bool read(yarp::os::ConnectionReader& connection) override;
 };
 
 class wholeBodyDynamics_IDLServer_set_forceTorqueFilterCutoffInHz : public yarp::os::Portable {
@@ -125,16 +133,16 @@ public:
   double newCutoff;
   bool _return;
   void init(const double newCutoff);
-  virtual bool write(yarp::os::ConnectionWriter& connection);
-  virtual bool read(yarp::os::ConnectionReader& connection);
+  virtual bool write(yarp::os::ConnectionWriter& connection) const override;
+  virtual bool read(yarp::os::ConnectionReader& connection) override;
 };
 
 class wholeBodyDynamics_IDLServer_get_forceTorqueFilterCutoffInHz : public yarp::os::Portable {
 public:
   double _return;
   void init();
-  virtual bool write(yarp::os::ConnectionWriter& connection);
-  virtual bool read(yarp::os::ConnectionReader& connection);
+  virtual bool write(yarp::os::ConnectionWriter& connection) const override;
+  virtual bool read(yarp::os::ConnectionReader& connection) override;
 };
 
 class wholeBodyDynamics_IDLServer_set_jointVelFilterCutoffInHz : public yarp::os::Portable {
@@ -142,16 +150,16 @@ public:
   double newCutoff;
   bool _return;
   void init(const double newCutoff);
-  virtual bool write(yarp::os::ConnectionWriter& connection);
-  virtual bool read(yarp::os::ConnectionReader& connection);
+  virtual bool write(yarp::os::ConnectionWriter& connection) const override;
+  virtual bool read(yarp::os::ConnectionReader& connection) override;
 };
 
 class wholeBodyDynamics_IDLServer_get_jointVelFilterCutoffInHz : public yarp::os::Portable {
 public:
   double _return;
   void init();
-  virtual bool write(yarp::os::ConnectionWriter& connection);
-  virtual bool read(yarp::os::ConnectionReader& connection);
+  virtual bool write(yarp::os::ConnectionWriter& connection) const override;
+  virtual bool read(yarp::os::ConnectionReader& connection) override;
 };
 
 class wholeBodyDynamics_IDLServer_set_jointAccFilterCutoffInHz : public yarp::os::Portable {
@@ -159,24 +167,24 @@ public:
   double newCutoff;
   bool _return;
   void init(const double newCutoff);
-  virtual bool write(yarp::os::ConnectionWriter& connection);
-  virtual bool read(yarp::os::ConnectionReader& connection);
+  virtual bool write(yarp::os::ConnectionWriter& connection) const override;
+  virtual bool read(yarp::os::ConnectionReader& connection) override;
 };
 
 class wholeBodyDynamics_IDLServer_get_jointAccFilterCutoffInHz : public yarp::os::Portable {
 public:
   double _return;
   void init();
-  virtual bool write(yarp::os::ConnectionWriter& connection);
-  virtual bool read(yarp::os::ConnectionReader& connection);
+  virtual bool write(yarp::os::ConnectionWriter& connection) const override;
+  virtual bool read(yarp::os::ConnectionReader& connection) override;
 };
 
 class wholeBodyDynamics_IDLServer_useIMUAsKinematicSource : public yarp::os::Portable {
 public:
   bool _return;
   void init();
-  virtual bool write(yarp::os::ConnectionWriter& connection);
-  virtual bool read(yarp::os::ConnectionReader& connection);
+  virtual bool write(yarp::os::ConnectionWriter& connection) const override;
+  virtual bool read(yarp::os::ConnectionReader& connection) override;
 };
 
 class wholeBodyDynamics_IDLServer_useFixedFrameAsKinematicSource : public yarp::os::Portable {
@@ -184,8 +192,8 @@ public:
   std::string fixedFrame;
   bool _return;
   void init(const std::string& fixedFrame);
-  virtual bool write(yarp::os::ConnectionWriter& connection);
-  virtual bool read(yarp::os::ConnectionReader& connection);
+  virtual bool write(yarp::os::ConnectionWriter& connection) const override;
+  virtual bool read(yarp::os::ConnectionReader& connection) override;
 };
 
 class wholeBodyDynamics_IDLServer_setUseOfJointVelocities : public yarp::os::Portable {
@@ -193,8 +201,8 @@ public:
   bool enable;
   bool _return;
   void init(const bool enable);
-  virtual bool write(yarp::os::ConnectionWriter& connection);
-  virtual bool read(yarp::os::ConnectionReader& connection);
+  virtual bool write(yarp::os::ConnectionWriter& connection) const override;
+  virtual bool read(yarp::os::ConnectionReader& connection) override;
 };
 
 class wholeBodyDynamics_IDLServer_setUseOfJointAccelerations : public yarp::os::Portable {
@@ -202,19 +210,19 @@ public:
   bool enable;
   bool _return;
   void init(const bool enable);
-  virtual bool write(yarp::os::ConnectionWriter& connection);
-  virtual bool read(yarp::os::ConnectionReader& connection);
+  virtual bool write(yarp::os::ConnectionWriter& connection) const override;
+  virtual bool read(yarp::os::ConnectionReader& connection) override;
 };
 
 class wholeBodyDynamics_IDLServer_getCurrentSettingsString : public yarp::os::Portable {
 public:
   std::string _return;
   void init();
-  virtual bool write(yarp::os::ConnectionWriter& connection);
-  virtual bool read(yarp::os::ConnectionReader& connection);
+  virtual bool write(yarp::os::ConnectionWriter& connection) const override;
+  virtual bool read(yarp::os::ConnectionReader& connection) override;
 };
 
-bool wholeBodyDynamics_IDLServer_calib::write(yarp::os::ConnectionWriter& connection) {
+bool wholeBodyDynamics_IDLServer_calib::write(yarp::os::ConnectionWriter& connection) const {
   yarp::os::idl::WireWriter writer(connection);
   if (!writer.writeListHeader(3)) return false;
   if (!writer.writeTag("calib",1,1)) return false;
@@ -233,13 +241,13 @@ bool wholeBodyDynamics_IDLServer_calib::read(yarp::os::ConnectionReader& connect
   return true;
 }
 
-void wholeBodyDynamics_IDLServer_calib::init(const std::string& calib_code, const int32_t nr_of_samples) {
+void wholeBodyDynamics_IDLServer_calib::init(const std::string& calib_code, const std::int32_t nr_of_samples) {
   _return = false;
   this->calib_code = calib_code;
   this->nr_of_samples = nr_of_samples;
 }
 
-bool wholeBodyDynamics_IDLServer_calibStanding::write(yarp::os::ConnectionWriter& connection) {
+bool wholeBodyDynamics_IDLServer_calibStanding::write(yarp::os::ConnectionWriter& connection) const {
   yarp::os::idl::WireWriter writer(connection);
   if (!writer.writeListHeader(3)) return false;
   if (!writer.writeTag("calibStanding",1,1)) return false;
@@ -258,13 +266,13 @@ bool wholeBodyDynamics_IDLServer_calibStanding::read(yarp::os::ConnectionReader&
   return true;
 }
 
-void wholeBodyDynamics_IDLServer_calibStanding::init(const std::string& calib_code, const int32_t nr_of_samples) {
+void wholeBodyDynamics_IDLServer_calibStanding::init(const std::string& calib_code, const std::int32_t nr_of_samples) {
   _return = false;
   this->calib_code = calib_code;
   this->nr_of_samples = nr_of_samples;
 }
 
-bool wholeBodyDynamics_IDLServer_calibStandingLeftFoot::write(yarp::os::ConnectionWriter& connection) {
+bool wholeBodyDynamics_IDLServer_calibStandingLeftFoot::write(yarp::os::ConnectionWriter& connection) const {
   yarp::os::idl::WireWriter writer(connection);
   if (!writer.writeListHeader(3)) return false;
   if (!writer.writeTag("calibStandingLeftFoot",1,1)) return false;
@@ -283,13 +291,13 @@ bool wholeBodyDynamics_IDLServer_calibStandingLeftFoot::read(yarp::os::Connectio
   return true;
 }
 
-void wholeBodyDynamics_IDLServer_calibStandingLeftFoot::init(const std::string& calib_code, const int32_t nr_of_samples) {
+void wholeBodyDynamics_IDLServer_calibStandingLeftFoot::init(const std::string& calib_code, const std::int32_t nr_of_samples) {
   _return = false;
   this->calib_code = calib_code;
   this->nr_of_samples = nr_of_samples;
 }
 
-bool wholeBodyDynamics_IDLServer_calibStandingRightFoot::write(yarp::os::ConnectionWriter& connection) {
+bool wholeBodyDynamics_IDLServer_calibStandingRightFoot::write(yarp::os::ConnectionWriter& connection) const {
   yarp::os::idl::WireWriter writer(connection);
   if (!writer.writeListHeader(3)) return false;
   if (!writer.writeTag("calibStandingRightFoot",1,1)) return false;
@@ -308,13 +316,13 @@ bool wholeBodyDynamics_IDLServer_calibStandingRightFoot::read(yarp::os::Connecti
   return true;
 }
 
-void wholeBodyDynamics_IDLServer_calibStandingRightFoot::init(const std::string& calib_code, const int32_t nr_of_samples) {
+void wholeBodyDynamics_IDLServer_calibStandingRightFoot::init(const std::string& calib_code, const std::int32_t nr_of_samples) {
   _return = false;
   this->calib_code = calib_code;
   this->nr_of_samples = nr_of_samples;
 }
 
-bool wholeBodyDynamics_IDLServer_calibStandingOnOneLink::write(yarp::os::ConnectionWriter& connection) {
+bool wholeBodyDynamics_IDLServer_calibStandingOnOneLink::write(yarp::os::ConnectionWriter& connection) const {
   yarp::os::idl::WireWriter writer(connection);
   if (!writer.writeListHeader(3)) return false;
   if (!writer.writeTag("calibStandingOnOneLink",1,1)) return false;
@@ -333,13 +341,13 @@ bool wholeBodyDynamics_IDLServer_calibStandingOnOneLink::read(yarp::os::Connecti
   return true;
 }
 
-void wholeBodyDynamics_IDLServer_calibStandingOnOneLink::init(const std::string& standing_frame, const int32_t nr_of_samples) {
+void wholeBodyDynamics_IDLServer_calibStandingOnOneLink::init(const std::string& standing_frame, const std::int32_t nr_of_samples) {
   _return = false;
   this->standing_frame = standing_frame;
   this->nr_of_samples = nr_of_samples;
 }
 
-bool wholeBodyDynamics_IDLServer_calibStandingOnTwoLinks::write(yarp::os::ConnectionWriter& connection) {
+bool wholeBodyDynamics_IDLServer_calibStandingOnTwoLinks::write(yarp::os::ConnectionWriter& connection) const {
   yarp::os::idl::WireWriter writer(connection);
   if (!writer.writeListHeader(4)) return false;
   if (!writer.writeTag("calibStandingOnTwoLinks",1,1)) return false;
@@ -359,14 +367,14 @@ bool wholeBodyDynamics_IDLServer_calibStandingOnTwoLinks::read(yarp::os::Connect
   return true;
 }
 
-void wholeBodyDynamics_IDLServer_calibStandingOnTwoLinks::init(const std::string& first_standing_frame, const std::string& second_standing_frame, const int32_t nr_of_samples) {
+void wholeBodyDynamics_IDLServer_calibStandingOnTwoLinks::init(const std::string& first_standing_frame, const std::string& second_standing_frame, const std::int32_t nr_of_samples) {
   _return = false;
   this->first_standing_frame = first_standing_frame;
   this->second_standing_frame = second_standing_frame;
   this->nr_of_samples = nr_of_samples;
 }
 
-bool wholeBodyDynamics_IDLServer_resetOffset::write(yarp::os::ConnectionWriter& connection) {
+bool wholeBodyDynamics_IDLServer_resetOffset::write(yarp::os::ConnectionWriter& connection) const {
   yarp::os::idl::WireWriter writer(connection);
   if (!writer.writeListHeader(2)) return false;
   if (!writer.writeTag("resetOffset",1,1)) return false;
@@ -389,7 +397,7 @@ void wholeBodyDynamics_IDLServer_resetOffset::init(const std::string& calib_code
   this->calib_code = calib_code;
 }
 
-bool wholeBodyDynamics_IDLServer_quit::write(yarp::os::ConnectionWriter& connection) {
+bool wholeBodyDynamics_IDLServer_quit::write(yarp::os::ConnectionWriter& connection) const {
   yarp::os::idl::WireWriter writer(connection);
   if (!writer.writeListHeader(1)) return false;
   if (!writer.writeTag("quit",1,1)) return false;
@@ -410,7 +418,7 @@ void wholeBodyDynamics_IDLServer_quit::init() {
   _return = false;
 }
 
-bool wholeBodyDynamics_IDLServer_resetSimpleLeggedOdometry::write(yarp::os::ConnectionWriter& connection) {
+bool wholeBodyDynamics_IDLServer_resetSimpleLeggedOdometry::write(yarp::os::ConnectionWriter& connection) const {
   yarp::os::idl::WireWriter writer(connection);
   if (!writer.writeListHeader(3)) return false;
   if (!writer.writeTag("resetSimpleLeggedOdometry",1,1)) return false;
@@ -435,7 +443,7 @@ void wholeBodyDynamics_IDLServer_resetSimpleLeggedOdometry::init(const std::stri
   this->initial_fixed_link = initial_fixed_link;
 }
 
-bool wholeBodyDynamics_IDLServer_changeFixedLinkSimpleLeggedOdometry::write(yarp::os::ConnectionWriter& connection) {
+bool wholeBodyDynamics_IDLServer_changeFixedLinkSimpleLeggedOdometry::write(yarp::os::ConnectionWriter& connection) const {
   yarp::os::idl::WireWriter writer(connection);
   if (!writer.writeListHeader(2)) return false;
   if (!writer.writeTag("changeFixedLinkSimpleLeggedOdometry",1,1)) return false;
@@ -458,11 +466,11 @@ void wholeBodyDynamics_IDLServer_changeFixedLinkSimpleLeggedOdometry::init(const
   this->new_fixed_link = new_fixed_link;
 }
 
-bool wholeBodyDynamics_IDLServer_set_imuFilterCutoffInHz::write(yarp::os::ConnectionWriter& connection) {
+bool wholeBodyDynamics_IDLServer_set_imuFilterCutoffInHz::write(yarp::os::ConnectionWriter& connection) const {
   yarp::os::idl::WireWriter writer(connection);
   if (!writer.writeListHeader(3)) return false;
   if (!writer.writeTag("set_imuFilterCutoffInHz",1,2)) return false;
-  if (!writer.writeDouble(newCutoff)) return false;
+  if (!writer.writeFloat64(newCutoff)) return false;
   return true;
 }
 
@@ -481,7 +489,7 @@ void wholeBodyDynamics_IDLServer_set_imuFilterCutoffInHz::init(const double newC
   this->newCutoff = newCutoff;
 }
 
-bool wholeBodyDynamics_IDLServer_get_imuFilterCutoffInHz::write(yarp::os::ConnectionWriter& connection) {
+bool wholeBodyDynamics_IDLServer_get_imuFilterCutoffInHz::write(yarp::os::ConnectionWriter& connection) const {
   yarp::os::idl::WireWriter writer(connection);
   if (!writer.writeListHeader(2)) return false;
   if (!writer.writeTag("get_imuFilterCutoffInHz",1,2)) return false;
@@ -491,7 +499,7 @@ bool wholeBodyDynamics_IDLServer_get_imuFilterCutoffInHz::write(yarp::os::Connec
 bool wholeBodyDynamics_IDLServer_get_imuFilterCutoffInHz::read(yarp::os::ConnectionReader& connection) {
   yarp::os::idl::WireReader reader(connection);
   if (!reader.readListReturn()) return false;
-  if (!reader.readDouble(_return)) {
+  if (!reader.readFloat64(_return)) {
     reader.fail();
     return false;
   }
@@ -502,11 +510,11 @@ void wholeBodyDynamics_IDLServer_get_imuFilterCutoffInHz::init() {
   _return = (double)0;
 }
 
-bool wholeBodyDynamics_IDLServer_set_forceTorqueFilterCutoffInHz::write(yarp::os::ConnectionWriter& connection) {
+bool wholeBodyDynamics_IDLServer_set_forceTorqueFilterCutoffInHz::write(yarp::os::ConnectionWriter& connection) const {
   yarp::os::idl::WireWriter writer(connection);
   if (!writer.writeListHeader(3)) return false;
   if (!writer.writeTag("set_forceTorqueFilterCutoffInHz",1,2)) return false;
-  if (!writer.writeDouble(newCutoff)) return false;
+  if (!writer.writeFloat64(newCutoff)) return false;
   return true;
 }
 
@@ -525,7 +533,7 @@ void wholeBodyDynamics_IDLServer_set_forceTorqueFilterCutoffInHz::init(const dou
   this->newCutoff = newCutoff;
 }
 
-bool wholeBodyDynamics_IDLServer_get_forceTorqueFilterCutoffInHz::write(yarp::os::ConnectionWriter& connection) {
+bool wholeBodyDynamics_IDLServer_get_forceTorqueFilterCutoffInHz::write(yarp::os::ConnectionWriter& connection) const {
   yarp::os::idl::WireWriter writer(connection);
   if (!writer.writeListHeader(2)) return false;
   if (!writer.writeTag("get_forceTorqueFilterCutoffInHz",1,2)) return false;
@@ -535,7 +543,7 @@ bool wholeBodyDynamics_IDLServer_get_forceTorqueFilterCutoffInHz::write(yarp::os
 bool wholeBodyDynamics_IDLServer_get_forceTorqueFilterCutoffInHz::read(yarp::os::ConnectionReader& connection) {
   yarp::os::idl::WireReader reader(connection);
   if (!reader.readListReturn()) return false;
-  if (!reader.readDouble(_return)) {
+  if (!reader.readFloat64(_return)) {
     reader.fail();
     return false;
   }
@@ -546,11 +554,11 @@ void wholeBodyDynamics_IDLServer_get_forceTorqueFilterCutoffInHz::init() {
   _return = (double)0;
 }
 
-bool wholeBodyDynamics_IDLServer_set_jointVelFilterCutoffInHz::write(yarp::os::ConnectionWriter& connection) {
+bool wholeBodyDynamics_IDLServer_set_jointVelFilterCutoffInHz::write(yarp::os::ConnectionWriter& connection) const {
   yarp::os::idl::WireWriter writer(connection);
   if (!writer.writeListHeader(3)) return false;
   if (!writer.writeTag("set_jointVelFilterCutoffInHz",1,2)) return false;
-  if (!writer.writeDouble(newCutoff)) return false;
+  if (!writer.writeFloat64(newCutoff)) return false;
   return true;
 }
 
@@ -569,7 +577,7 @@ void wholeBodyDynamics_IDLServer_set_jointVelFilterCutoffInHz::init(const double
   this->newCutoff = newCutoff;
 }
 
-bool wholeBodyDynamics_IDLServer_get_jointVelFilterCutoffInHz::write(yarp::os::ConnectionWriter& connection) {
+bool wholeBodyDynamics_IDLServer_get_jointVelFilterCutoffInHz::write(yarp::os::ConnectionWriter& connection) const {
   yarp::os::idl::WireWriter writer(connection);
   if (!writer.writeListHeader(2)) return false;
   if (!writer.writeTag("get_jointVelFilterCutoffInHz",1,2)) return false;
@@ -579,7 +587,7 @@ bool wholeBodyDynamics_IDLServer_get_jointVelFilterCutoffInHz::write(yarp::os::C
 bool wholeBodyDynamics_IDLServer_get_jointVelFilterCutoffInHz::read(yarp::os::ConnectionReader& connection) {
   yarp::os::idl::WireReader reader(connection);
   if (!reader.readListReturn()) return false;
-  if (!reader.readDouble(_return)) {
+  if (!reader.readFloat64(_return)) {
     reader.fail();
     return false;
   }
@@ -590,11 +598,11 @@ void wholeBodyDynamics_IDLServer_get_jointVelFilterCutoffInHz::init() {
   _return = (double)0;
 }
 
-bool wholeBodyDynamics_IDLServer_set_jointAccFilterCutoffInHz::write(yarp::os::ConnectionWriter& connection) {
+bool wholeBodyDynamics_IDLServer_set_jointAccFilterCutoffInHz::write(yarp::os::ConnectionWriter& connection) const {
   yarp::os::idl::WireWriter writer(connection);
   if (!writer.writeListHeader(3)) return false;
   if (!writer.writeTag("set_jointAccFilterCutoffInHz",1,2)) return false;
-  if (!writer.writeDouble(newCutoff)) return false;
+  if (!writer.writeFloat64(newCutoff)) return false;
   return true;
 }
 
@@ -613,7 +621,7 @@ void wholeBodyDynamics_IDLServer_set_jointAccFilterCutoffInHz::init(const double
   this->newCutoff = newCutoff;
 }
 
-bool wholeBodyDynamics_IDLServer_get_jointAccFilterCutoffInHz::write(yarp::os::ConnectionWriter& connection) {
+bool wholeBodyDynamics_IDLServer_get_jointAccFilterCutoffInHz::write(yarp::os::ConnectionWriter& connection) const {
   yarp::os::idl::WireWriter writer(connection);
   if (!writer.writeListHeader(2)) return false;
   if (!writer.writeTag("get_jointAccFilterCutoffInHz",1,2)) return false;
@@ -623,7 +631,7 @@ bool wholeBodyDynamics_IDLServer_get_jointAccFilterCutoffInHz::write(yarp::os::C
 bool wholeBodyDynamics_IDLServer_get_jointAccFilterCutoffInHz::read(yarp::os::ConnectionReader& connection) {
   yarp::os::idl::WireReader reader(connection);
   if (!reader.readListReturn()) return false;
-  if (!reader.readDouble(_return)) {
+  if (!reader.readFloat64(_return)) {
     reader.fail();
     return false;
   }
@@ -634,7 +642,7 @@ void wholeBodyDynamics_IDLServer_get_jointAccFilterCutoffInHz::init() {
   _return = (double)0;
 }
 
-bool wholeBodyDynamics_IDLServer_useIMUAsKinematicSource::write(yarp::os::ConnectionWriter& connection) {
+bool wholeBodyDynamics_IDLServer_useIMUAsKinematicSource::write(yarp::os::ConnectionWriter& connection) const {
   yarp::os::idl::WireWriter writer(connection);
   if (!writer.writeListHeader(1)) return false;
   if (!writer.writeTag("useIMUAsKinematicSource",1,1)) return false;
@@ -655,7 +663,7 @@ void wholeBodyDynamics_IDLServer_useIMUAsKinematicSource::init() {
   _return = false;
 }
 
-bool wholeBodyDynamics_IDLServer_useFixedFrameAsKinematicSource::write(yarp::os::ConnectionWriter& connection) {
+bool wholeBodyDynamics_IDLServer_useFixedFrameAsKinematicSource::write(yarp::os::ConnectionWriter& connection) const {
   yarp::os::idl::WireWriter writer(connection);
   if (!writer.writeListHeader(2)) return false;
   if (!writer.writeTag("useFixedFrameAsKinematicSource",1,1)) return false;
@@ -678,7 +686,7 @@ void wholeBodyDynamics_IDLServer_useFixedFrameAsKinematicSource::init(const std:
   this->fixedFrame = fixedFrame;
 }
 
-bool wholeBodyDynamics_IDLServer_setUseOfJointVelocities::write(yarp::os::ConnectionWriter& connection) {
+bool wholeBodyDynamics_IDLServer_setUseOfJointVelocities::write(yarp::os::ConnectionWriter& connection) const {
   yarp::os::idl::WireWriter writer(connection);
   if (!writer.writeListHeader(2)) return false;
   if (!writer.writeTag("setUseOfJointVelocities",1,1)) return false;
@@ -701,7 +709,7 @@ void wholeBodyDynamics_IDLServer_setUseOfJointVelocities::init(const bool enable
   this->enable = enable;
 }
 
-bool wholeBodyDynamics_IDLServer_setUseOfJointAccelerations::write(yarp::os::ConnectionWriter& connection) {
+bool wholeBodyDynamics_IDLServer_setUseOfJointAccelerations::write(yarp::os::ConnectionWriter& connection) const {
   yarp::os::idl::WireWriter writer(connection);
   if (!writer.writeListHeader(2)) return false;
   if (!writer.writeTag("setUseOfJointAccelerations",1,1)) return false;
@@ -724,7 +732,7 @@ void wholeBodyDynamics_IDLServer_setUseOfJointAccelerations::init(const bool ena
   this->enable = enable;
 }
 
-bool wholeBodyDynamics_IDLServer_getCurrentSettingsString::write(yarp::os::ConnectionWriter& connection) {
+bool wholeBodyDynamics_IDLServer_getCurrentSettingsString::write(yarp::os::ConnectionWriter& connection) const {
   yarp::os::idl::WireWriter writer(connection);
   if (!writer.writeListHeader(1)) return false;
   if (!writer.writeTag("getCurrentSettingsString",1,1)) return false;
@@ -748,62 +756,62 @@ void wholeBodyDynamics_IDLServer_getCurrentSettingsString::init() {
 wholeBodyDynamics_IDLServer::wholeBodyDynamics_IDLServer() {
   yarp().setOwner(*this);
 }
-bool wholeBodyDynamics_IDLServer::calib(const std::string& calib_code, const int32_t nr_of_samples) {
+bool wholeBodyDynamics_IDLServer::calib(const std::string& calib_code, const std::int32_t nr_of_samples) {
   bool _return = false;
   wholeBodyDynamics_IDLServer_calib helper;
   helper.init(calib_code,nr_of_samples);
   if (!yarp().canWrite()) {
-    yError("Missing server method '%s'?","bool wholeBodyDynamics_IDLServer::calib(const std::string& calib_code, const int32_t nr_of_samples)");
+    yError("Missing server method '%s'?","bool wholeBodyDynamics_IDLServer::calib(const std::string& calib_code, const std::int32_t nr_of_samples)");
   }
   bool ok = yarp().write(helper,helper);
   return ok?helper._return:_return;
 }
-bool wholeBodyDynamics_IDLServer::calibStanding(const std::string& calib_code, const int32_t nr_of_samples) {
+bool wholeBodyDynamics_IDLServer::calibStanding(const std::string& calib_code, const std::int32_t nr_of_samples) {
   bool _return = false;
   wholeBodyDynamics_IDLServer_calibStanding helper;
   helper.init(calib_code,nr_of_samples);
   if (!yarp().canWrite()) {
-    yError("Missing server method '%s'?","bool wholeBodyDynamics_IDLServer::calibStanding(const std::string& calib_code, const int32_t nr_of_samples)");
+    yError("Missing server method '%s'?","bool wholeBodyDynamics_IDLServer::calibStanding(const std::string& calib_code, const std::int32_t nr_of_samples)");
   }
   bool ok = yarp().write(helper,helper);
   return ok?helper._return:_return;
 }
-bool wholeBodyDynamics_IDLServer::calibStandingLeftFoot(const std::string& calib_code, const int32_t nr_of_samples) {
+bool wholeBodyDynamics_IDLServer::calibStandingLeftFoot(const std::string& calib_code, const std::int32_t nr_of_samples) {
   bool _return = false;
   wholeBodyDynamics_IDLServer_calibStandingLeftFoot helper;
   helper.init(calib_code,nr_of_samples);
   if (!yarp().canWrite()) {
-    yError("Missing server method '%s'?","bool wholeBodyDynamics_IDLServer::calibStandingLeftFoot(const std::string& calib_code, const int32_t nr_of_samples)");
+    yError("Missing server method '%s'?","bool wholeBodyDynamics_IDLServer::calibStandingLeftFoot(const std::string& calib_code, const std::int32_t nr_of_samples)");
   }
   bool ok = yarp().write(helper,helper);
   return ok?helper._return:_return;
 }
-bool wholeBodyDynamics_IDLServer::calibStandingRightFoot(const std::string& calib_code, const int32_t nr_of_samples) {
+bool wholeBodyDynamics_IDLServer::calibStandingRightFoot(const std::string& calib_code, const std::int32_t nr_of_samples) {
   bool _return = false;
   wholeBodyDynamics_IDLServer_calibStandingRightFoot helper;
   helper.init(calib_code,nr_of_samples);
   if (!yarp().canWrite()) {
-    yError("Missing server method '%s'?","bool wholeBodyDynamics_IDLServer::calibStandingRightFoot(const std::string& calib_code, const int32_t nr_of_samples)");
+    yError("Missing server method '%s'?","bool wholeBodyDynamics_IDLServer::calibStandingRightFoot(const std::string& calib_code, const std::int32_t nr_of_samples)");
   }
   bool ok = yarp().write(helper,helper);
   return ok?helper._return:_return;
 }
-bool wholeBodyDynamics_IDLServer::calibStandingOnOneLink(const std::string& standing_frame, const int32_t nr_of_samples) {
+bool wholeBodyDynamics_IDLServer::calibStandingOnOneLink(const std::string& standing_frame, const std::int32_t nr_of_samples) {
   bool _return = false;
   wholeBodyDynamics_IDLServer_calibStandingOnOneLink helper;
   helper.init(standing_frame,nr_of_samples);
   if (!yarp().canWrite()) {
-    yError("Missing server method '%s'?","bool wholeBodyDynamics_IDLServer::calibStandingOnOneLink(const std::string& standing_frame, const int32_t nr_of_samples)");
+    yError("Missing server method '%s'?","bool wholeBodyDynamics_IDLServer::calibStandingOnOneLink(const std::string& standing_frame, const std::int32_t nr_of_samples)");
   }
   bool ok = yarp().write(helper,helper);
   return ok?helper._return:_return;
 }
-bool wholeBodyDynamics_IDLServer::calibStandingOnTwoLinks(const std::string& first_standing_frame, const std::string& second_standing_frame, const int32_t nr_of_samples) {
+bool wholeBodyDynamics_IDLServer::calibStandingOnTwoLinks(const std::string& first_standing_frame, const std::string& second_standing_frame, const std::int32_t nr_of_samples) {
   bool _return = false;
   wholeBodyDynamics_IDLServer_calibStandingOnTwoLinks helper;
   helper.init(first_standing_frame,second_standing_frame,nr_of_samples);
   if (!yarp().canWrite()) {
-    yError("Missing server method '%s'?","bool wholeBodyDynamics_IDLServer::calibStandingOnTwoLinks(const std::string& first_standing_frame, const std::string& second_standing_frame, const int32_t nr_of_samples)");
+    yError("Missing server method '%s'?","bool wholeBodyDynamics_IDLServer::calibStandingOnTwoLinks(const std::string& first_standing_frame, const std::string& second_standing_frame, const std::int32_t nr_of_samples)");
   }
   bool ok = yarp().write(helper,helper);
   return ok?helper._return:_return;
@@ -983,14 +991,14 @@ bool wholeBodyDynamics_IDLServer::read(yarp::os::ConnectionReader& connection) {
   yarp::os::idl::WireReader reader(connection);
   reader.expectAccept();
   if (!reader.readListHeader()) { reader.fail(); return false; }
-  yarp::os::ConstString tag = reader.readTag();
+  std::string tag = reader.readTag();
   bool direct = (tag=="__direct__");
   if (direct) tag = reader.readTag();
   while (!reader.isError()) {
     // TODO: use quick lookup, this is just a test
     if (tag == "calib") {
       std::string calib_code;
-      int32_t nr_of_samples;
+      std::int32_t nr_of_samples;
       if (!reader.readString(calib_code)) {
         reader.fail();
         return false;
@@ -1010,7 +1018,7 @@ bool wholeBodyDynamics_IDLServer::read(yarp::os::ConnectionReader& connection) {
     }
     if (tag == "calibStanding") {
       std::string calib_code;
-      int32_t nr_of_samples;
+      std::int32_t nr_of_samples;
       if (!reader.readString(calib_code)) {
         reader.fail();
         return false;
@@ -1030,7 +1038,7 @@ bool wholeBodyDynamics_IDLServer::read(yarp::os::ConnectionReader& connection) {
     }
     if (tag == "calibStandingLeftFoot") {
       std::string calib_code;
-      int32_t nr_of_samples;
+      std::int32_t nr_of_samples;
       if (!reader.readString(calib_code)) {
         reader.fail();
         return false;
@@ -1050,7 +1058,7 @@ bool wholeBodyDynamics_IDLServer::read(yarp::os::ConnectionReader& connection) {
     }
     if (tag == "calibStandingRightFoot") {
       std::string calib_code;
-      int32_t nr_of_samples;
+      std::int32_t nr_of_samples;
       if (!reader.readString(calib_code)) {
         reader.fail();
         return false;
@@ -1070,7 +1078,7 @@ bool wholeBodyDynamics_IDLServer::read(yarp::os::ConnectionReader& connection) {
     }
     if (tag == "calibStandingOnOneLink") {
       std::string standing_frame;
-      int32_t nr_of_samples;
+      std::int32_t nr_of_samples;
       if (!reader.readString(standing_frame)) {
         reader.fail();
         return false;
@@ -1091,7 +1099,7 @@ bool wholeBodyDynamics_IDLServer::read(yarp::os::ConnectionReader& connection) {
     if (tag == "calibStandingOnTwoLinks") {
       std::string first_standing_frame;
       std::string second_standing_frame;
-      int32_t nr_of_samples;
+      std::int32_t nr_of_samples;
       if (!reader.readString(first_standing_frame)) {
         reader.fail();
         return false;
@@ -1179,7 +1187,7 @@ bool wholeBodyDynamics_IDLServer::read(yarp::os::ConnectionReader& connection) {
     }
     if (tag == "set_imuFilterCutoffInHz") {
       double newCutoff;
-      if (!reader.readDouble(newCutoff)) {
+      if (!reader.readFloat64(newCutoff)) {
         reader.fail();
         return false;
       }
@@ -1199,14 +1207,14 @@ bool wholeBodyDynamics_IDLServer::read(yarp::os::ConnectionReader& connection) {
       yarp::os::idl::WireWriter writer(reader);
       if (!writer.isNull()) {
         if (!writer.writeListHeader(1)) return false;
-        if (!writer.writeDouble(_return)) return false;
+        if (!writer.writeFloat64(_return)) return false;
       }
       reader.accept();
       return true;
     }
     if (tag == "set_forceTorqueFilterCutoffInHz") {
       double newCutoff;
-      if (!reader.readDouble(newCutoff)) {
+      if (!reader.readFloat64(newCutoff)) {
         reader.fail();
         return false;
       }
@@ -1226,14 +1234,14 @@ bool wholeBodyDynamics_IDLServer::read(yarp::os::ConnectionReader& connection) {
       yarp::os::idl::WireWriter writer(reader);
       if (!writer.isNull()) {
         if (!writer.writeListHeader(1)) return false;
-        if (!writer.writeDouble(_return)) return false;
+        if (!writer.writeFloat64(_return)) return false;
       }
       reader.accept();
       return true;
     }
     if (tag == "set_jointVelFilterCutoffInHz") {
       double newCutoff;
-      if (!reader.readDouble(newCutoff)) {
+      if (!reader.readFloat64(newCutoff)) {
         reader.fail();
         return false;
       }
@@ -1253,14 +1261,14 @@ bool wholeBodyDynamics_IDLServer::read(yarp::os::ConnectionReader& connection) {
       yarp::os::idl::WireWriter writer(reader);
       if (!writer.isNull()) {
         if (!writer.writeListHeader(1)) return false;
-        if (!writer.writeDouble(_return)) return false;
+        if (!writer.writeFloat64(_return)) return false;
       }
       reader.accept();
       return true;
     }
     if (tag == "set_jointAccFilterCutoffInHz") {
       double newCutoff;
-      if (!reader.readDouble(newCutoff)) {
+      if (!reader.readFloat64(newCutoff)) {
         reader.fail();
         return false;
       }
@@ -1280,7 +1288,7 @@ bool wholeBodyDynamics_IDLServer::read(yarp::os::ConnectionReader& connection) {
       yarp::os::idl::WireWriter writer(reader);
       if (!writer.isNull()) {
         if (!writer.writeListHeader(1)) return false;
-        if (!writer.writeDouble(_return)) return false;
+        if (!writer.writeFloat64(_return)) return false;
       }
       reader.accept();
       return true;
@@ -1365,7 +1373,7 @@ bool wholeBodyDynamics_IDLServer::read(yarp::os::ConnectionReader& connection) {
         if (!writer.isNull()) {
           if (!writer.writeListHeader(2)) return false;
           if (!writer.writeTag("many",1, 0)) return false;
-          if (!writer.writeListBegin(BOTTLE_TAG_INT, static_cast<uint32_t>(_return.size()))) return false;
+          if (!writer.writeListBegin(BOTTLE_TAG_INT32, static_cast<uint32_t>(_return.size()))) return false;
           std::vector<std::string> ::iterator _iterHelp;
           for (_iterHelp = _return.begin(); _iterHelp != _return.end(); ++_iterHelp)
           {
@@ -1377,7 +1385,7 @@ bool wholeBodyDynamics_IDLServer::read(yarp::os::ConnectionReader& connection) {
       return true;
     }
     if (reader.noMore()) { reader.fail(); return false; }
-    yarp::os::ConstString next_tag = reader.readTag();
+    std::string next_tag = reader.readTag();
     if (next_tag=="") break;
     tag = tag + "_" + next_tag;
   }
@@ -1416,7 +1424,7 @@ std::vector<std::string> wholeBodyDynamics_IDLServer::help(const std::string& fu
   }
   else {
     if (functionName=="calib") {
-      helpString.push_back("bool calib(const std::string& calib_code, const int32_t nr_of_samples = 100) ");
+      helpString.push_back("bool calib(const std::string& calib_code, const std::int32_t nr_of_samples = 100) ");
       helpString.push_back("Calibrate the force/torque sensors ");
       helpString.push_back("(WARNING: calibrate the sensors when the only external forces acting on the robot are on the torso/waist) ");
       helpString.push_back("@param calib_code argument to specify the sensors to calibrate (all,arms,legs,feet) ");
@@ -1424,7 +1432,7 @@ std::vector<std::string> wholeBodyDynamics_IDLServer::help(const std::string& fu
       helpString.push_back("@return true/false on success/failure ");
     }
     if (functionName=="calibStanding") {
-      helpString.push_back("bool calibStanding(const std::string& calib_code, const int32_t nr_of_samples = 100) ");
+      helpString.push_back("bool calibStanding(const std::string& calib_code, const std::int32_t nr_of_samples = 100) ");
       helpString.push_back("Calibrate the force/torque sensors when on double support ");
       helpString.push_back("(WARNING: calibrate the sensors when the only external forces acting on the robot are on the sole). ");
       helpString.push_back("For this calibration the strong assumption of simmetry of the robot and its pose is done. ");
@@ -1433,7 +1441,7 @@ std::vector<std::string> wholeBodyDynamics_IDLServer::help(const std::string& fu
       helpString.push_back("@return true/false on success/failure ");
     }
     if (functionName=="calibStandingLeftFoot") {
-      helpString.push_back("bool calibStandingLeftFoot(const std::string& calib_code, const int32_t nr_of_samples = 100) ");
+      helpString.push_back("bool calibStandingLeftFoot(const std::string& calib_code, const std::int32_t nr_of_samples = 100) ");
       helpString.push_back("Calibrate the force/torque sensors when on single support on left foot ");
       helpString.push_back("(WARNING: calibrate the sensors when the only external forces acting on the robot are on the left sole). ");
       helpString.push_back("@param calib_code argument to specify the sensors to calibrate (all,arms,legs,feet) ");
@@ -1441,7 +1449,7 @@ std::vector<std::string> wholeBodyDynamics_IDLServer::help(const std::string& fu
       helpString.push_back("@return true/false on success/failure ");
     }
     if (functionName=="calibStandingRightFoot") {
-      helpString.push_back("bool calibStandingRightFoot(const std::string& calib_code, const int32_t nr_of_samples = 100) ");
+      helpString.push_back("bool calibStandingRightFoot(const std::string& calib_code, const std::int32_t nr_of_samples = 100) ");
       helpString.push_back("Calibrate the force/torque sensors when on single support on right foot ");
       helpString.push_back("(WARNING: calibrate the sensors when the only external forces acting on the robot are on the right sole). ");
       helpString.push_back("@param calib_code argument to specify the sensors to calibrate (all,arms,legs,feet) ");
@@ -1449,7 +1457,7 @@ std::vector<std::string> wholeBodyDynamics_IDLServer::help(const std::string& fu
       helpString.push_back("@return true/false on success/failure ");
     }
     if (functionName=="calibStandingOnOneLink") {
-      helpString.push_back("bool calibStandingOnOneLink(const std::string& standing_frame, const int32_t nr_of_samples = 100) ");
+      helpString.push_back("bool calibStandingOnOneLink(const std::string& standing_frame, const std::int32_t nr_of_samples = 100) ");
       helpString.push_back("Calibrate the force/torque sensors offsets when the external forces are acting on only one link. ");
       helpString.push_back("This method is typically used when the robot is standing on only one feet, ");
       helpString.push_back("or when it is attached to a fixture that is acting on a single link (typically the chest or the waist). ");
@@ -1459,7 +1467,7 @@ std::vector<std::string> wholeBodyDynamics_IDLServer::help(const std::string& fu
       helpString.push_back("@return true/false on success/failure. ");
     }
     if (functionName=="calibStandingOnTwoLinks") {
-      helpString.push_back("bool calibStandingOnTwoLinks(const std::string& first_standing_frame, const std::string& second_standing_frame, const int32_t nr_of_samples = 100) ");
+      helpString.push_back("bool calibStandingOnTwoLinks(const std::string& first_standing_frame, const std::string& second_standing_frame, const std::int32_t nr_of_samples = 100) ");
       helpString.push_back("Calibrate the force/torque sensors offsets when the external forces are acting on only two links. ");
       helpString.push_back("This method is not in general guaranteed to work, and it works in practice only when the robot and its internal ");
       helpString.push_back("forces are symmetric w.r.t. the two contact links. Note that the value obtaiend from this calibration depend ");

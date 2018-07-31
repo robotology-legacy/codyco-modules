@@ -1,172 +1,180 @@
-// This is an automatically-generated file.
+/*
+ * Copyright (C) 2006-2018 Istituto Italiano di Tecnologia (IIT)
+ * All rights reserved.
+ *
+ * This software may be modified and distributed under the terms of the
+ * BSD-3-Clause license. See the accompanying LICENSE file for details.
+ */
+
+// This is an automatically generated file.
 // It could get re-generated if the ALLOW_IDL_GENERATION flag is on.
 
 #include <codyco/HomTransform.h>
 
 namespace codyco {
 bool HomTransform::read_x(yarp::os::idl::WireReader& reader) {
-  if (!reader.readDouble(x)) {
+  if (!reader.readFloat64(x)) {
     reader.fail();
     return false;
   }
   return true;
 }
 bool HomTransform::nested_read_x(yarp::os::idl::WireReader& reader) {
-  if (!reader.readDouble(x)) {
+  if (!reader.readFloat64(x)) {
     reader.fail();
     return false;
   }
   return true;
 }
 bool HomTransform::read_y(yarp::os::idl::WireReader& reader) {
-  if (!reader.readDouble(y)) {
+  if (!reader.readFloat64(y)) {
     reader.fail();
     return false;
   }
   return true;
 }
 bool HomTransform::nested_read_y(yarp::os::idl::WireReader& reader) {
-  if (!reader.readDouble(y)) {
+  if (!reader.readFloat64(y)) {
     reader.fail();
     return false;
   }
   return true;
 }
 bool HomTransform::read_z(yarp::os::idl::WireReader& reader) {
-  if (!reader.readDouble(z)) {
+  if (!reader.readFloat64(z)) {
     reader.fail();
     return false;
   }
   return true;
 }
 bool HomTransform::nested_read_z(yarp::os::idl::WireReader& reader) {
-  if (!reader.readDouble(z)) {
+  if (!reader.readFloat64(z)) {
     reader.fail();
     return false;
   }
   return true;
 }
 bool HomTransform::read_xx(yarp::os::idl::WireReader& reader) {
-  if (!reader.readDouble(xx)) {
+  if (!reader.readFloat64(xx)) {
     reader.fail();
     return false;
   }
   return true;
 }
 bool HomTransform::nested_read_xx(yarp::os::idl::WireReader& reader) {
-  if (!reader.readDouble(xx)) {
+  if (!reader.readFloat64(xx)) {
     reader.fail();
     return false;
   }
   return true;
 }
 bool HomTransform::read_xy(yarp::os::idl::WireReader& reader) {
-  if (!reader.readDouble(xy)) {
+  if (!reader.readFloat64(xy)) {
     reader.fail();
     return false;
   }
   return true;
 }
 bool HomTransform::nested_read_xy(yarp::os::idl::WireReader& reader) {
-  if (!reader.readDouble(xy)) {
+  if (!reader.readFloat64(xy)) {
     reader.fail();
     return false;
   }
   return true;
 }
 bool HomTransform::read_xz(yarp::os::idl::WireReader& reader) {
-  if (!reader.readDouble(xz)) {
+  if (!reader.readFloat64(xz)) {
     reader.fail();
     return false;
   }
   return true;
 }
 bool HomTransform::nested_read_xz(yarp::os::idl::WireReader& reader) {
-  if (!reader.readDouble(xz)) {
+  if (!reader.readFloat64(xz)) {
     reader.fail();
     return false;
   }
   return true;
 }
 bool HomTransform::read_yx(yarp::os::idl::WireReader& reader) {
-  if (!reader.readDouble(yx)) {
+  if (!reader.readFloat64(yx)) {
     reader.fail();
     return false;
   }
   return true;
 }
 bool HomTransform::nested_read_yx(yarp::os::idl::WireReader& reader) {
-  if (!reader.readDouble(yx)) {
+  if (!reader.readFloat64(yx)) {
     reader.fail();
     return false;
   }
   return true;
 }
 bool HomTransform::read_yy(yarp::os::idl::WireReader& reader) {
-  if (!reader.readDouble(yy)) {
+  if (!reader.readFloat64(yy)) {
     reader.fail();
     return false;
   }
   return true;
 }
 bool HomTransform::nested_read_yy(yarp::os::idl::WireReader& reader) {
-  if (!reader.readDouble(yy)) {
+  if (!reader.readFloat64(yy)) {
     reader.fail();
     return false;
   }
   return true;
 }
 bool HomTransform::read_yz(yarp::os::idl::WireReader& reader) {
-  if (!reader.readDouble(yz)) {
+  if (!reader.readFloat64(yz)) {
     reader.fail();
     return false;
   }
   return true;
 }
 bool HomTransform::nested_read_yz(yarp::os::idl::WireReader& reader) {
-  if (!reader.readDouble(yz)) {
+  if (!reader.readFloat64(yz)) {
     reader.fail();
     return false;
   }
   return true;
 }
 bool HomTransform::read_zx(yarp::os::idl::WireReader& reader) {
-  if (!reader.readDouble(zx)) {
+  if (!reader.readFloat64(zx)) {
     reader.fail();
     return false;
   }
   return true;
 }
 bool HomTransform::nested_read_zx(yarp::os::idl::WireReader& reader) {
-  if (!reader.readDouble(zx)) {
+  if (!reader.readFloat64(zx)) {
     reader.fail();
     return false;
   }
   return true;
 }
 bool HomTransform::read_zy(yarp::os::idl::WireReader& reader) {
-  if (!reader.readDouble(zy)) {
+  if (!reader.readFloat64(zy)) {
     reader.fail();
     return false;
   }
   return true;
 }
 bool HomTransform::nested_read_zy(yarp::os::idl::WireReader& reader) {
-  if (!reader.readDouble(zy)) {
+  if (!reader.readFloat64(zy)) {
     reader.fail();
     return false;
   }
   return true;
 }
 bool HomTransform::read_zz(yarp::os::idl::WireReader& reader) {
-  if (!reader.readDouble(zz)) {
+  if (!reader.readFloat64(zz)) {
     reader.fail();
     return false;
   }
   return true;
 }
 bool HomTransform::nested_read_zz(yarp::os::idl::WireReader& reader) {
-  if (!reader.readDouble(zz)) {
+  if (!reader.readFloat64(zz)) {
     reader.fail();
     return false;
   }
@@ -194,103 +202,103 @@ bool HomTransform::read(yarp::os::ConnectionReader& connection) {
   return read(reader);
 }
 
-bool HomTransform::write_x(yarp::os::idl::WireWriter& writer) {
-  if (!writer.writeDouble(x)) return false;
+bool HomTransform::write_x(const yarp::os::idl::WireWriter& writer) const {
+  if (!writer.writeFloat64(x)) return false;
   return true;
 }
-bool HomTransform::nested_write_x(yarp::os::idl::WireWriter& writer) {
-  if (!writer.writeDouble(x)) return false;
+bool HomTransform::nested_write_x(const yarp::os::idl::WireWriter& writer) const {
+  if (!writer.writeFloat64(x)) return false;
   return true;
 }
-bool HomTransform::write_y(yarp::os::idl::WireWriter& writer) {
-  if (!writer.writeDouble(y)) return false;
+bool HomTransform::write_y(const yarp::os::idl::WireWriter& writer) const {
+  if (!writer.writeFloat64(y)) return false;
   return true;
 }
-bool HomTransform::nested_write_y(yarp::os::idl::WireWriter& writer) {
-  if (!writer.writeDouble(y)) return false;
+bool HomTransform::nested_write_y(const yarp::os::idl::WireWriter& writer) const {
+  if (!writer.writeFloat64(y)) return false;
   return true;
 }
-bool HomTransform::write_z(yarp::os::idl::WireWriter& writer) {
-  if (!writer.writeDouble(z)) return false;
+bool HomTransform::write_z(const yarp::os::idl::WireWriter& writer) const {
+  if (!writer.writeFloat64(z)) return false;
   return true;
 }
-bool HomTransform::nested_write_z(yarp::os::idl::WireWriter& writer) {
-  if (!writer.writeDouble(z)) return false;
+bool HomTransform::nested_write_z(const yarp::os::idl::WireWriter& writer) const {
+  if (!writer.writeFloat64(z)) return false;
   return true;
 }
-bool HomTransform::write_xx(yarp::os::idl::WireWriter& writer) {
-  if (!writer.writeDouble(xx)) return false;
+bool HomTransform::write_xx(const yarp::os::idl::WireWriter& writer) const {
+  if (!writer.writeFloat64(xx)) return false;
   return true;
 }
-bool HomTransform::nested_write_xx(yarp::os::idl::WireWriter& writer) {
-  if (!writer.writeDouble(xx)) return false;
+bool HomTransform::nested_write_xx(const yarp::os::idl::WireWriter& writer) const {
+  if (!writer.writeFloat64(xx)) return false;
   return true;
 }
-bool HomTransform::write_xy(yarp::os::idl::WireWriter& writer) {
-  if (!writer.writeDouble(xy)) return false;
+bool HomTransform::write_xy(const yarp::os::idl::WireWriter& writer) const {
+  if (!writer.writeFloat64(xy)) return false;
   return true;
 }
-bool HomTransform::nested_write_xy(yarp::os::idl::WireWriter& writer) {
-  if (!writer.writeDouble(xy)) return false;
+bool HomTransform::nested_write_xy(const yarp::os::idl::WireWriter& writer) const {
+  if (!writer.writeFloat64(xy)) return false;
   return true;
 }
-bool HomTransform::write_xz(yarp::os::idl::WireWriter& writer) {
-  if (!writer.writeDouble(xz)) return false;
+bool HomTransform::write_xz(const yarp::os::idl::WireWriter& writer) const {
+  if (!writer.writeFloat64(xz)) return false;
   return true;
 }
-bool HomTransform::nested_write_xz(yarp::os::idl::WireWriter& writer) {
-  if (!writer.writeDouble(xz)) return false;
+bool HomTransform::nested_write_xz(const yarp::os::idl::WireWriter& writer) const {
+  if (!writer.writeFloat64(xz)) return false;
   return true;
 }
-bool HomTransform::write_yx(yarp::os::idl::WireWriter& writer) {
-  if (!writer.writeDouble(yx)) return false;
+bool HomTransform::write_yx(const yarp::os::idl::WireWriter& writer) const {
+  if (!writer.writeFloat64(yx)) return false;
   return true;
 }
-bool HomTransform::nested_write_yx(yarp::os::idl::WireWriter& writer) {
-  if (!writer.writeDouble(yx)) return false;
+bool HomTransform::nested_write_yx(const yarp::os::idl::WireWriter& writer) const {
+  if (!writer.writeFloat64(yx)) return false;
   return true;
 }
-bool HomTransform::write_yy(yarp::os::idl::WireWriter& writer) {
-  if (!writer.writeDouble(yy)) return false;
+bool HomTransform::write_yy(const yarp::os::idl::WireWriter& writer) const {
+  if (!writer.writeFloat64(yy)) return false;
   return true;
 }
-bool HomTransform::nested_write_yy(yarp::os::idl::WireWriter& writer) {
-  if (!writer.writeDouble(yy)) return false;
+bool HomTransform::nested_write_yy(const yarp::os::idl::WireWriter& writer) const {
+  if (!writer.writeFloat64(yy)) return false;
   return true;
 }
-bool HomTransform::write_yz(yarp::os::idl::WireWriter& writer) {
-  if (!writer.writeDouble(yz)) return false;
+bool HomTransform::write_yz(const yarp::os::idl::WireWriter& writer) const {
+  if (!writer.writeFloat64(yz)) return false;
   return true;
 }
-bool HomTransform::nested_write_yz(yarp::os::idl::WireWriter& writer) {
-  if (!writer.writeDouble(yz)) return false;
+bool HomTransform::nested_write_yz(const yarp::os::idl::WireWriter& writer) const {
+  if (!writer.writeFloat64(yz)) return false;
   return true;
 }
-bool HomTransform::write_zx(yarp::os::idl::WireWriter& writer) {
-  if (!writer.writeDouble(zx)) return false;
+bool HomTransform::write_zx(const yarp::os::idl::WireWriter& writer) const {
+  if (!writer.writeFloat64(zx)) return false;
   return true;
 }
-bool HomTransform::nested_write_zx(yarp::os::idl::WireWriter& writer) {
-  if (!writer.writeDouble(zx)) return false;
+bool HomTransform::nested_write_zx(const yarp::os::idl::WireWriter& writer) const {
+  if (!writer.writeFloat64(zx)) return false;
   return true;
 }
-bool HomTransform::write_zy(yarp::os::idl::WireWriter& writer) {
-  if (!writer.writeDouble(zy)) return false;
+bool HomTransform::write_zy(const yarp::os::idl::WireWriter& writer) const {
+  if (!writer.writeFloat64(zy)) return false;
   return true;
 }
-bool HomTransform::nested_write_zy(yarp::os::idl::WireWriter& writer) {
-  if (!writer.writeDouble(zy)) return false;
+bool HomTransform::nested_write_zy(const yarp::os::idl::WireWriter& writer) const {
+  if (!writer.writeFloat64(zy)) return false;
   return true;
 }
-bool HomTransform::write_zz(yarp::os::idl::WireWriter& writer) {
-  if (!writer.writeDouble(zz)) return false;
+bool HomTransform::write_zz(const yarp::os::idl::WireWriter& writer) const {
+  if (!writer.writeFloat64(zz)) return false;
   return true;
 }
-bool HomTransform::nested_write_zz(yarp::os::idl::WireWriter& writer) {
-  if (!writer.writeDouble(zz)) return false;
+bool HomTransform::nested_write_zz(const yarp::os::idl::WireWriter& writer) const {
+  if (!writer.writeFloat64(zz)) return false;
   return true;
 }
-bool HomTransform::write(yarp::os::idl::WireWriter& writer) {
+bool HomTransform::write(const yarp::os::idl::WireWriter& writer) const {
   if (!write_x(writer)) return false;
   if (!write_y(writer)) return false;
   if (!write_z(writer)) return false;
@@ -306,12 +314,12 @@ bool HomTransform::write(yarp::os::idl::WireWriter& writer) {
   return !writer.isError();
 }
 
-bool HomTransform::write(yarp::os::ConnectionWriter& connection) {
+bool HomTransform::write(yarp::os::ConnectionWriter& connection) const {
   yarp::os::idl::WireWriter writer(connection);
   if (!writer.writeListHeader(12)) return false;
   return write(writer);
 }
-bool HomTransform::Editor::write(yarp::os::ConnectionWriter& connection) {
+bool HomTransform::Editor::write(yarp::os::ConnectionWriter& connection) const {
   if (!isValid()) return false;
   yarp::os::idl::WireWriter writer(connection);
   if (!writer.writeListHeader(dirty_count+1)) return false;
@@ -403,7 +411,7 @@ bool HomTransform::Editor::read(yarp::os::ConnectionReader& connection) {
     writer.writeString("send: 'help' or 'patch (param1 val1) (param2 val2)'");
     return true;
   }
-  yarp::os::ConstString tag;
+  std::string tag;
   if (!reader.readString(tag)) return false;
   if (tag=="help") {
     yarp::os::idl::WireWriter writer(reader);
@@ -411,7 +419,7 @@ bool HomTransform::Editor::read(yarp::os::ConnectionReader& connection) {
     if (!writer.writeListHeader(2)) return false;
     if (!writer.writeTag("many",1, 0)) return false;
     if (reader.getLength()>0) {
-      yarp::os::ConstString field;
+      std::string field;
       if (!reader.readString(field)) return false;
       if (field=="x") {
         if (!writer.writeListHeader(1)) return false;
@@ -488,8 +496,8 @@ bool HomTransform::Editor::read(yarp::os::ConnectionReader& connection) {
   }
   for (int i=1; i<len; i++) {
     if (nested && !reader.readListHeader(3)) return false;
-    yarp::os::ConstString act;
-    yarp::os::ConstString key;
+    std::string act;
+    std::string key;
     if (have_act) {
       act = tag;
     } else {
@@ -557,7 +565,7 @@ bool HomTransform::Editor::read(yarp::os::ConnectionReader& connection) {
   return true;
 }
 
-yarp::os::ConstString HomTransform::toString() {
+std::string HomTransform::toString() const {
   yarp::os::Bottle b;
   b.read(*this);
   return b.toString();

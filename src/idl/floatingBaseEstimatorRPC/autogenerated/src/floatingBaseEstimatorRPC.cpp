@@ -1,4 +1,12 @@
-// This is an automatically-generated file.
+/*
+ * Copyright (C) 2006-2018 Istituto Italiano di Tecnologia (IIT)
+ * All rights reserved.
+ *
+ * This software may be modified and distributed under the terms of the
+ * BSD-3-Clause license. See the accompanying LICENSE file for details.
+ */
+
+// This is an automatically generated file.
 // It could get re-generated if the ALLOW_IDL_GENERATION flag is on.
 
 #include <codyco/floatingBaseEstimatorRPC.h>
@@ -13,8 +21,8 @@ public:
   std::string initial_fixed_frame;
   bool _return;
   void init(const std::string& initial_world_frame, const std::string& initial_fixed_frame);
-  virtual bool write(yarp::os::ConnectionWriter& connection);
-  virtual bool read(yarp::os::ConnectionReader& connection);
+  virtual bool write(yarp::os::ConnectionWriter& connection) const override;
+  virtual bool read(yarp::os::ConnectionReader& connection) override;
 };
 
 class floatingBaseEstimatorRPC_resetSimpleLeggedOdometryToArbitraryFrame : public yarp::os::Portable {
@@ -24,8 +32,8 @@ public:
   std::string initial_fixed_frame;
   bool _return;
   void init(const std::string& initial_reference_frame, const HomTransform& initial_reference_frame_H_world, const std::string& initial_fixed_frame);
-  virtual bool write(yarp::os::ConnectionWriter& connection);
-  virtual bool read(yarp::os::ConnectionReader& connection);
+  virtual bool write(yarp::os::ConnectionWriter& connection) const override;
+  virtual bool read(yarp::os::ConnectionReader& connection) override;
 };
 
 class floatingBaseEstimatorRPC_changeFixedLinkSimpleLeggedOdometry : public yarp::os::Portable {
@@ -33,19 +41,19 @@ public:
   std::string new_fixed_frame;
   bool _return;
   void init(const std::string& new_fixed_frame);
-  virtual bool write(yarp::os::ConnectionWriter& connection);
-  virtual bool read(yarp::os::ConnectionReader& connection);
+  virtual bool write(yarp::os::ConnectionWriter& connection) const override;
+  virtual bool read(yarp::os::ConnectionReader& connection) override;
 };
 
 class floatingBaseEstimatorRPC_getCurrentSettingsString : public yarp::os::Portable {
 public:
   std::string _return;
   void init();
-  virtual bool write(yarp::os::ConnectionWriter& connection);
-  virtual bool read(yarp::os::ConnectionReader& connection);
+  virtual bool write(yarp::os::ConnectionWriter& connection) const override;
+  virtual bool read(yarp::os::ConnectionReader& connection) override;
 };
 
-bool floatingBaseEstimatorRPC_resetSimpleLeggedOdometry::write(yarp::os::ConnectionWriter& connection) {
+bool floatingBaseEstimatorRPC_resetSimpleLeggedOdometry::write(yarp::os::ConnectionWriter& connection) const {
   yarp::os::idl::WireWriter writer(connection);
   if (!writer.writeListHeader(3)) return false;
   if (!writer.writeTag("resetSimpleLeggedOdometry",1,1)) return false;
@@ -70,7 +78,7 @@ void floatingBaseEstimatorRPC_resetSimpleLeggedOdometry::init(const std::string&
   this->initial_fixed_frame = initial_fixed_frame;
 }
 
-bool floatingBaseEstimatorRPC_resetSimpleLeggedOdometryToArbitraryFrame::write(yarp::os::ConnectionWriter& connection) {
+bool floatingBaseEstimatorRPC_resetSimpleLeggedOdometryToArbitraryFrame::write(yarp::os::ConnectionWriter& connection) const {
   yarp::os::idl::WireWriter writer(connection);
   if (!writer.writeListHeader(15)) return false;
   if (!writer.writeTag("resetSimpleLeggedOdometryToArbitraryFrame",1,1)) return false;
@@ -97,7 +105,7 @@ void floatingBaseEstimatorRPC_resetSimpleLeggedOdometryToArbitraryFrame::init(co
   this->initial_fixed_frame = initial_fixed_frame;
 }
 
-bool floatingBaseEstimatorRPC_changeFixedLinkSimpleLeggedOdometry::write(yarp::os::ConnectionWriter& connection) {
+bool floatingBaseEstimatorRPC_changeFixedLinkSimpleLeggedOdometry::write(yarp::os::ConnectionWriter& connection) const {
   yarp::os::idl::WireWriter writer(connection);
   if (!writer.writeListHeader(2)) return false;
   if (!writer.writeTag("changeFixedLinkSimpleLeggedOdometry",1,1)) return false;
@@ -120,7 +128,7 @@ void floatingBaseEstimatorRPC_changeFixedLinkSimpleLeggedOdometry::init(const st
   this->new_fixed_frame = new_fixed_frame;
 }
 
-bool floatingBaseEstimatorRPC_getCurrentSettingsString::write(yarp::os::ConnectionWriter& connection) {
+bool floatingBaseEstimatorRPC_getCurrentSettingsString::write(yarp::os::ConnectionWriter& connection) const {
   yarp::os::idl::WireWriter writer(connection);
   if (!writer.writeListHeader(1)) return false;
   if (!writer.writeTag("getCurrentSettingsString",1,1)) return false;
@@ -189,7 +197,7 @@ bool floatingBaseEstimatorRPC::read(yarp::os::ConnectionReader& connection) {
   yarp::os::idl::WireReader reader(connection);
   reader.expectAccept();
   if (!reader.readListHeader()) { reader.fail(); return false; }
-  yarp::os::ConstString tag = reader.readTag();
+  std::string tag = reader.readTag();
   bool direct = (tag=="__direct__");
   if (direct) tag = reader.readTag();
   while (!reader.isError()) {
@@ -278,7 +286,7 @@ bool floatingBaseEstimatorRPC::read(yarp::os::ConnectionReader& connection) {
         if (!writer.isNull()) {
           if (!writer.writeListHeader(2)) return false;
           if (!writer.writeTag("many",1, 0)) return false;
-          if (!writer.writeListBegin(BOTTLE_TAG_INT, static_cast<uint32_t>(_return.size()))) return false;
+          if (!writer.writeListBegin(BOTTLE_TAG_INT32, static_cast<uint32_t>(_return.size()))) return false;
           std::vector<std::string> ::iterator _iterHelp;
           for (_iterHelp = _return.begin(); _iterHelp != _return.end(); ++_iterHelp)
           {
@@ -290,7 +298,7 @@ bool floatingBaseEstimatorRPC::read(yarp::os::ConnectionReader& connection) {
       return true;
     }
     if (reader.noMore()) { reader.fail(); return false; }
-    yarp::os::ConstString next_tag = reader.readTag();
+    std::string next_tag = reader.readTag();
     if (next_tag=="") break;
     tag = tag + "_" + next_tag;
   }

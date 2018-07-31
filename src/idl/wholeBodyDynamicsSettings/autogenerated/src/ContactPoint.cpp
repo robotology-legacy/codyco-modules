@@ -1,45 +1,53 @@
-// This is an automatically-generated file.
+/*
+ * Copyright (C) 2006-2018 Istituto Italiano di Tecnologia (IIT)
+ * All rights reserved.
+ *
+ * This software may be modified and distributed under the terms of the
+ * BSD-3-Clause license. See the accompanying LICENSE file for details.
+ */
+
+// This is an automatically generated file.
 // It could get re-generated if the ALLOW_IDL_GENERATION flag is on.
 
 #include <ContactPoint.h>
 
 bool ContactPoint::read_x(yarp::os::idl::WireReader& reader) {
-  if (!reader.readDouble(x)) {
+  if (!reader.readFloat64(x)) {
     reader.fail();
     return false;
   }
   return true;
 }
 bool ContactPoint::nested_read_x(yarp::os::idl::WireReader& reader) {
-  if (!reader.readDouble(x)) {
+  if (!reader.readFloat64(x)) {
     reader.fail();
     return false;
   }
   return true;
 }
 bool ContactPoint::read_y(yarp::os::idl::WireReader& reader) {
-  if (!reader.readDouble(y)) {
+  if (!reader.readFloat64(y)) {
     reader.fail();
     return false;
   }
   return true;
 }
 bool ContactPoint::nested_read_y(yarp::os::idl::WireReader& reader) {
-  if (!reader.readDouble(y)) {
+  if (!reader.readFloat64(y)) {
     reader.fail();
     return false;
   }
   return true;
 }
 bool ContactPoint::read_z(yarp::os::idl::WireReader& reader) {
-  if (!reader.readDouble(z)) {
+  if (!reader.readFloat64(z)) {
     reader.fail();
     return false;
   }
   return true;
 }
 bool ContactPoint::nested_read_z(yarp::os::idl::WireReader& reader) {
-  if (!reader.readDouble(z)) {
+  if (!reader.readFloat64(z)) {
     reader.fail();
     return false;
   }
@@ -58,43 +66,43 @@ bool ContactPoint::read(yarp::os::ConnectionReader& connection) {
   return read(reader);
 }
 
-bool ContactPoint::write_x(yarp::os::idl::WireWriter& writer) {
-  if (!writer.writeDouble(x)) return false;
+bool ContactPoint::write_x(const yarp::os::idl::WireWriter& writer) const {
+  if (!writer.writeFloat64(x)) return false;
   return true;
 }
-bool ContactPoint::nested_write_x(yarp::os::idl::WireWriter& writer) {
-  if (!writer.writeDouble(x)) return false;
+bool ContactPoint::nested_write_x(const yarp::os::idl::WireWriter& writer) const {
+  if (!writer.writeFloat64(x)) return false;
   return true;
 }
-bool ContactPoint::write_y(yarp::os::idl::WireWriter& writer) {
-  if (!writer.writeDouble(y)) return false;
+bool ContactPoint::write_y(const yarp::os::idl::WireWriter& writer) const {
+  if (!writer.writeFloat64(y)) return false;
   return true;
 }
-bool ContactPoint::nested_write_y(yarp::os::idl::WireWriter& writer) {
-  if (!writer.writeDouble(y)) return false;
+bool ContactPoint::nested_write_y(const yarp::os::idl::WireWriter& writer) const {
+  if (!writer.writeFloat64(y)) return false;
   return true;
 }
-bool ContactPoint::write_z(yarp::os::idl::WireWriter& writer) {
-  if (!writer.writeDouble(z)) return false;
+bool ContactPoint::write_z(const yarp::os::idl::WireWriter& writer) const {
+  if (!writer.writeFloat64(z)) return false;
   return true;
 }
-bool ContactPoint::nested_write_z(yarp::os::idl::WireWriter& writer) {
-  if (!writer.writeDouble(z)) return false;
+bool ContactPoint::nested_write_z(const yarp::os::idl::WireWriter& writer) const {
+  if (!writer.writeFloat64(z)) return false;
   return true;
 }
-bool ContactPoint::write(yarp::os::idl::WireWriter& writer) {
+bool ContactPoint::write(const yarp::os::idl::WireWriter& writer) const {
   if (!write_x(writer)) return false;
   if (!write_y(writer)) return false;
   if (!write_z(writer)) return false;
   return !writer.isError();
 }
 
-bool ContactPoint::write(yarp::os::ConnectionWriter& connection) {
+bool ContactPoint::write(yarp::os::ConnectionWriter& connection) const {
   yarp::os::idl::WireWriter writer(connection);
   if (!writer.writeListHeader(3)) return false;
   return write(writer);
 }
-bool ContactPoint::Editor::write(yarp::os::ConnectionWriter& connection) {
+bool ContactPoint::Editor::write(yarp::os::ConnectionWriter& connection) const {
   if (!isValid()) return false;
   yarp::os::idl::WireWriter writer(connection);
   if (!writer.writeListHeader(dirty_count+1)) return false;
@@ -132,7 +140,7 @@ bool ContactPoint::Editor::read(yarp::os::ConnectionReader& connection) {
     writer.writeString("send: 'help' or 'patch (param1 val1) (param2 val2)'");
     return true;
   }
-  yarp::os::ConstString tag;
+  std::string tag;
   if (!reader.readString(tag)) return false;
   if (tag=="help") {
     yarp::os::idl::WireWriter writer(reader);
@@ -140,7 +148,7 @@ bool ContactPoint::Editor::read(yarp::os::ConnectionReader& connection) {
     if (!writer.writeListHeader(2)) return false;
     if (!writer.writeTag("many",1, 0)) return false;
     if (reader.getLength()>0) {
-      yarp::os::ConstString field;
+      std::string field;
       if (!reader.readString(field)) return false;
       if (field=="x") {
         if (!writer.writeListHeader(1)) return false;
@@ -172,8 +180,8 @@ bool ContactPoint::Editor::read(yarp::os::ConnectionReader& connection) {
   }
   for (int i=1; i<len; i++) {
     if (nested && !reader.readListHeader(3)) return false;
-    yarp::os::ConstString act;
-    yarp::os::ConstString key;
+    std::string act;
+    std::string key;
     if (have_act) {
       act = tag;
     } else {
@@ -205,7 +213,7 @@ bool ContactPoint::Editor::read(yarp::os::ConnectionReader& connection) {
   return true;
 }
 
-yarp::os::ConstString ContactPoint::toString() {
+std::string ContactPoint::toString() const {
   yarp::os::Bottle b;
   b.read(*this);
   return b.toString();
