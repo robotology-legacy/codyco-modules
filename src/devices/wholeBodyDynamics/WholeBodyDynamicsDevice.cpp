@@ -1036,7 +1036,7 @@ bool WholeBodyDynamicsDevice::attachAllIMUs(const PolyDriverList& p)
     if( nrOfIMUDetected != 1 )
     {
         yError() << "WholeBodyDynamicsDevice was expecting only one IMU, but it did not find " << nrOfIMUDetected << " in the attached devices";
-        return false;
+        return true;
     }
 
     if( imuList.size() == 1 )
