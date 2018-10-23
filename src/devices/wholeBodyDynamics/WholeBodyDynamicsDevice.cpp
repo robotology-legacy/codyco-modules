@@ -561,7 +561,8 @@ void WholeBodyDynamicsDevice::resizeBuffers()
 bool WholeBodyDynamicsDevice::loadSettingsFromConfig(os::Searchable& config)
 {
     // Fill setting with their default values
-    settings.kinematicSource             = IMU;
+    settings.kinematicSource = FIXED_FRAME;
+    settings.fixedFrameName = "root_link";
     settings.imuFilterCutoffInHz         = 3.0;
     settings.forceTorqueFilterCutoffInHz = 3.0;
     settings.jointVelFilterCutoffInHz    = 3.0;
