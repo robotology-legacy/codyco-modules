@@ -728,6 +728,69 @@ bool WholeBodyDynamicsDevice::loadSecondaryCalibrationSettingsFromConfig(os::Sea
 
 }
 
+bool WholeBodyDynamicsDevice::loadTemperatureCoefficientsSettingsFromConfig(os::Searchable& config)
+{
+   bool ret;
+   yarp::os::Property propAll;
+   propAll.fromString(config.toString().c_str());
+
+    if( !propAll.check("FT_TEMPERATURE_COEFFICIENTS") )
+    {
+        ret = true;
+    }
+    else
+    {
+        yarp::os::Bottle & propSecondCalib = propAll.findGroup("FT_TEMPERATURE_COEFFICIENTS");
+        for(int i=1; i < propSecondCalib.size(); i++ )
+        {
+            yarp::os::Bottle * map_bot = propSecondCalib.get(i).asList();
+            if( map_bot->size() != 2 || map_bot->get(1).asList() == NULL ||
+                map_bot->get(1).asList()->size() != 7 )
+            {
+                yError() << "wholeBodyDynamics: FT_TEMPERATURE_COEFFICIENTS group is malformed (" << map_bot->toString() << "). ";
+                return false;
+            }
+
+            std::string iDynTree_sensorName = map_bot->get(0).asString();
+            iDynTree::Vector6 temperatureCoeffs;
+            double tempOffset=0;
+
+            for(int r=0; r < 6; r++)
+            {
+                    temperatureCoeffs(r) = map_bot->get(1).asList()->get(r).asDouble();
+            }
+            tempOffset= map_bot->get(1).asList()->get(6).asDouble();
+
+
+            // Linearly search for the specified sensor
+            bool sensorFound = false;
+            for(int ft=0; ft < estimator.sensors().getNrOfSensors(iDynTree::SIX_AXIS_FORCE_TORQUE); ft++ )
+            {
+                if( estimator.sensors().getSensor(iDynTree::SIX_AXIS_FORCE_TORQUE,ft)->getName() == iDynTree_sensorName )
+                {
+                    yDebug() << "wholeBodyDynamics: using secondary calibration matrix for sensor " << iDynTree_sensorName;
+
+                    ftProcessors[ft].temperatureCoefficients() = temperatureCoeffs;
+                    ftProcessors[ft].tempOffset() =tempOffset;
+                    sensorFound = true;
+                }
+            }
+
+            // If a specified sensor was not found, give an error
+            if( !sensorFound )
+            {
+                yError() << "wholeBodyDynamics: secondary calibration matrix specified for FT sensor " << iDynTree_sensorName
+                          << " but no sensor with that name found in the model";
+                return false;
+            }
+        }
+        ret = true;
+    }
+
+    return ret;
+
+}
+
 
 bool WholeBodyDynamicsDevice::loadGravityCompensationSettingsFromConfig(os::Searchable& config)
 {

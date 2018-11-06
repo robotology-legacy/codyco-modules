@@ -13,6 +13,7 @@
 #include <yarp/os/Semaphore.h>
 #include <yarp/dev/IVirtualAnalogSensor.h>
 #include <yarp/dev/IAnalogSensor.h>
+#include <yarp/dev/MultipleAnalogSensorsInterfaces.h>
 #include <yarp/dev/GenericSensorInterfaces.h>
 
 // iCub includes
@@ -339,7 +340,11 @@ private:
     } remappedVirtualAnalogSensorsInterfaces;
 
     /** F/T sensors interfaces */
-    std::vector<yarp::dev::IAnalogSensor * > ftSensors;
+    //std::vector<yarp::dev::IAnalogSensor * > ftSensors;
+    std::vector<yarp::dev::ISixAxisForceTorqueSensors * > ftSensors;
+
+    /** Temperature sensors interfaces */
+    std::vector<yarp::dev::ITemperatureSensors * > temperatureSensors;
 
     /** IMU interface */
     yarp::dev::IGenericSensor * imuInterface;
@@ -463,7 +468,8 @@ private:
      */
     bool loadSettingsFromConfig(yarp::os::Searchable& config);
     bool loadSecondaryCalibrationSettingsFromConfig(yarp::os::Searchable& config);
-    bool loadGravityCompensationSettingsFromConfig(yarp::os::Searchable & config);
+    bool loadGravityCompensationSettingsFromConfig(yarp::os::Searchable & config);    
+    bool loadTemperatureCoefficientsSettingsFromConfig(os::Searchable& config);
 
     /**
      * Class actually doing computations.
@@ -530,6 +536,7 @@ private:
      * removing offset and using a secondary calibration matrix.
      */
     std::vector<wholeBodyDynamics::SixAxisForceTorqueMeasureProcessor> ftProcessors;
+
 
     /***
      * RPC Calibration related methods
