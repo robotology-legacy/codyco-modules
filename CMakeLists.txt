@@ -15,6 +15,15 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_SOURCE_DIR}/cmake/modules)
 #### CoDyCo Setup
 project(codyco-modules)
 
+find_package(whole-body-controllers)
+if(whole-body-controllers_FOUND)
+    message(FATAL_ERROR "codyco-modules cannot be installed if whole-body-controllers is already installed. "
+                        "Please uninstall whole-body-controllers before trying to install codyco-modules. "
+                        "If you are installing codyco-modules as part of a superbuild, a solution "
+                        "is to simply manually remove the superbuild's install directory, and then compile "
+                        "the superbuild again.")
+endif()
+
 set(VARS_PREFIX ${PROJECT_NAME})
 set(${PROJECT_NAME}_VERSION_MAJOR "0")
 set(${PROJECT_NAME}_VERSION_MINOR "2")
