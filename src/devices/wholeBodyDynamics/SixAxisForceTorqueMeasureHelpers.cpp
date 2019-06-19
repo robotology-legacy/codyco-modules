@@ -9,11 +9,12 @@ SixAxisForceTorqueMeasureProcessor::SixAxisForceTorqueMeasureProcessor()
     // Initialize the affice function to be the identity
     toEigen(m_secondaryCalibrationMatrix).setIdentity();
     m_offset.zero();
-    toEigen(m_temperatureCoefficients).zero();
+    toEigen(m_temperatureCoefficients).setZero();
     m_tempOffset=0;
+    m_estimated_offset.zero();
 }
 
-iDynTree::Matrix6x6 & SixAxisForceTorqueMeasureProcessor::secondaryCalibrationMatrix()
+iDynTree::Matrix6x6& SixAxisForceTorqueMeasureProcessor::secondaryCalibrationMatrix()
 {
     return m_secondaryCalibrationMatrix;
 }
@@ -40,6 +41,16 @@ iDynTree::Wrench& SixAxisForceTorqueMeasureProcessor::offset()
 }
 
 const iDynTree::Wrench& SixAxisForceTorqueMeasureProcessor::offset() const
+{
+    return m_offset;
+}
+
+iDynTree::Wrench& SixAxisForceTorqueMeasureProcessor::estimatedOffset()
+{
+    return m_offset;
+}
+
+const iDynTree::Wrench& SixAxisForceTorqueMeasureProcessor::estimatedOffset() const
 {
     return m_offset;
 }

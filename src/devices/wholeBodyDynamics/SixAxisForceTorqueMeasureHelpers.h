@@ -28,7 +28,8 @@ class SixAxisForceTorqueMeasureProcessor
 {
 private:
     iDynTree::Matrix6x6 m_secondaryCalibrationMatrix;
-    iDynTree::Wrench m_offset;
+    iDynTree::Wrench m_offset;    
+    iDynTree::Wrench m_estimated_offset;
     iDynTree::Vector6 m_temperatureCoefficients;
     double m_tempOffset;
 
@@ -48,6 +49,16 @@ public:
      * Const accessor to the offset.
      */
     const iDynTree::Wrench & offset() const;
+
+    /**
+     * Accessor to the offline estimated offset.
+     */
+    iDynTree::Wrench & estimatedOffset();
+
+    /**
+     * Const accessor to the offline estimated offset.
+     */
+    const iDynTree::Wrench & estimatedOffset() const;
 
     /**
      * Accessor to the secondary calibration matrix.
