@@ -340,11 +340,29 @@ private:
     } remappedVirtualAnalogSensorsInterfaces;
 
     /** F/T sensors interfaces */
-    //std::vector<yarp::dev::IAnalogSensor * > ftSensors;
-    std::vector<yarp::dev::ISixAxisForceTorqueSensors * > ftSensors;
+    std::vector<yarp::dev::IAnalogSensor * > ftSensors;
+    //std::vector<yarp::dev::ISixAxisForceTorqueSensors * > ftSensors;
 
-    /** Temperature sensors interfaces */
-    std::vector<yarp::dev::ITemperatureSensors * > temperatureSensors;
+    /**
+     * Names of the sensors that can be accessed through multiple analog sensor interface.
+     */
+    std::vector<std::string> multiAnalogSensorList;
+
+    yarp::dev::PolyDriver multipleAnalogRemappedDevice;
+    struct
+    {
+        yarp::dev::ITemperatureSensors * temperatureSensors;
+        yarp::dev::ISixAxisForceTorqueSensors * ftMultiSensors;
+        yarp::dev::IMultipleWrapper * multwrap;
+        //yarp::dev::IThreeAxisLinearAccelerometers * linearAccelerometers;
+//        yarp::dev::IOrientationSensors * orientationSensors;
+//        yarp::dev::IThreeAxisGyroscopes * gyroscopes;
+//        yarp::dev::IThreeAxisMagnetometers * magnetometers;
+    } remappedMASInterfaces;
+    yarp::sig::Vector ftTempMapping;
+
+//    /** Temperature sensors interfaces */
+//    std::vector<yarp::dev::ITemperatureSensors * > temperatureSensors;
 
     /** IMU interface */
     yarp::dev::IGenericSensor * imuInterface;
@@ -382,6 +400,7 @@ private:
     bool openDefaultContactFrames(os::Searchable& config);
     bool openSkinContactListPorts(os::Searchable& config);
     bool openExternalWrenchesPorts(os::Searchable& config);
+    bool openMultipleAnalogSensorRemapper(os::Searchable& config);
 
     /**
      * Close-related methods
@@ -469,8 +488,8 @@ private:
     bool loadSettingsFromConfig(yarp::os::Searchable& config);
     bool loadSecondaryCalibrationSettingsFromConfig(yarp::os::Searchable& config);
     bool loadGravityCompensationSettingsFromConfig(yarp::os::Searchable & config);    
-    bool loadTemperatureCoefficientsSettingsFromConfig(os::Searchable& config);
-
+    bool loadTemperatureCoefficientsSettingsFromConfig(yarp::os::Searchable& config);
+    bool loadFTSensorOffsetFromConfig(yarp::os::Searchable& config);
     /**
      * Class actually doing computations.
      */
@@ -491,6 +510,7 @@ private:
     yarp::sig::Vector              ftMeasurement;
     yarp::sig::Vector              imuMeasurement;
     yarp::sig::Vector              estimatedJointTorquesYARP;
+    yarp::sig::VectorOf<double>              tempMeasurements;
 
     /***
      * Buffer for raw sensors measurements.
