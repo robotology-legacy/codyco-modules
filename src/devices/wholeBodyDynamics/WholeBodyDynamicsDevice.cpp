@@ -1383,14 +1383,23 @@ void convertVectorFromDegreesToRadians(iDynTree::VectorDynSize & vector)
 bool WholeBodyDynamicsDevice::readFTSensors(bool verbose)
 {
     bool FTSensorsReadCorrectly = true;
+    bool TempSensorReadCorrectly = true;
     for(size_t ft=0; ft < estimator.sensors().getNrOfSensors(iDynTree::SIX_AXIS_FORCE_TORQUE); ft++ )
     {
         iDynTree::Wrench bufWrench;
         int ftRetVal = ftSensors[ft]->read(ftMeasurement);
-
+        double timeFTStamp=yarp::os::Time::now();
+        if (ftTempMapping[ft]!=-1){
+            TempSensorReadCorrectly=remappedMASInterfaces.temperatureSensors->getTemperatureSensorMeasure(ftTempMapping[ft],tempMeasurements[ft],timeFTStamp);
+            yInfo() << "wholeBodyDynamics warning : Temperature sensor in " << ft << " position measured" << tempMeasurements[ft];
+        }
+        else {
+            tempMeasurements[ft]=0;
+            yInfo() << "wholeBodyDynamics warning : No Temperature sensor in " << ft << " position setting respective temperature measurement to 0.";
+        }
         bool ok = (ftRetVal == IAnalogSensor::AS_OK);
 
-        FTSensorsReadCorrectly = FTSensorsReadCorrectly && ok;
+        FTSensorsReadCorrectly = FTSensorsReadCorrectly && ok && TempSensorReadCorrectly;
 
         if( !ok && verbose )
         {
@@ -1401,7 +1410,7 @@ bool WholeBodyDynamicsDevice::readFTSensors(bool verbose)
         bool isNaN = false;
         for (size_t i = 0; i < ftMeasurement.size(); i++)
         {
-            if( std::isnan(ftMeasurement[i]) )
+            if( std::isnan(ftMeasurement[i]) ||  std::isnan(tempMeasurements[ft]))
             {
                 isNaN = true;
                 break;
@@ -1531,19 +1540,11 @@ void WholeBodyDynamicsDevice::filterSensorsAndRemoveSensorOffsets()
     // Filter and remove offset fromn F/T sensors
     for(size_t ft=0; ft < estimator.sensors().getNrOfSensors(iDynTree::SIX_AXIS_FORCE_TORQUE); ft++ )
     {
-        double temperatureValue=0;
-        if (temperatureSensorAvailable(ft))
-        {
-        // Read temperature before filtering FT sensors
-        //std::string sensorName=estimator.sensors().getSensor(iDynTree::SIX_AXIS_FORCE_TORQUE,ft)->getName();
-        double timeFTStamp=yarp::os::Time::now();
-        remappedMASInterfaces.temperatureSensors->getTemperatureSensorMeasure(ft,temperatureValue,timeFTStamp);
 
-        }
         iDynTree::Wrench rawFTMeasure;
         rawSensorsMeasurements.getMeasurement(iDynTree::SIX_AXIS_FORCE_TORQUE,ft,rawFTMeasure);
 
-        iDynTree::Wrench rawFTMeasureWithOffsetRemoved  = ftProcessors[ft].filt(rawFTMeasure,temperatureValue);
+        iDynTree::Wrench rawFTMeasureWithOffsetRemoved  = ftProcessors[ft].filt(rawFTMeasure,tempMeasurements[ft]);
 
         // Filter the data
         iDynTree::toYarp(rawFTMeasureWithOffsetRemoved,filters.bufferYarp6);
@@ -1820,9 +1821,9 @@ void WholeBodyDynamicsDevice::computeCalibration()
 
                 // We apply only the secondary calibration matrix because we are actually computing the offset right now
 
-                measuredRawFT = ftProcessors[ft].applySecondaryCalibrationMatrix(measuredRawFT);
+                // measuredRawFT = ftProcessors[ft].applySecondaryCalibrationMatrix(measuredRawFT);
 
-                measuredRawFT = ftProcessors[ft].applySecondaryCalibrationMatrix(measuredRawFT,measuredTemp);
+                measuredRawFT = ftProcessors[ft].applySecondaryCalibrationMatrix(measuredRawFT,tempMeasurements[ft]);
 
                 addToSummer(calibrationBuffers.offsetSumBuffer[ft],measuredRawFT-estimatedFT);
                 addToSummer(calibrationBuffers.measurementSumBuffer[ft],measuredRawFT);
@@ -2077,6 +2078,7 @@ bool WholeBodyDynamicsDevice::detachAll()
 
     this->remappedControlBoardInterfaces.multwrap->detachAll();
     this->remappedVirtualAnalogSensorsInterfaces.multwrap->detachAll();
+    this->remappedMASInterfaces.multwrap->detachAll();
 
     closeExternalWrenchesPorts();
     closeRPCPort();
@@ -2091,6 +2093,7 @@ bool WholeBodyDynamicsDevice::close()
 {
     this->remappedControlBoard.close();
     this->remappedVirtualAnalogSensors.close();
+    this->multipleAnalogRemappedDevice.close();
 
     correctlyConfigured = false;
 
@@ -2292,6 +2295,23 @@ bool WholeBodyDynamicsDevice::resetOffset(const std::string& calib_code)
     for(size_t ft = 0; ft < this->getNrOfFTSensors(); ft++)
     {
         ftProcessors[ft].offset().zero();
+    }
+
+    return true;
+}
+
+bool WholeBodyDynamicsDevice::usePreEstimatedOffset(const std::string& calib_code)
+{
+    yarp::os::LockGuard guard(this->deviceMutex);
+
+    yWarning() << "wholeBodyDynamics : calib ignoring calib_code " << calib_code << " using offset estimated offline.";
+
+    for(size_t ft = 0; ft < this->getNrOfFTSensors(); ft++)
+    {
+        // TODO: check if the value stored in the estimatedOffset is relevant or not
+       yInfo()<< " Value of pre estimated offset is: "<< ftProcessors[ft].estimatedOffset().toString() << "for sensor in position "<<ft;
+        ftProcessors[ft].offset()=ftProcessors[ft].estimatedOffset();
+
     }
 
     return true;

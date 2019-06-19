@@ -608,6 +608,13 @@ private:
       */
      virtual bool resetOffset(const std::string& calib_code);
 
+    /**
+     * Use the sensor offset estimated offline.
+     * @param calib_code argument to specify the sensors to reset (all,arms,legs,feet)
+     * @return true/false on success/failure
+     */
+    virtual bool usePreEstimatedOffset(const std::string& calib_code);
+
      /**
       * Quit the module.
       * @return true/false on success/failure
