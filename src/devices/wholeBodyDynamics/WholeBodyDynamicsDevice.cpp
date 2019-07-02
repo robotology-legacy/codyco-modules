@@ -12,7 +12,7 @@
 
 #include <iDynTree/yarp/YARPConversions.h>
 #include <iDynTree/Core/Utils.h>
-
+#include <iDynTree/Core/EigenHelpers.h>
 #include <cassert>
 #include <cmath>
 
@@ -132,69 +132,35 @@ void addVectorOfStringToProperty(yarp::os::Property& prop, std::string key, std:
     return;
 }
 
-bool getUsedDOFsList(os::Searchable& config, std::vector<std::string> & usedDOFs)
+bool getConfigParamsAsList(os::Searchable& config,std::string propertyName , std::vector<std::string> & list)
 {
     yarp::os::Property prop;
     prop.fromString(config.toString().c_str());
-
-    yarp::os::Bottle *propAxesNames=prop.find("axesNames").asList();
-    if(propAxesNames==0)
+    yarp::os::Bottle *propNames=prop.find(propertyName).asList();
+    if(propNames==nullptr)
     {
-       yError() <<"WholeBodyDynamicsDevice: Error parsing parameters: \"axesNames\" should be followed by a list\n";
+       yError() <<"WholeBodyDynamicsDevice: Error parsing parameters: \" "<<propertyName<<" \" should be followed by a list\n";
        return false;
     }
 
-    usedDOFs.resize(propAxesNames->size());
-    for(int ax=0; ax < propAxesNames->size(); ax++)
+    list.resize(propNames->size());
+    for(auto elem=0u; elem < propNames->size(); elem++)
     {
-        usedDOFs[ax] = propAxesNames->get(ax).asString().c_str();
+        list[elem] = propNames->get(elem).asString().c_str();
     }
 
     return true;
+}
+
+bool getUsedDOFsList(os::Searchable& config, std::vector<std::string> & usedDOFs)
+{
+    return getConfigParamsAsList(config,"axesNames",usedDOFs);
 }
 
 bool getGravityCompensationDOFsList(os::Searchable& config, std::vector<std::string> & gravityCompensationDOFs)
 {
-    yarp::os::Property prop;
-    prop.fromString(config.toString().c_str());
-
-    yarp::os::Bottle *propAxesNames=prop.find("gravityCompensationAxesNames").asList();
-    if(propAxesNames==0)
-    {
-       yError() <<"wholeBodyDynamics : Error parsing parameters: \"gravityCompensationAxesNames\" should be followed by a list\n";
-       return false;
-    }
-
-    gravityCompensationDOFs.resize(propAxesNames->size());
-    for(int ax=0; ax < propAxesNames->size(); ax++)
-    {
-        gravityCompensationDOFs[ax] = propAxesNames->get(ax).asString().c_str();
-    }
-
-    return true;
+    return getConfigParamsAsList(config,"gravityCompensationAxesNames",gravityCompensationDOFs);
 }
-
-bool getMultipleAnalogSensorsList(os::Searchable& config, std::vector<std::string> & availableMAS)
-{
-    yarp::os::Property prop;
-    prop.fromString(config.toString().c_str());
-
-    yarp::os::Bottle *propMASNames=prop.find("multipleAnalogSensorsNames").asList();
-    if(propMASNames==0)
-    {
-       yError() <<"WholeBodyDynamicsDevice: Error parsing parameters: \"multipleAnalogSensorsNames\" should be followed by a list\n";
-       return false;
-    }
-
-    availableMAS.resize(propMASNames->size());
-    for(int sens=0; sens < propMASNames->size(); sens++)
-    {
-        availableMAS[sens] = propMASNames->get(sens).asString().c_str();
-    }
-
-    return true;
-}
-
 
 bool WholeBodyDynamicsDevice::openRemapperControlBoard(os::Searchable& config)
 {
@@ -535,25 +501,45 @@ bool WholeBodyDynamicsDevice::openExternalWrenchesPorts(os::Searchable& config)
 bool WholeBodyDynamicsDevice::openMultipleAnalogSensorRemapper(os::Searchable &config)
 {
     // Pass to the remapper just the relevant parameters (sensorList)
+    yarp::os::Property prop;
+    prop.fromString(config.toString().c_str());
     yarp::os::Property propMASRemapper;
+    yarp::os::Bottle & propMasNames=prop.findGroup("multipleAnalogSensorsNames");
     propMASRemapper.put("device","multipleanalogsensorsremapper");
-    bool ok = getMultipleAnalogSensorsList(config,multiAnalogSensorList); //estimationJointNames
-    if(!ok) return false;
+    bool ok=false;
+    for (auto types=1u;types<propMasNames.size();types++){
+        yarp::os::Bottle * mas_type = propMasNames.get(types).asList();
+        if( mas_type->size() != 2 || mas_type->get(1).asList() == nullptr )
+        {
+            yError() << "wholeBodyDynamics: multipleAnalogSensorsNames group is malformed (" << mas_type->toString() << "). ";
+            return false;
+        }
+        else {
+          ok=true;
+        }
 
-    addVectorOfStringToProperty(propMASRemapper,"multipleAnalogSensorList",multiAnalogSensorList);
-
+        propMASRemapper.addGroup(mas_type->get(0).asString());
+        yarp::os::Bottle  MASnames;
+        yarp::os::Bottle & MASnamesList= MASnames.addList();
+        yInfo()<<" debugging: number of sensors to add "<<mas_type->get(1).asList()->size();
+        for(auto i=0u; i < mas_type->get(1).asList()->size(); i++)
+        {
+            MASnamesList.addString(mas_type->get(1).asList()->get(i).asString());
+        }
+        propMASRemapper.put(mas_type->get(0).asString(),MASnames.get(0));
+        yInfo()<<"debugging: sensory type name= "<<mas_type->get(0).asString();
+        yInfo()<<"debugging: sensory type name in bottle= "<<MASnames.toString();
+    }
+    yInfo()<<"debugging: print propMASremapper " <<propMASRemapper.toString();
     ok = multipleAnalogRemappedDevice.open(propMASRemapper);
-
     if( !ok )
     {
         return ok;
     }
-
     // View relevant interfaces for the multipleAnalogRemappedDevice
     ok = ok && multipleAnalogRemappedDevice.view(remappedMASInterfaces.temperatureSensors);
-    ok = ok && multipleAnalogRemappedDevice.view(remappedMASInterfaces.ftMultiSensors);
+    //ok = ok && multipleAnalogRemappedDevice.view(remappedMASInterfaces.ftMultiSensors);
     ok = ok && multipleAnalogRemappedDevice.view(remappedMASInterfaces.multwrap);
-
     if( !ok )
     {
         yError() << "wholeBodyDynamics : open impossible to use the necessary interfaces in multipleAnalogRemappedDevice";
@@ -562,7 +548,12 @@ bool WholeBodyDynamicsDevice::openMultipleAnalogSensorRemapper(os::Searchable &c
 
     // Check if the MASremapper and the estimator have a consistent number of ft sensors
     int sensors = 0;
-    sensors=remappedMASInterfaces.temperatureSensors->getNrOfTemperatureSensors();
+    yInfo()<<"debugging: before get number of temperature sensors function";
+    //std::string tempName1;
+    //remappedMASInterfaces.temperatureSensors->getTemperatureSensorName(0,tempName1);
+    //yInfo()<<"debugging: number 0 of temp sensors name "<< tempName1;
+    sensors=(int) remappedMASInterfaces.temperatureSensors->getNrOfTemperatureSensors();
+    yInfo()<<"debugging: number of temp sensors="<< sensors;
     if( sensors > (int) estimator.sensors().getNrOfSensors(iDynTree::SIX_AXIS_FORCE_TORQUE) )
     {
         yError() << "wholeBodyDynamics : The multipleAnalogRemappedDevice has more sensors than those in the open estimator ft sensors list";
@@ -842,10 +833,10 @@ bool WholeBodyDynamicsDevice::loadTemperatureCoefficientsSettingsFromConfig(os::
     else
     {
         yarp::os::Bottle & propTempCoeff = propAll.findGroup("FT_TEMPERATURE_COEFFICIENTS");
-        for(int i=1; i < propTempCoeff.size(); i++ )
+        for(auto i=1u; i < propTempCoeff.size(); i++ )
         {
             yarp::os::Bottle * map_bot = propTempCoeff.get(i).asList();
-            if( map_bot->size() != 2 || map_bot->get(1).asList() == NULL ||
+            if( map_bot->size() != 2 || map_bot->get(1).asList() == nullptr ||
                 map_bot->get(1).asList()->size() != 7 )
             {
                 yError() << "wholeBodyDynamics: FT_TEMPERATURE_COEFFICIENTS group is malformed (" << map_bot->toString() << "). ";
@@ -856,7 +847,7 @@ bool WholeBodyDynamicsDevice::loadTemperatureCoefficientsSettingsFromConfig(os::
             iDynTree::Vector6 temperatureCoeffs;
             double tempOffset=0;
 
-            for(int r=0; r < 6; r++)
+            for(auto r=0u; r < 6; r++)
             {
                     temperatureCoeffs(r) = map_bot->get(1).asList()->get(r).asDouble();
             }
@@ -865,7 +856,7 @@ bool WholeBodyDynamicsDevice::loadTemperatureCoefficientsSettingsFromConfig(os::
 
             // Linearly search for the specified sensor
             bool sensorFound = false;
-            for(int ft=0; ft < estimator.sensors().getNrOfSensors(iDynTree::SIX_AXIS_FORCE_TORQUE); ft++ )
+            for(auto ft=0; ft < estimator.sensors().getNrOfSensors(iDynTree::SIX_AXIS_FORCE_TORQUE); ft++ )
             {
                 if( estimator.sensors().getSensor(iDynTree::SIX_AXIS_FORCE_TORQUE,ft)->getName() == iDynTree_sensorName )
                 {
@@ -905,10 +896,10 @@ bool WholeBodyDynamicsDevice::loadFTSensorOffsetFromConfig(os::Searchable& confi
     else
     {
         yarp::os::Bottle & propSecondCalib = propAll.findGroup("FT_OFFSET");
-        for(int i=1; i < propSecondCalib.size(); i++ )
+        for(auto i=1u; i < propSecondCalib.size(); i++ )
         {
             yarp::os::Bottle * map_bot = propSecondCalib.get(i).asList();
-            if( map_bot->size() != 2 || map_bot->get(1).asList() == NULL ||
+            if( map_bot->size() != 2 || map_bot->get(1).asList() == nullptr ||
                 map_bot->get(1).asList()->size() != 6 )
             {
                 yError() << "wholeBodyDynamics: FT_OFFSET group is malformed (" << map_bot->toString() << "). ";
@@ -1146,7 +1137,9 @@ bool WholeBodyDynamicsDevice::open(os::Searchable& config)
     
 
     // Open the multiple analog sensor remapper
+    yInfo()<<"debugging: before opening MAS";
     ok = this->openMultipleAnalogSensorRemapper(config);
+    yInfo()<<"debugging: after opening MAS";
     if( !ok )
     {
         yError() << "wholeBodyDynamics: Problem in opening multiple analog sensor remapper.";
@@ -1167,7 +1160,6 @@ bool WholeBodyDynamicsDevice::attachAllControlBoard(const PolyDriverList& p)
             controlBoardList.push(const_cast<PolyDriverDescriptor&>(*p[devIdx]));
         }
     }
-
     // Attach the controlBoardList to the controlBoardRemapper
     bool ok = remappedControlBoardInterfaces.multwrap->attachAll(controlBoardList);
 
@@ -1193,37 +1185,39 @@ bool WholeBodyDynamicsDevice::attachAllVirtualAnalogSensor(const PolyDriverList&
     return true;
 }
 
-//bool WholeBodyDynamicsDevice::attachAllFTs(const PolyDriverList& p)
-//{
-//    PolyDriverList ftSensorList;
-//    PolyDriverList tempSensorList;
-//    for(size_t devIdx = 0; devIdx < (size_t) p.size(); devIdx++)
-//    {
-//        ISixAxisForceTorqueSensors * fts = 0;
-//        ITemperatureSensors *tempS =0;
-//        if( p[devIdx]->poly->view(fts) )
-//        {
-//            ftSensorList.push(const_cast<PolyDriverDescriptor&>(*p[devIdx]));
-//        }
-//        if( p[devIdx]->poly->view(tempS) )
-//        {
-//            tempSensorList.push(const_cast<PolyDriverDescriptor&>(*p[devIdx]));
-//        }
-//    }
+bool WholeBodyDynamicsDevice::attachAllMASFTs(const PolyDriverList& p)
+{
+    yInfo()<<"Starting attach MAS ft";
+    //PolyDriverList ftSensorList;
+    PolyDriverList tempSensorList;
+    for(size_t devIdx = 0; devIdx < (size_t) p.size(); devIdx++)
+    {
+       // ISixAxisForceTorqueSensors * fts = 0;
+        ITemperatureSensors *tempS =0;
+      //  if( p[devIdx]->poly->view(fts) )
+      //  {
+      //      ftSensorList.push(const_cast<PolyDriverDescriptor&>(*p[devIdx]));
+      //  }
+        if( p[devIdx]->poly->view(tempS) )
+        {
+            tempSensorList.push(const_cast<PolyDriverDescriptor&>(*p[devIdx]));
+        }
+    }
+yInfo()<<"found temp drivers";
+    // Attach the controlBoardList to the controlBoardRemapper
+   // bool ok = remappedMASInterfaces.multwrap->attachAll(ftSensorList);
+bool ok =true;
+    bool ok2 = remappedMASInterfaces.multwrap->attachAll(tempSensorList);
 
-//    // Attach the controlBoardList to the controlBoardRemapper
-//    bool ok = remappedMASInterfaces.multwrap->attachAll(ftSensorList);
-//    bool ok2 = remappedMASInterfaces.multwrap->attachAll(tempSensorList);
+    if( !ok ||!ok2 )
+    {
+        yError() << " WholeBodyDynamicsDevice::attachAll in attachAll of the remappedMASInterfaces";
+        return false;
+    }
 
-//    if( !ok ||!ok2 )
-//    {
-//        yError() << " WholeBodyDynamicsDevice::attachAll in attachAll of the remappedMASInterfaces";
-//        return false;
-//    }
+    return true;
 
-//    return true;
-
-//}
+}
 
 bool WholeBodyDynamicsDevice::attachAllFTs(const PolyDriverList& p)
 {
@@ -1349,8 +1343,12 @@ bool WholeBodyDynamicsDevice::attachAll(const PolyDriverList& p)
     yarp::os::LockGuard guard(this->deviceMutex);
 
     bool ok = true;
+    yInfo()<<"debugging: before MAS attached";
+    ok = ok && this->attachAllMASFTs(p);
+    yInfo()<<"debugging: after MAS attached";
     ok = ok && this->attachAllControlBoard(p);
     ok = ok && this->attachAllVirtualAnalogSensor(p);
+    //ok = ok && this->attachAllMASFTs(p);
     ok = ok && this->attachAllFTs(p);
     ok = ok && this->attachAllIMUs(p);
 
@@ -2308,9 +2306,16 @@ bool WholeBodyDynamicsDevice::usePreEstimatedOffset(const std::string& calib_cod
 
     for(size_t ft = 0; ft < this->getNrOfFTSensors(); ft++)
     {
-        // TODO: check if the value stored in the estimatedOffset is relevant or not
-       yInfo()<< " Value of pre estimated offset is: "<< ftProcessors[ft].estimatedOffset().toString() << "for sensor in position "<<ft;
-        ftProcessors[ft].offset()=ftProcessors[ft].estimatedOffset();
+        double norm = iDynTree::toEigen(ftProcessors[ft].estimatedOffset()).norm();
+        if (norm!= 0.0){ // if norm is exactly 0.0 it means there was no offset  in the configuration file so it should be skipped
+
+            //The offset estimated offline is meant to be added, while it is substracted in the six axis force torque  measure helpers, so we changed the sign here. There might be a better solution though.
+            yInfo()<< " Value of pre estimated offset is (actual value used is '-' this value): "<< ftProcessors[ft].estimatedOffset().toString() << "for sensor in position "<<ft;
+            ftProcessors[ft].offset()=-ftProcessors[ft].estimatedOffset();
+        }
+        else {
+            yInfo()<< " Norm was exactly 0.0 for ft sensor in position "<<ft<< " so we are using offset calculated using calib all";
+        }
 
     }
 
