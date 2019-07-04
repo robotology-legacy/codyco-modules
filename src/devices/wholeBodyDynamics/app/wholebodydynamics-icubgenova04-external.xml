@@ -10,10 +10,10 @@
         <param name="imuFrameName">imu_frame</param>
         <param name="useJointVelocity">true</param>
         <param name="useJointAcceleration">true</param>
-        <param name="portPrefix">/wholeBodyDynamics_external</param>
+        <param name="portPrefix">/wholeBodyDynamics_External</param>
         <group name="multipleAnalogSensorsNames">
-             <param name="TemperatureSensorsNames">(l_leg_ft_sensor,r_leg_ft_sensor,l_foot_ft_sensor,r_foot_ft_sensor)</param>
-             <param name="SixAxisForceTorqueSensorsNames">(l_leg_ft_sensor,r_leg_ft_sensor,l_foot_ft_sensor,r_foot_ft_sensor)</param>
+             <param name="TemperatureSensorsNames">(id_l_upper_leg_strain,id_r_upper_leg_strain,id_l_lower_leg_strain,id_r_lower_leg_strain)</param>
+             <param name="SixAxisForceTorqueSensorsNames">(id_l_upper_leg_strain,id_r_upper_leg_strain,id_l_lower_leg_strain,id_r_lower_leg_strain)</param>
         </group>
 
         <!-- map between iDynTree links (identified by a name)
@@ -55,11 +55,11 @@
                 <elem name="left_arm">left_arm_mc</elem>
                 <elem name="head">head_mc</elem>
                 <!-- virtual torque sensors -->
-                <elem name="left_leg_vsens">left_leg_virtual_strain</elem>
+                <!--<elem name="left_leg_vsens">left_leg_virtual_strain</elem>
                 <elem name="right_leg_vsens">right_leg_virtual_strain</elem>
                 <elem name="torso_vsens">torso_virtual_strain</elem>
                 <elem name="right_arm_vsens">right_arm_virtual_strain</elem>
-                <elem name="left_arm_vsens">left_arm_virtual_strain</elem>
+                <elem name="left_arm_vsens">left_arm_virtual_strain</elem>-->
                 <!-- imu -->
                 <elem name="imu">inertial</elem>
                 <!-- ft -->

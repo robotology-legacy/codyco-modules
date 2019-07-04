@@ -1,7 +1,37 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <robot name="iCubGenova04">
     <!-- controlboards -->
-    <device name="torso_mc" type="readonlyremotecontrolboard">
+    <device name="torso_mc" type="remote_controlboard">
+        <param name="remote"> /icub/torso </param>
+        <param name="local"> /wholeBodyDynamics/torso </param>
+    </device>
+
+    <device name="left_arm_mc" type="remote_controlboard">
+        <param name="remote"> /icub/left_arm </param>
+        <param name="local"> /wholeBodyDynamics/left_arm </param>
+    </device>
+
+    <device name="right_arm_mc" type="remote_controlboard">
+        <param name="remote"> /icub/right_arm </param>
+        <param name="local"> /wholeBodyDynamics/right_arm </param>
+    </device>
+
+    <device name="left_leg_mc" type="remote_controlboard">
+        <param name="remote"> /icub/left_leg </param>
+        <param name="local"> /wholeBodyDynamics/left_leg </param>
+    </device>
+
+    <device name="right_leg_mc" type="remote_controlboard">
+        <param name="remote"> /icub/right_leg </param>
+        <param name="local"> /wholeBodyDynamics/right_leg </param>
+    </device>
+
+    <device name="head_mc" type="remote_controlboard">
+        <param name="remote"> /icub/head </param>
+        <param name="local"> /wholeBodyDynamics/head </param>
+    </device>
+    <!-- controlboards offline-->
+ <!--   <device name="torso_mc" type="readonlyremotecontrolboard">
         <param name="remote"> /icub/torso </param>
         <param name="local"> /wholeBodyDynamics/torso </param>
  <param name="axesDescription">((torso_yaw, VOCAB_JOINTTYPE_REVOLUTE), (torso_roll, VOCAB_JOINTTYPE_REVOLUTE), (torso_pitch, VOCAB_JOINTTYPE_REVOLUTE))</param>
@@ -35,10 +65,10 @@
         <param name="remote"> /icub/head </param>
         <param name="local"> /wholeBodyDynamics/head </param>
 <param name="axesDescription">((neck_pitch, VOCAB_JOINTTYPE_REVOLUTE), (neck_roll, VOCAB_JOINTTYPE_REVOLUTE), (neck_yaw, VOCAB_JOINTTYPE_REVOLUTE))</param>
-    </device> 
+    </device> -->
 
     <!-- virtual analog sensors -->
-    <device name="torso_virtual_strain" type="virtualAnalogClient">
+   <!-- <device name="torso_virtual_strain" type="virtualAnalogClient">
         <param name="remote"> /icub/joint_vsens/torso:i </param>
         <param name="local"> /wholeBodyDynamics/torso/Torques:o </param>
         <param name="AxisName"> (torso_yaw,torso_roll,torso_pitch) </param>
@@ -71,7 +101,7 @@
         <param name="local"> /wholeBodyDynamics/right_leg/Torques:o </param>
         <param name="AxisName"> (r_hip_pitch,r_hip_roll,r_hip_yaw,r_knee,r_ankle_pitch,r_ankle_roll) </param>
         <param name="virtualAnalogSensorInteger"> 2 </param>
-    </device> 
+    </device> -->
 
     <!-- the head and wrist virtual analog sensor are not used in practice, so they are commented out
     <device name="head_virtual_strain" type="virtualAnalogClient">

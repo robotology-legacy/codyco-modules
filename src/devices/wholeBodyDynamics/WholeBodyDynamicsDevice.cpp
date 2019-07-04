@@ -173,6 +173,7 @@ bool WholeBodyDynamicsDevice::openRemapperControlBoard(os::Searchable& config)
     addVectorOfStringToProperty(propRemapper,"axesNames",estimationJointNames);
 
     ok = remappedControlBoard.open(propRemapper);
+    yInfo()<<"debugging: print propRemapper in remappedControlBoard " <<propRemapper.toString();
 
     if( !ok )
     {
@@ -485,7 +486,7 @@ bool WholeBodyDynamicsDevice::openExternalWrenchesPorts(os::Searchable& config)
     {
         std::string port_name = outputWrenchPorts[i].port_name;
         outputWrenchPorts[i].output_port = new yarp::os::BufferedPort<yarp::sig::Vector>;
-        ok = ok && outputWrenchPorts[i].output_port->open(port_name);
+        ok = ok && outputWrenchPorts[i].output_port->open(portPrefix+port_name);
         outputWrenchPorts[i].output_vector.resize(wholeBodyDynamics_nrOfChannelsOfYARPFTSensor);
     }
 
@@ -538,7 +539,7 @@ bool WholeBodyDynamicsDevice::openMultipleAnalogSensorRemapper(os::Searchable &c
     }
     // View relevant interfaces for the multipleAnalogRemappedDevice
     ok = ok && multipleAnalogRemappedDevice.view(remappedMASInterfaces.temperatureSensors);
-    //ok = ok && multipleAnalogRemappedDevice.view(remappedMASInterfaces.ftMultiSensors);
+    ok = ok && multipleAnalogRemappedDevice.view(remappedMASInterfaces.ftMultiSensors);
     ok = ok && multipleAnalogRemappedDevice.view(remappedMASInterfaces.multwrap);
     if( !ok )
     {
@@ -546,52 +547,54 @@ bool WholeBodyDynamicsDevice::openMultipleAnalogSensorRemapper(os::Searchable &c
         return ok;
     }
 
-    // Check if the MASremapper and the estimator have a consistent number of ft sensors
-    int sensors = 0;
-    yInfo()<<"debugging: before get number of temperature sensors function";
-    //std::string tempName1;
-    //remappedMASInterfaces.temperatureSensors->getTemperatureSensorName(0,tempName1);
-    //yInfo()<<"debugging: number 0 of temp sensors name "<< tempName1;
-    sensors=(int) remappedMASInterfaces.temperatureSensors->getNrOfTemperatureSensors();
-    yInfo()<<"debugging: number of temp sensors="<< sensors;
-    if( sensors > (int) estimator.sensors().getNrOfSensors(iDynTree::SIX_AXIS_FORCE_TORQUE) )
-    {
-        yError() << "wholeBodyDynamics : The multipleAnalogRemappedDevice has more sensors than those in the open estimator ft sensors list";
-        return false;
-    }
+//    // Check if the MASremapper and the estimator have a consistent number of ft sensors
+////    int sensors = 0;
+////    yInfo()<<"debugging: before get number of ft and temp sensors function";
+////    //std::string tempName1;
+////    //remappedMASInterfaces.temperatureSensors->getTemperatureSensorName(0,tempName1);
+////    //yInfo()<<"debugging: number 0 of temp sensors name "<< tempName1;
+////    sensors=(int) remappedMASInterfaces.ftMultiSensors->getNrOfSixAxisForceTorqueSensors();
+////    yInfo()<<"debugging: number of ft sensors="<< sensors;
+////    sensors=(int) remappedMASInterfaces.temperatureSensors->getNrOfTemperatureSensors();
+////    yInfo()<<"debugging: number of temp sensors="<< sensors;
+////    if( sensors > (int) estimator.sensors().getNrOfSensors(iDynTree::SIX_AXIS_FORCE_TORQUE) )
+////    {
+////        yError() << "wholeBodyDynamics : The multipleAnalogRemappedDevice has more sensors than those in the open estimator ft sensors list";
+////        return false;
+////    }
 
-    // Temporary code to check name of sensors, assuming the temperature sensor name will be the same as the ft sensor
-    int checkCounter=0;
-    std::string tempName;
-    std::string ftName;
-    int ftMap=-1;
-    for (int s=0;s<sensors;s++) {
-        std::string tempName;
-        remappedMASInterfaces.temperatureSensors->getTemperatureSensorName(s,tempName);
+//    // Temporary code to check name of sensors, assuming the temperature sensor name will be the same as the ft sensor
+//    int checkCounter=0;
+//    std::string tempName;
+//    std::string ftName;
+//    int ftMap=-1;
+//    for (int s=0;s<sensors;s++) {
+//        std::string tempName;
+//        remappedMASInterfaces.temperatureSensors->getTemperatureSensorName(s,tempName);
 
-        int individualCheck=0;
-        for (int ft=0;ft<(int) estimator.sensors().getNrOfSensors(iDynTree::SIX_AXIS_FORCE_TORQUE); ft++){
-            ftName=estimator.sensors().getSensor(iDynTree::SIX_AXIS_FORCE_TORQUE,ft)->getName();
-            if (tempName==ftName){
-                individualCheck++;
-                ftMap=ft;
-            }
-        }
-        if (individualCheck!=1){
-            yWarning()<< "wholeBodyDynamics : A temperature sensor name in multipleAnalogRemappedDevice do not match the name of the ft sensors";
-            yDebug()<<"wholeBodyDynamics : Could not find or found multiple times sensor "<<tempName<<" among ft sensor names";
-        }
-        else {
-            checkCounter++;
-            // assuming the name is the same the order withing the mas interfaces might have a different id so we need a mapping
-            ftTempMapping[ftMap]=s;
-        }
-    }
-    if (checkCounter!=sensors){
-        yError("wholeBodyDynamics : Not all temperature sensors have the same name as the ft sensors, expected %d , found %d",sensors,checkCounter);
+//        int individualCheck=0;
+//        for (int ft=0;ft<(int) estimator.sensors().getNrOfSensors(iDynTree::SIX_AXIS_FORCE_TORQUE); ft++){
+//            ftName=estimator.sensors().getSensor(iDynTree::SIX_AXIS_FORCE_TORQUE,ft)->getName();
+//            if (tempName==ftName){
+//                individualCheck++;
+//                ftMap=ft;
+//            }
+//        }
+//        if (individualCheck!=1){
+//            yWarning()<< "wholeBodyDynamics : A temperature sensor name in multipleAnalogRemappedDevice do not match the name of the ft sensors";
+//            yDebug()<<"wholeBodyDynamics : Could not find or found multiple times sensor "<<tempName<<" among ft sensor names";
+//        }
+//        else {
+//            checkCounter++;
+//            // assuming the name is the same the order withing the mas interfaces might have a different id so we need a mapping
+//            ftTempMapping[ftMap]=s;
+//        }
+//    }
+//    if (checkCounter!=sensors){
+//        yError("wholeBodyDynamics : Not all temperature sensors have the same name as the ft sensors, expected %d , found %d",sensors,checkCounter);
 
-    }
-    // End of temporary check
+//    }
+//    // End of temporary check
 
     return true;
 }
@@ -1188,19 +1191,23 @@ bool WholeBodyDynamicsDevice::attachAllVirtualAnalogSensor(const PolyDriverList&
 bool WholeBodyDynamicsDevice::attachAllMASFTs(const PolyDriverList& p)
 {
     yInfo()<<"Starting attach MAS ft";
-    //PolyDriverList ftSensorList;
+    PolyDriverList ftSensorList;
     PolyDriverList tempSensorList;
+    std::vector<std::string>     ftDeviceNames;
+    std::vector<std::string>     tempDeviceNames;
     for(size_t devIdx = 0; devIdx < (size_t) p.size(); devIdx++)
     {
-       // ISixAxisForceTorqueSensors * fts = 0;
-        ITemperatureSensors *tempS =0;
-      //  if( p[devIdx]->poly->view(fts) )
-      //  {
-      //      ftSensorList.push(const_cast<PolyDriverDescriptor&>(*p[devIdx]));
-      //  }
+        ISixAxisForceTorqueSensors * fts = nullptr;
+        ITemperatureSensors *tempS =nullptr;
+        if( p[devIdx]->poly->view(fts) )
+        {
+            ftSensorList.push(const_cast<PolyDriverDescriptor&>(*p[devIdx]));
+            ftDeviceNames.push_back(p[devIdx]->key);
+        }
         if( p[devIdx]->poly->view(tempS) )
         {
             tempSensorList.push(const_cast<PolyDriverDescriptor&>(*p[devIdx]));
+            tempDeviceNames.push_back(p[devIdx]->key);
         }
     }
 yInfo()<<"found temp drivers";
@@ -1214,6 +1221,56 @@ bool ok =true;
         yError() << " WholeBodyDynamicsDevice::attachAll in attachAll of the remappedMASInterfaces";
         return false;
     }
+
+    // Check if the MASremapper and the estimator have a consistent number of ft sensors
+    int sensors = 0;
+    yInfo()<<"debugging: before get number of ft and temp sensors function";
+    //std::string tempName1;
+    //remappedMASInterfaces.temperatureSensors->getTemperatureSensorName(0,tempName1);
+    //yInfo()<<"debugging: number 0 of temp sensors name "<< tempName1;
+    sensors=(int) remappedMASInterfaces.ftMultiSensors->getNrOfSixAxisForceTorqueSensors();
+    yInfo()<<"debugging: number of ft sensors="<< sensors;
+    sensors=(int) remappedMASInterfaces.temperatureSensors->getNrOfTemperatureSensors();
+    yInfo()<<"debugging: number of temp sensors="<< sensors;
+    if( sensors > (int) estimator.sensors().getNrOfSensors(iDynTree::SIX_AXIS_FORCE_TORQUE) )
+    {
+        yError() << "wholeBodyDynamics : The multipleAnalogRemappedDevice has more sensors than those in the open estimator ft sensors list";
+        return false;
+    }
+
+    // Temporary code to check name of sensors, assuming the temperature sensor name will be the same as the ft sensor
+    int checkCounter=0;
+    std::string tempName;
+    std::string ftName;
+    int ftMap=-1;
+    for (int s=0;s<sensors;s++) {
+        std::string tempName;
+        //remappedMASInterfaces.temperatureSensors->getTemperatureSensorName(s,tempName);
+        tempName=tempDeviceNames[s];
+        int individualCheck=0;
+        for (int ft=0;ft<(int) estimator.sensors().getNrOfSensors(iDynTree::SIX_AXIS_FORCE_TORQUE); ft++){
+            ftName=estimator.sensors().getSensor(iDynTree::SIX_AXIS_FORCE_TORQUE,ft)->getName();
+            yInfo()<< "debugging: name of ft sensor"<< ftName;
+            if (tempName==ftName){
+                individualCheck++;
+                ftMap=ft;
+            }
+        }
+        if (individualCheck!=1){
+            yWarning()<< "wholeBodyDynamics : A temperature sensor name in multipleAnalogRemappedDevice do not match the name of the ft sensors";
+            yDebug()<<"wholeBodyDynamics : Could not find or found multiple times sensor "<<tempName<<" among ft sensor names";
+        }
+        else {
+            checkCounter++;
+            // assuming the name is the same the order withing the mas interfaces might have a different id so we need a mapping
+            ftTempMapping[ftMap]=s;
+        }
+    }
+    if (checkCounter!=sensors){
+        yError("wholeBodyDynamics : Not all temperature sensors have the same name as the ft sensors, expected %d , found %d",sensors,checkCounter);
+
+    }
+    // End of temporary check
 
     return true;
 
