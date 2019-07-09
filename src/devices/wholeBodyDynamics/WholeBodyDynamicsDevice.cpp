@@ -817,21 +817,21 @@ bool WholeBodyDynamicsDevice::open(os::Searchable& config)
 
     bool ok;
 
+    // Create the estimator
+    ok = this->openEstimator(config);
+     if( !ok )
+    {
+        yError() << "wholeBodyDynamics: Problem in opening estimator object.";
+        return false;
+    }
+
     // Load settings in the class
     ok = this->loadSettingsFromConfig(config);
-   if( !ok ) 
+    if( !ok ) 
     {
         yError() << "wholeBodyDynamics: Problem in loading settings from config.";
         return false;
     }
-
-    // Create the estimator
-    ok = this->openEstimator(config);
-     if( !ok ) 
-    {
-        yError() << "wholeBodyDynamics: Problem in opening estimator object.";
-        return false;
-    } 
 
     // Open settings related to gravity compensation (we need the estimator to be open)
     ok = this->loadGravityCompensationSettingsFromConfig(config);
