@@ -400,6 +400,7 @@ private:
 //        yarp::dev::IThreeAxisMagnetometers * magnetometers;
     } remappedMASInterfaces;
     yarp::sig::Vector ftTempMapping;
+    double prevFTTempTimeStamp;
 
 //    /** Temperature sensors interfaces */
 //    std::vector<yarp::dev::ITemperatureSensors * > temperatureSensors;

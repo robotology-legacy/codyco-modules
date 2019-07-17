@@ -1,6 +1,8 @@
 #include "SixAxisForceTorqueMeasureHelpers.h"
 #include <iDynTree/Core/EigenHelpers.h>
 
+#include <yarp/os/LogStream.h>
+
 namespace wholeBodyDynamics
 {
 
@@ -47,12 +49,12 @@ const iDynTree::Wrench& SixAxisForceTorqueMeasureProcessor::offset() const
 
 iDynTree::Wrench& SixAxisForceTorqueMeasureProcessor::estimatedOffset()
 {
-    return m_offset;
+    return m_estimated_offset;
 }
 
 const iDynTree::Wrench& SixAxisForceTorqueMeasureProcessor::estimatedOffset() const
 {
-    return m_offset;
+    return m_estimated_offset;
 }
 
 double& SixAxisForceTorqueMeasureProcessor::tempOffset()
@@ -75,11 +77,17 @@ iDynTree::Wrench SixAxisForceTorqueMeasureProcessor::filt(const iDynTree::Wrench
 
 iDynTree::Wrench SixAxisForceTorqueMeasureProcessor::filt(const iDynTree::Wrench & input, const double & temperature) const
 {
-    Eigen::Matrix<double,6,1> retEig = toEigen(m_secondaryCalibrationMatrix)*toEigen(input)-toEigen(m_offset)+toEigen(m_temperatureCoefficients)*(temperature-m_tempOffset);
-
+    Eigen::Matrix<double,6,1> retEig = toEigen(m_secondaryCalibrationMatrix)*toEigen(input)-toEigen(m_offset)+toEigen(m_temperatureCoefficients)*(temperature-m_tempOffset);    
     iDynTree::Wrench ret;
     fromEigen(ret,retEig);
 
+    yWarning()<< "debugging 6h: input="<<input.toString();
+    yWarning()<<"debugging 6h: filtered values="<<ret.toString();
+    auto temperaturePart= toEigen(m_temperatureCoefficients)*(temperature-m_tempOffset);
+    iDynTree::Wrench temp;
+    fromEigen(temp,temperaturePart.transpose());
+    yWarning()<<"debugging 6h: temperature part="<<temp.toString();
+    yWarning()<<"debugging 6h: offset="<<m_offset.toString();
     return ret;
 }
 
