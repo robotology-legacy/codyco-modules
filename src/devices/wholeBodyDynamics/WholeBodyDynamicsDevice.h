@@ -315,6 +315,12 @@ private:
     double  lastReadingSkinContactListStamp;
 
     /**
+      * Flag set to false at the beginning, and true depending on configuration flag
+      * If true it will stream the filtered ft sensor values
+      */
+    bool streamFilteredFT;
+
+    /**
      * Names of the axis (joint with at least a degree of freedom) used in estimation.
      */
     std::vector<std::string> estimationJointNames;
@@ -376,7 +382,8 @@ private:
     bool openEstimator(os::Searchable& config);
     bool openDefaultContactFrames(os::Searchable& config);
     bool openSkinContactListPorts(os::Searchable& config);
-    bool openExternalWrenchesPorts(os::Searchable& config);
+    bool openExternalWrenchesPorts(os::Searchable& config);    
+    bool openFilteredFTPorts(os::Searchable& config);
 
     /**
      * Close-related methods
@@ -385,6 +392,7 @@ private:
     bool closeRPCPort();
     bool closeSkinContactListsPorts();
     bool closeExternalWrenchesPorts();
+    bool closeFilteredFTPorts();
 
     /**
      * Attach-related methods
@@ -457,6 +465,7 @@ private:
     void publishExternalWrenches();
     void publishEstimatedQuantities();
     void publishGravityCompensation();
+    void publishFilteredFTWithoutOffset();
 
     /**
      * Load settings from config.
@@ -735,6 +744,11 @@ private:
     //  port, but for backward compatibility we have to stream external wrenches
     //  informations on individual ports)
     std::vector< outputWrenchPortInformation > outputWrenchPorts;
+
+    /**
+     * Ports for streaming fitelerd ft data without offset
+     */
+    std::vector< std::unique_ptr<yarp::os::BufferedPort<yarp::sig::Vector>> > outputFTPorts;
 
     // Buffer for external forces
     /**
