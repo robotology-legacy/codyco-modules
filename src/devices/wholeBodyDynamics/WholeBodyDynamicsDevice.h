@@ -748,7 +748,7 @@ private:
     /**
      * Ports for streaming fitelerd ft data without offset
      */
-    std::vector< std::unique_ptr<yarp::os::BufferedPort<yarp::sig::Vector>> > outputFTPorts;
+    std::vector< std::unique_ptr <yarp::os::BufferedPort <yarp::sig::Vector> > > outputFTPorts;
 
     // Buffer for external forces
     /**

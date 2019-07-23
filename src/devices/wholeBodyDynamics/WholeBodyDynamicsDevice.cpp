@@ -526,7 +526,6 @@ bool WholeBodyDynamicsDevice::openExternalWrenchesPorts(os::Searchable& config)
 bool WholeBodyDynamicsDevice::openFilteredFTPorts(os::Searchable& config)
 {
     bool ok = true;
-    if (streamFilteredFT){
         // create port names
 
         std::string sensorName;
@@ -540,7 +539,7 @@ bool WholeBodyDynamicsDevice::openFilteredFTPorts(os::Searchable& config)
 
             portName=(portPrefix+"/filteredFT/"+sensorName);
             //std::unique_ptr<yarp::os::BufferedPort<yarp::sig::Vector>> outputPort
-            outputFTPorts[ft]=std::make_unique<yarp::os::BufferedPort<yarp::sig::Vector>>();
+            outputFTPorts[ft]=std::make_unique<yarp::os::BufferedPort<yarp::sig::Vector> >();
             ok = ok && outputFTPorts[ft]->open(portName);
         }
 
@@ -549,9 +548,6 @@ bool WholeBodyDynamicsDevice::openFilteredFTPorts(os::Searchable& config)
             yError() << "wholeBodyDynamics impossible to open port for publishing filtered ft wrenches";
             return false;
         }
-    }
-
-
     return ok;
 }
 
@@ -960,13 +956,14 @@ bool WholeBodyDynamicsDevice::open(os::Searchable& config)
     } 
 
     // Open the ports related to publishing filtered ft wrenches
-    ok = this->openFilteredFTPorts(config);
-    if( !ok )
-    {
-        yError() << "wholeBodyDynamics: Problem in opening filtered ft ports.";
-        return false;
+    if (streamFilteredFT){
+        ok = this->openFilteredFTPorts(config);
+        if( !ok )
+        {
+            yError() << "wholeBodyDynamics: Problem in opening filtered ft ports.";
+            return false;
+        }
     }
-
 
     return true;
 }
@@ -1664,7 +1661,9 @@ void WholeBodyDynamicsDevice::publishEstimatedQuantities()
             //publishFilteredInertialForGravityCompensator();
 
             //Send filtered force torque sensor measurment, if requested
+            if( streamFilteredFT){
             publishFilteredFTWithoutOffset();
+            }
         }
     }
 }
@@ -1801,7 +1800,7 @@ void WholeBodyDynamicsDevice::publishExternalWrenches()
 
 void WholeBodyDynamicsDevice::publishFilteredFTWithoutOffset()
 {
-    if( streamFilteredFT){
+
         iDynTree::Wrench filteredFTMeasure;
         yarp::sig::Vector filteredFT;
         // Get filtered wrenches and publish it on the port
@@ -1813,7 +1812,7 @@ void WholeBodyDynamicsDevice::publishFilteredFTWithoutOffset()
                                              *(outputFTPorts[ft]));
 
         }
-    }
+
 }
 
 void WholeBodyDynamicsDevice::run()
