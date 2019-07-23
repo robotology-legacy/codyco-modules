@@ -125,7 +125,6 @@ bool WholeBodyDynamicsDevice::closeFilteredFTPorts()
         {
             outputFTPorts[i]->close();
             outputFTPorts[i].reset();
-            outputFTPorts[i] = nullptr;
         }
     }
     return true;
