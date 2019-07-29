@@ -525,28 +525,27 @@ bool WholeBodyDynamicsDevice::openExternalWrenchesPorts(os::Searchable& config)
 bool WholeBodyDynamicsDevice::openFilteredFTPorts(os::Searchable& config)
 {
     bool ok = true;
-        // create port names
+    // create port names
 
-        std::string sensorName;
-        std::string portName;
-        outputFTPorts.resize(estimator.sensors().getNrOfSensors(iDynTree::SIX_AXIS_FORCE_TORQUE));
-        for(int ft=0; ft < estimator.sensors().getNrOfSensors(iDynTree::SIX_AXIS_FORCE_TORQUE); ft++ )
-        {
-            sensorName= estimator.sensors().getSensor(iDynTree::SIX_AXIS_FORCE_TORQUE,ft)->getName() ;
+    std::string sensorName;
+    std::string portName;
+    outputFTPorts.resize(estimator.sensors().getNrOfSensors(iDynTree::SIX_AXIS_FORCE_TORQUE));
+    for(int ft=0; ft < estimator.sensors().getNrOfSensors(iDynTree::SIX_AXIS_FORCE_TORQUE); ft++ )
+    {
+        sensorName= estimator.sensors().getSensor(iDynTree::SIX_AXIS_FORCE_TORQUE,ft)->getName() ;
 
-            yDebug() << "wholeBodyDynamics: creating port names for  " << sensorName;
+        yInfo() << "wholeBodyDynamics: creating port name and opening port for  " << sensorName;
 
-            portName=(portPrefix+"/filteredFT/"+sensorName);
-            //std::unique_ptr<yarp::os::BufferedPort<yarp::sig::Vector>> outputPort
-            outputFTPorts[ft]=std::make_unique<yarp::os::BufferedPort<yarp::sig::Vector> >();
-            ok = ok && outputFTPorts[ft]->open(portName);
-        }
+        portName=(portPrefix+"/filteredFT/"+sensorName);
+        outputFTPorts[ft]=std::make_unique<yarp::os::BufferedPort<yarp::sig::Vector> >();
+        ok = ok && outputFTPorts[ft]->open(portName);
+    }
 
-        if( !ok )
-        {
-            yError() << "wholeBodyDynamics impossible to open port for publishing filtered ft wrenches";
-            return false;
-        }
+    if( !ok )
+    {
+        yError() << "wholeBodyDynamics impossible to open port for publishing filtered ft wrenches";
+        return false;
+    }
     return ok;
 }
 
@@ -1661,7 +1660,7 @@ void WholeBodyDynamicsDevice::publishEstimatedQuantities()
 
             //Send filtered force torque sensor measurment, if requested
             if( streamFilteredFT){
-            publishFilteredFTWithoutOffset();
+                publishFilteredFTWithoutOffset();
             }
         }
     }
