@@ -131,6 +131,7 @@ class wholeBodyDynamicsDeviceFilters
  * | defaultContactFrames |      -   | vector of strings |  -    |    -          | Yes      | If not data is read from the skin, specify the location of the default contacts | For each submodel induced by the FT sensor, the first not used frame that belongs to that submodel is selected from the list. An error is raised if not suitable frame is found for a submodel. |
  * | useJointVelocity     |        - | bool              |  -    |      true     |  No      | Select if the measured joint velocities (read from the getEncoderSpeeds method) are used for estimation, or if they should be forced to 0.0 . | The default value of true is deprecated, and in the future the parameter will be required. |
  * | useJointAcceleration |        - | bool              |  -    |      true     |  No      | Select if the measured joint accelerations (read from the getEncoderAccelerations method) are used for estimation, or if they should be forced to 0.0 . | The default value of true is deprecated, and in the future the parameter will be required. |
+ * | streamFilteredFT     |        - | bool              |  -    |      false    |  No      | Select if the filtered and offset removed forces will be streamed or not. The name of the ports have the following syntax:  portname=(portPrefix+"/filteredFT/"+sensorName). Example: "myPrefix/filteredFT/l_leg_ft_sensor" | The value streamed by this ports is affected by the secondary calibration matrix, the estimated offset and temperature coefficients ( if any ). |
  * | IDYNTREE_SKINDYNLIB_LINKS |  -  | group             | -     | -             | Yes      |  Group describing the mapping between link names and skinDynLib identifiers. | |
  * |                |   linkName_1   | string (name of a link in the model) | - | - | Yes   | Bottle of three elements describing how the link with linkName is described in skinDynLib: the first element is the name of the frame in which the contact info is expressed in skinDynLib (tipically DH frames), the second a integer describing the skinDynLib BodyPart , and the third a integer describing the skinDynLib LinkIndex  | |
  * |                |   ...   | string (name of a link in the model) | - | -     | Yes      | Bottle of three elements describing how the link with linkName is described in skinDynLib: the first element is the name of the frame in which the contact info is expressed in skinDynLib (tipically DH frames), the second a integer describing the skinDynLib BodyPart , and the third a integer describing the skinDynLib LinkIndex  | |
@@ -315,6 +316,12 @@ private:
     double  lastReadingSkinContactListStamp;
 
     /**
+      * Flag set to false at the beginning, and true depending on configuration flag
+      * If true it will stream the filtered ft sensor values
+      */
+    bool streamFilteredFT;
+
+    /**
      * Names of the axis (joint with at least a degree of freedom) used in estimation.
      */
     std::vector<std::string> estimationJointNames;
@@ -376,7 +383,8 @@ private:
     bool openEstimator(os::Searchable& config);
     bool openDefaultContactFrames(os::Searchable& config);
     bool openSkinContactListPorts(os::Searchable& config);
-    bool openExternalWrenchesPorts(os::Searchable& config);
+    bool openExternalWrenchesPorts(os::Searchable& config);    
+    bool openFilteredFTPorts(os::Searchable& config);
 
     /**
      * Close-related methods
@@ -385,6 +393,7 @@ private:
     bool closeRPCPort();
     bool closeSkinContactListsPorts();
     bool closeExternalWrenchesPorts();
+    bool closeFilteredFTPorts();
 
     /**
      * Attach-related methods
@@ -457,6 +466,7 @@ private:
     void publishExternalWrenches();
     void publishEstimatedQuantities();
     void publishGravityCompensation();
+    void publishFilteredFTWithoutOffset();
 
     /**
      * Load settings from config.
@@ -735,6 +745,11 @@ private:
     //  port, but for backward compatibility we have to stream external wrenches
     //  informations on individual ports)
     std::vector< outputWrenchPortInformation > outputWrenchPorts;
+
+    /**
+     * Ports for streaming fitelerd ft data without offset
+     */
+    std::vector< std::unique_ptr <yarp::os::BufferedPort <yarp::sig::Vector> > > outputFTPorts;
 
     // Buffer for external forces
     /**
