@@ -26,13 +26,14 @@ const size_t wholeBodyDynamics_nrOfChannelsOfAYARPIMUSensor = 12;
 const double wholeBodyDynamics_sensorTimeoutInSeconds = 2.0;
 
 WholeBodyDynamicsDevice::WholeBodyDynamicsDevice(): RateThread(10),
-    portPrefix("/wholeBodyDynamics"),
+    portPrefix("/wholeBodyDynamics"),  
+    streamFilteredFT(false),
     correctlyConfigured(false),
     sensorReadCorrectly(false),
     estimationWentWell(false),
     validOffsetAvailable(false),
     lastReadingSkinContactListStamp(0.0),
-    settingsEditor(settings)
+    settingsEditor(settings)      
 {
     // Calibration quantities
     calibrationBuffers.ongoingCalibration = false;
@@ -115,6 +116,19 @@ bool WholeBodyDynamicsDevice::closeExternalWrenchesPorts()
             outputWrenchPorts[i].output_port->close();
             delete outputWrenchPorts[i].output_port;
             outputWrenchPorts[i].output_port = 0;
+        }
+    }
+    return true;
+}
+
+bool WholeBodyDynamicsDevice::closeFilteredFTPorts()
+{
+    for(unsigned int i = 0; i < outputFTPorts.size(); i++ )
+    {
+        if( outputFTPorts[i] )
+        {
+            outputFTPorts[i]->close();
+            outputFTPorts[i].reset();
         }
     }
     return true;
@@ -550,6 +564,33 @@ bool WholeBodyDynamicsDevice::openMultipleAnalogSensorRemapper(os::Searchable &c
    return true;
 }
 
+bool WholeBodyDynamicsDevice::openFilteredFTPorts(os::Searchable& config)
+{
+    bool ok = true;
+    // create port names
+
+    std::string sensorName;
+    std::string portName;
+    outputFTPorts.resize(estimator.sensors().getNrOfSensors(iDynTree::SIX_AXIS_FORCE_TORQUE));
+    for(int ft=0; ft < estimator.sensors().getNrOfSensors(iDynTree::SIX_AXIS_FORCE_TORQUE); ft++ )
+    {
+        sensorName= estimator.sensors().getSensor(iDynTree::SIX_AXIS_FORCE_TORQUE,ft)->getName() ;
+
+        yInfo() << "wholeBodyDynamics: creating port name and opening port for  " << sensorName;
+
+        portName=(portPrefix+"/filteredFT/"+sensorName);
+        outputFTPorts[ft]=std::make_unique<yarp::os::BufferedPort<yarp::sig::Vector> >();
+        ok = ok && outputFTPorts[ft]->open(portName);
+    }
+
+    if( !ok )
+    {
+        yError() << "wholeBodyDynamics impossible to open port for publishing filtered ft wrenches";
+        return false;
+    }
+    return ok;
+}
+
 
 void WholeBodyDynamicsDevice::resizeBuffers()
 {
@@ -682,6 +723,14 @@ bool WholeBodyDynamicsDevice::loadSettingsFromConfig(os::Searchable& config)
             prop.find("portPrefix").isString())
     {
         portPrefix = prop.find("portPrefix").asString();
+    }
+
+    // Enable or disable ft streaming. The default value is false;
+    // is set in the device constructor
+    if( prop.check("streamFilteredFT") &&
+        prop.find("streamFilteredFT").isBool())
+    {
+        streamFilteredFT = prop.find("streamFilteredFT").asBool();
     }
 
     std::string useJointVelocityOptionName = "useJointVelocity";
@@ -1094,8 +1143,7 @@ bool WholeBodyDynamicsDevice::open(os::Searchable& config)
     {
         yError() << "wholeBodyDynamics: Problem in opening external wrenches port.";
         return false;
-    }
-    
+    }    
 
     // Open the multiple analog sensor remapper    
     ok = this->openMultipleAnalogSensorRemapper(config);
@@ -1103,6 +1151,16 @@ bool WholeBodyDynamicsDevice::open(os::Searchable& config)
     {
         yError() << "wholeBodyDynamics: Problem in opening multiple analog sensor remapper.";
         return false;
+    }
+
+    // Open the ports related to publishing filtered ft wrenches
+    if (streamFilteredFT){
+        ok = this->openFilteredFTPorts(config);
+        if( !ok )
+        {
+            yError() << "wholeBodyDynamics: Problem in opening filtered ft ports.";
+            return false;
+        }
     }
 
     return true;
@@ -1921,7 +1979,9 @@ void WholeBodyDynamicsDevice::publishEstimatedQuantities()
             //publishFilteredInertialForGravityCompensator();
 
             //Send filtered force torque sensor measurment, if requested
-            //publishFilteredFTWithoutOffset();
+            if( streamFilteredFT){
+                publishFilteredFTWithoutOffset();
+            }
         }
     }
 }
@@ -2056,6 +2116,23 @@ void WholeBodyDynamicsDevice::publishExternalWrenches()
     }
 }
 
+void WholeBodyDynamicsDevice::publishFilteredFTWithoutOffset()
+{
+
+        iDynTree::Wrench filteredFTMeasure;
+        yarp::sig::Vector filteredFT;
+        // Get filtered wrenches and publish it on the port
+        for(int ft=0; ft <outputFTPorts.size(); ft++ )
+        {
+            filteredSensorMeasurements.getMeasurement(iDynTree::SIX_AXIS_FORCE_TORQUE,ft,filteredFTMeasure);
+            iDynTree::toYarp(filteredFTMeasure,filteredFT);
+            broadcastData<yarp::sig::Vector>(filteredFT,
+                                             *(outputFTPorts[ft]));
+
+        }
+
+}
+
 void WholeBodyDynamicsDevice::run()
 {
     yarp::os::LockGuard guard(this->deviceMutex);
@@ -2107,6 +2184,7 @@ bool WholeBodyDynamicsDevice::detachAll()
     this->remappedVirtualAnalogSensorsInterfaces.multwrap->detachAll();
     this->remappedMASInterfaces.multwrap->detachAll();
 
+    closeFilteredFTPorts();
     closeExternalWrenchesPorts();
     closeRPCPort();
     closeSettingsPort();
