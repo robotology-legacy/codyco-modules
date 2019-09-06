@@ -1076,10 +1076,11 @@ bool wholeBodyDynamicsSettings::read_kinematicSource(yarp::os::idl::WireReader& 
 {
     int32_t ecast0;
     KinematicSourceTypeVocab cvrt1;
-    if (!reader.readEnum(ecast0,cvrt1)) {        reader.fail();
+    if (!reader.readEnum(ecast0, cvrt1)) {
+        reader.fail();
         return false;
     } else {
-        kinematicSource = (KinematicSourceType)ecast0;
+        kinematicSource = static_cast<KinematicSourceType>(ecast0);
     }
     return true;
 }
@@ -1087,7 +1088,7 @@ bool wholeBodyDynamicsSettings::read_kinematicSource(yarp::os::idl::WireReader& 
 // write kinematicSource field
 bool wholeBodyDynamicsSettings::write_kinematicSource(const yarp::os::idl::WireWriter& writer) const
 {
-    if (!writer.writeI32((int32_t)kinematicSource)) {
+    if (!writer.writeI32(static_cast<int32_t>(kinematicSource))) {
         return false;
     }
     return true;
@@ -1098,10 +1099,11 @@ bool wholeBodyDynamicsSettings::nested_read_kinematicSource(yarp::os::idl::WireR
 {
     int32_t ecast2;
     KinematicSourceTypeVocab cvrt3;
-    if (!reader.readEnum(ecast2,cvrt3)) {        reader.fail();
+    if (!reader.readEnum(ecast2, cvrt3)) {
+        reader.fail();
         return false;
     } else {
-        kinematicSource = (KinematicSourceType)ecast2;
+        kinematicSource = static_cast<KinematicSourceType>(ecast2);
     }
     return true;
 }
@@ -1109,7 +1111,7 @@ bool wholeBodyDynamicsSettings::nested_read_kinematicSource(yarp::os::idl::WireR
 // write (nested) kinematicSource field
 bool wholeBodyDynamicsSettings::nested_write_kinematicSource(const yarp::os::idl::WireWriter& writer) const
 {
-    if (!writer.writeI32((int32_t)kinematicSource)) {
+    if (!writer.writeI32(static_cast<int32_t>(kinematicSource))) {
         return false;
     }
     return true;
