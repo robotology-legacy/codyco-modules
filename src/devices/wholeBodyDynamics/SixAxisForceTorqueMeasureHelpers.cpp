@@ -81,13 +81,7 @@ iDynTree::Wrench SixAxisForceTorqueMeasureProcessor::filt(const iDynTree::Wrench
     iDynTree::Wrench ret;
     fromEigen(ret,retEig);
 
-    yWarning()<< "debugging 6h: input="<<input.toString();
-    yWarning()<<"debugging 6h: filtered values="<<ret.toString();
-    auto temperaturePart= toEigen(m_temperatureCoefficients)*(temperature-m_tempOffset);
-    iDynTree::Wrench temp;
-    fromEigen(temp,temperaturePart.transpose());
-    yWarning()<<"debugging 6h: temperature part="<<temp.toString();
-    yWarning()<<"debugging 6h: offset="<<m_offset.toString();
+
     return ret;
 }
 
