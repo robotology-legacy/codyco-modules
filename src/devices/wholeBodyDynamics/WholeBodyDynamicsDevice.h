@@ -409,7 +409,6 @@ private:
     double prevFTTempTimeStamp;
 
 //    /** Temperature sensors interfaces */
-//    std::vector<yarp::dev::ITemperatureSensors * > temperatureSensors;
 
     /** IMU interface */
     yarp::dev::IGenericSensor * imuInterface;
