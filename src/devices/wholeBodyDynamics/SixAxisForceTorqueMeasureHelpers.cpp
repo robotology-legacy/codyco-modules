@@ -1,7 +1,6 @@
 #include "SixAxisForceTorqueMeasureHelpers.h"
 #include <iDynTree/Core/EigenHelpers.h>
 
-#include <yarp/os/LogStream.h>
 
 namespace wholeBodyDynamics
 {
