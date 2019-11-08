@@ -500,7 +500,7 @@ bool WholeBodyDynamicsDevice::openExternalWrenchesPorts(os::Searchable& config)
     {
         std::string port_name = outputWrenchPorts[i].port_name;
         outputWrenchPorts[i].output_port = new yarp::os::BufferedPort<yarp::sig::Vector>;
-        ok = ok && outputWrenchPorts[i].output_port->open(portPrefix+port_name);
+        ok = ok && outputWrenchPorts[i].output_port->open(port_name);
         outputWrenchPorts[i].output_vector.resize(wholeBodyDynamics_nrOfChannelsOfYARPFTSensor);
     }
 
