@@ -1885,11 +1885,7 @@ void WholeBodyDynamicsDevice::computeCalibration()
 
                 // We apply only the secondary calibration matrix because we are actually computing the offset right now
 
-                // measuredRawFT = ftProcessors[ft].applySecondaryCalibrationMatrix(measuredRawFT);
-                yInfo()<<" wholebody degugging: ft "<<ft <<"  measurement no sec mat "<< measuredRawFT.toString();
-
                 measuredRawFT = ftProcessors[ft].applySecondaryCalibrationMatrix(measuredRawFT,tempMeasurements[ft]);
-                yInfo()<<" wholebody degugging: ft "<<ft <<"  measurement after sec mat "<< measuredRawFT.toString()<< "using temp measurement "<<tempMeasurements[ft];
 
 
                 addToSummer(calibrationBuffers.offsetSumBuffer[ft],measuredRawFT-estimatedFT);

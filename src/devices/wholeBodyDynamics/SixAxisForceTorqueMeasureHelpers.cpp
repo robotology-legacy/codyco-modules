@@ -12,7 +12,7 @@ SixAxisForceTorqueMeasureProcessor::SixAxisForceTorqueMeasureProcessor()
     toEigen(m_secondaryCalibrationMatrix).setIdentity();
     m_offset.zero();
     toEigen(m_temperatureCoefficients).setZero();
-    m_tempOffset=0;
+    m_tempOffset=0.0;
     m_estimated_offset.zero();
 }
 

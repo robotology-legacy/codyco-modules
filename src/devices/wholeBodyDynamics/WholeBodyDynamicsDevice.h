@@ -401,10 +401,6 @@ private:
         yarp::dev::ITemperatureSensors * temperatureSensors;
         yarp::dev::ISixAxisForceTorqueSensors * ftMultiSensors;
         yarp::dev::IMultipleWrapper * multwrap;
-        //yarp::dev::IThreeAxisLinearAccelerometers * linearAccelerometers;
-//        yarp::dev::IOrientationSensors * orientationSensors;
-//        yarp::dev::IThreeAxisGyroscopes * gyroscopes;
-//        yarp::dev::IThreeAxisMagnetometers * magnetometers;
     } remappedMASInterfaces;
     yarp::sig::Vector ftTempMapping;
     double prevFTTempTimeStamp;

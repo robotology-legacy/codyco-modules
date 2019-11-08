@@ -83,7 +83,7 @@ install_wbd_robots_files(YARP_ROBOT_NAME iCubHeidelberg01
                          ROBOT_WBD_CONF    wholebodydynamics-icubheidelberg01-robot.xml)
 
 #
-# iCubHeidelberg01 is one of a kind (a iCub with only legs and torso) and so it has specific configuration files
+# iCubGenova04 is the only one currently calibrated with temperature compensation so it has specific configuration files
 #
 install_wbd_robots_files(YARP_ROBOT_NAME iCubGenova04
                          EXTERNAL_WBD_CONF wholebodydynamics-icubgenova04-external.xml
