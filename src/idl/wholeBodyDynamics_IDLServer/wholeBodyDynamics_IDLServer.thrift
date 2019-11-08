@@ -82,7 +82,7 @@ service wholeBodyDynamics_IDLServer
 
   /**
    * Use the offline estimated offset of the sensor.
-   * @param calib_code argument to specify the sensors to reset (all,arms,legs,feet)
+   * Only sensors with a specified offset in configuration file are affected by this method.s
    * @return true/false on success/failure
    */
   bool usePreEstimatedOffset()
