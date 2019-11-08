@@ -401,10 +401,8 @@ private:
         yarp::dev::ISixAxisForceTorqueSensors * ftMultiSensors;
         yarp::dev::IMultipleWrapper * multwrap;
     } remappedMASInterfaces;
-    yarp::sig::Vector ftTempMapping;
+    std::vector<int> ftTempMapping;
     double prevFTTempTimeStamp;
-
-//    /** Temperature sensors interfaces */
 
     /** IMU interface */
     yarp::dev::IGenericSensor * imuInterface;
@@ -667,7 +665,7 @@ private:
      * @param calib_code argument to specify the sensors to reset (all,arms,legs,feet)
      * @return true/false on success/failure
      */
-    virtual bool usePreEstimatedOffset(const std::string& calib_code);
+    virtual bool usePreEstimatedOffset();
 
      /**
       * Quit the module.

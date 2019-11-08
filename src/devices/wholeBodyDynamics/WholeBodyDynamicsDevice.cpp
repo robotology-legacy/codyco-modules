@@ -1445,7 +1445,7 @@ bool WholeBodyDynamicsDevice::readFTSensors(bool verbose)
                 remappedMASInterfaces.temperatureSensors->getTemperatureSensorName(ftTempMapping[ft],nameOfSensor);
 
 
-                if (sensorStatus==0 ){// this is yarp::dev::MAS_status MAS_OK                    
+                if (sensorStatus==MAS_OK ){
                     TempSensorReadCorrectly=remappedMASInterfaces.temperatureSensors->getTemperatureSensorMeasure(ftTempMapping[ft],tempMeasurements[ft],timeFTStamp);
                      remappedMASInterfaces.temperatureSensors->getTemperatureSensorStatus(ftTempMapping[ft]);
                 }
@@ -2383,11 +2383,11 @@ bool WholeBodyDynamicsDevice::resetOffset(const std::string& calib_code)
     return true;
 }
 
-bool WholeBodyDynamicsDevice::usePreEstimatedOffset(const std::string& calib_code)
+bool WholeBodyDynamicsDevice::usePreEstimatedOffset()
 {
     yarp::os::LockGuard guard(this->deviceMutex);
 
-    yWarning() << "wholeBodyDynamics : calib ignoring calib_code " << calib_code << " using offset estimated offline.";
+    yWarning() << "wholeBodyDynamics : using offset estimated offline.";
 
     for(size_t ft = 0; ft < this->getNrOfFTSensors(); ft++)
     {

@@ -83,15 +83,6 @@ install_wbd_robots_files(YARP_ROBOT_NAME iCubHeidelberg01
                          ROBOT_WBD_CONF    wholebodydynamics-icubheidelberg01-robot.xml)
 
 #
-# iCubGenova04 is the only one currently calibrated with temperature compensation so it has specific configuration files
-#
-install_wbd_robots_files(YARP_ROBOT_NAME iCubGenova04
-                         EXTERNAL_WBD_CONF wholebodydynamics-icubgenova04-external.xml
-                         EXTERNAL_YRI_CONF launch-wholebodydynamics-icubgenova04.xml
-                         ROBOT_WBD_CONF    wholebodydynamics-icub-eth-six-fts.xml)
-
-
-#
 # In the Gazebo simulation no yarprobotinterface is explicitly instantiated, so we install only the remote version
 #
 install_wbd_robots_files(YARP_ROBOT_NAME icubGazeboSim

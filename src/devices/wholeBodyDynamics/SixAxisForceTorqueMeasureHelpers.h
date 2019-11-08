@@ -100,7 +100,7 @@ public:
     /**
      * Process the input F/T.
      *
-     * Returns secondaryCalibrationMatrix*input + offset .
+     * Returns secondaryCalibrationMatrix*input + offset + temperatureCoefficients*(temperature-temperatureOffset).
      */
     iDynTree::Wrench filt(const iDynTree::Wrench & input, const double & temperature) const;
 
