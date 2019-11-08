@@ -392,7 +392,6 @@ private:
 
     /** F/T sensors interfaces */
     std::vector<yarp::dev::IAnalogSensor * > ftSensors;
-    //std::vector<yarp::dev::ISixAxisForceTorqueSensors * > ftSensors;
 
     /** Remapped multiple analog sensors containing the sensors that implement multiple analgo sensor interfaces*/
     yarp::dev::PolyDriver multipleAnalogRemappedDevice;
@@ -406,7 +405,6 @@ private:
     double prevFTTempTimeStamp;
 
 //    /** Temperature sensors interfaces */
-//    std::vector<yarp::dev::ITemperatureSensors * > temperatureSensors;
 
     /** IMU interface */
     yarp::dev::IGenericSensor * imuInterface;
