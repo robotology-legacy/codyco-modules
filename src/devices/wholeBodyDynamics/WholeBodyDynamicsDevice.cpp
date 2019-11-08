@@ -26,7 +26,7 @@ const size_t wholeBodyDynamics_nrOfChannelsOfAYARPIMUSensor = 12;
 const double wholeBodyDynamics_sensorTimeoutInSeconds = 2.0;
 
 WholeBodyDynamicsDevice::WholeBodyDynamicsDevice(): RateThread(10),
-    portPrefix("/wholeBodyDynamics"),  
+    portPrefix("/wholeBodyDynamics"),
     streamFilteredFT(false),
     correctlyConfigured(false),
     sensorReadCorrectly(false),
