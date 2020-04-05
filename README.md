@@ -1,6 +1,8 @@
 CoDyCo Modules
 =================
 
+**DEPRECATED: This repository is deprecated, and will not receive any update in the future some of the modules there were mantained in this repo are now mantained in https://github.com/robotology/whole-body-estimators.**
+
 Whole-body Compliant Dynamical Contacts in Cognitive Humanoids
 
 The CoDyCo project is a four-years long project that started in March
